@@ -59,6 +59,7 @@ public class SonarsPanel extends PamPanel {
 		this.tritechAcquisition = tritechAcquisition;
 		setLayout(new CornerLayout(new CornerLayoutContraint()));
 		this.imageDataBlock = tritechAcquisition.getImageDataBlock();
+		setNumSonars(numSonars);
 	}
 
 	/**
@@ -134,6 +135,10 @@ public class SonarsPanel extends PamPanel {
 	@Override
 	public void paintComponent(Graphics g) {
 		super.paintComponent(g);
+		
+		if (currentImageRecords == null || images == null || imageRectangles == null) {
+			return;
+		}
 		sortRectangles();
 
 		Graphics2D g2d = (Graphics2D) g;

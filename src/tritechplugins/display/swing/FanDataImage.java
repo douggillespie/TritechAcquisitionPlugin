@@ -61,10 +61,11 @@ public class FanDataImage {
 					raster.setPixel(ix, iy, transparent);
 				}
 				else {
+					val*=10;
 					val &= 0xFF;
-					coloured[0] = 0;
-					coloured[1] = val;
-					coloured[2] = sqrt255(val);
+					coloured[0] = val;
+					coloured[1] = val*0;
+					coloured[2] = val;//sqrt255(val);
 					//					coloured[3] = val;
 					raster.setPixel(ix, iy, coloured);
 				}

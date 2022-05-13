@@ -52,6 +52,9 @@ public class TritechAcquisition extends PamControlledUnit implements PamSettings
 		if (isViewer()) {
 			tritechRunMode = tritechOffline = new TritechOffline(this);
 		}
+		else {
+			tritechRunMode = tritechDaqProcess;
+		}
 		
 		UserDisplayControl.addUserDisplayProvider(new SonarPanelProvider(this));
 	}

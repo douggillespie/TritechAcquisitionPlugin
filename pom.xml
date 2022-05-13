@@ -14,5 +14,11 @@
         </configuration>
       </plugin>
     </plugins>
-  </build>
+  </build><dependencies>
+<dependency>
+    <groupId>net.java.dev.jna</groupId>
+    <artifactId>jna</artifactId>
+    <version>5.10.0</version>
+</dependency>
+</dependencies>
 </project>

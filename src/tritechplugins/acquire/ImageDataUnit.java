@@ -1,24 +1,23 @@
 package tritechplugins.acquire;
 
-import PamguardMVC.DataUnitBaseData;
 import PamguardMVC.PamDataUnit;
+import tritechgemini.imagedata.GeminiImageRecordI;
 
 public class ImageDataUnit extends PamDataUnit {
 
-	public ImageDataUnit(long timeMilliseconds) {
+	private GeminiImageRecordI geminiImage;
+
+	public ImageDataUnit(long timeMilliseconds, int channelMap, GeminiImageRecordI geminiImage) {
 		super(timeMilliseconds);
-		// TODO Auto-generated constructor stub
+		setChannelBitmap(channelMap);
+		this.geminiImage = geminiImage;
 	}
 
-	public ImageDataUnit(long timeMilliseconds, int channelBitmap, long startSample, long durationSamples) {
-		super(timeMilliseconds, channelBitmap, startSample, durationSamples);
-		// TODO Auto-generated constructor stub
+	/**
+	 * @return the geminiImage
+	 */
+	public GeminiImageRecordI getGeminiImage() {
+		return geminiImage;
 	}
-
-	public ImageDataUnit(DataUnitBaseData basicData) {
-		super(basicData);
-		// TODO Auto-generated constructor stub
-	}
-
 
 }

@@ -4,12 +4,16 @@ import java.awt.BorderLayout;
 
 import PamUtils.PamCalendar;
 import PamView.panel.PamPanel;
+import PamguardMVC.PamDataUnit;
+import PamguardMVC.PamObservable;
+import PamguardMVC.PamObserverAdapter;
 import pamScrollSystem.AbstractPamScroller;
 import pamScrollSystem.PamScrollObserver;
 import pamScrollSystem.PamScrollSlider;
 import tritechgemini.fileio.CatalogObserver;
 import tritechgemini.fileio.MultiFileCatalog;
 import tritechgemini.imagedata.GeminiImageRecordI;
+import tritechplugins.acquire.ImageDataUnit;
 import tritechplugins.acquire.TritechAcquisition;
 import tritechplugins.acquire.offline.TritechOffline;
 
@@ -47,6 +51,9 @@ public class SonarsOuterPanel {
 			geminiCatalog = tritechOffline.getMultiFileCatalog();
 			geminiCatalog.addObserver(new GemCatalogObserver());
 			checkCatalog();
+		}
+		else {
+			tritechAcquisition.getImageDataBlock().addObserver(new ImageObserver());
 		}
 	}
 
@@ -103,6 +110,22 @@ public class SonarsOuterPanel {
 		for (int i = 0; i < sonarIDs.length; i++) {
 			GeminiImageRecordI imageRec = geminiCatalog.findRecordForTime(sonarIDs[i], valueMillis);
 			sonarsPanel.setImageRecord(i, imageRec);
+		}
+		
+	}
+	
+	private class ImageObserver extends PamObserverAdapter {
+
+		@Override
+		public String getObserverName() {
+			return "Tritech display";
+		}
+
+		@Override
+		public void addData(PamObservable observable, PamDataUnit pamDataUnit) {
+			ImageDataUnit imageDataUnit = (ImageDataUnit) pamDataUnit;
+//			sonarsPanel.setNumSonars(tritechAcquisition.get);
+			sonarsPanel.setImageRecord(0, imageDataUnit.getGeminiImage());
 		}
 		
 	}
