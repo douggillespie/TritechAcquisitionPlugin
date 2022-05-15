@@ -80,7 +80,9 @@ public class TritechAcquisition extends PamControlledUnit implements PamSettings
 		if (isViewer()) {
 			return tritechOffline.createViewerMenu(parentFrame);
 		}
-		return null;
+		else {
+			return tritechDaqProcess.createDaqMenu(parentFrame);
+		}
 	}
 
 	@Override

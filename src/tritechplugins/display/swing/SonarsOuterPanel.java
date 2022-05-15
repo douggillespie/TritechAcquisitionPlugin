@@ -2,7 +2,10 @@ package tritechplugins.display.swing;
 
 import java.awt.BorderLayout;
 
+import PamController.SettingsNameProvider;
 import PamUtils.PamCalendar;
+import PamView.hidingpanel.HidingPanel;
+import PamView.panel.CornerLayoutContraint;
 import PamView.panel.PamPanel;
 import PamguardMVC.PamDataUnit;
 import PamguardMVC.PamObservable;
@@ -16,6 +19,8 @@ import tritechgemini.imagedata.GeminiImageRecordI;
 import tritechplugins.acquire.ImageDataUnit;
 import tritechplugins.acquire.TritechAcquisition;
 import tritechplugins.acquire.offline.TritechOffline;
+import tritechplugins.acquire.swing.DaqControlPanel;
+import tritechplugins.acquire.swing.SonarsStatusPanel;
 
 /**
  * Panel around a sonarspanel which has a few more controls, such as a slider bar in viewer mode
@@ -37,11 +42,29 @@ public class SonarsOuterPanel {
 
 	private MultiFileCatalog geminiCatalog;
 	
-	public SonarsOuterPanel(TritechAcquisition tritechAcquisition) {
+	private DisplayControlPanel displayControlPanel;
+	
+	private DaqControlPanel daqControlPanel;
+	
+	private SonarsStatusPanel sonarsStatusPanel;
+	
+	public SonarsOuterPanel(TritechAcquisition tritechAcquisition, SettingsNameProvider nameProvider) {
 		this.tritechAcquisition = tritechAcquisition;
-		sonarsPanel = new SonarsPanel(tritechAcquisition);
+		sonarsPanel = new SonarsPanel(tritechAcquisition, nameProvider);
 		outerPanel = new PamPanel(new BorderLayout());
 		outerPanel.add(sonarsPanel.getsonarsPanel(), BorderLayout.CENTER);
+		displayControlPanel = new DisplayControlPanel(this, sonarsPanel);
+		sonarsPanel.add(displayControlPanel.getMainPanel(), new CornerLayoutContraint(CornerLayoutContraint.LAST_LINE_END));
+//		if (tritechAcquisition.isViewer() == false) {
+			daqControlPanel = new DaqControlPanel(tritechAcquisition);
+			HidingPanel hidingPanel = new HidingPanel(sonarsPanel, daqControlPanel.getMainPanel(),HidingPanel.HORIZONTAL, false);
+			sonarsPanel.add(hidingPanel, new CornerLayoutContraint(CornerLayoutContraint.LAST_LINE_START));
+			
+			sonarsStatusPanel = new SonarsStatusPanel(tritechAcquisition);
+			HidingPanel hidingStatus = new HidingPanel(sonarsPanel, sonarsStatusPanel.getMainPanel(), HidingPanel.HORIZONTAL, false);
+			sonarsPanel.add(hidingStatus, new CornerLayoutContraint(CornerLayoutContraint.FIRST_LINE_START));
+//		}
+		
 		if (tritechAcquisition.isViewer()) {
 			viewerSlider = new PamScrollSlider("Gemin i display", PamScrollSlider.HORIZONTAL, 5, 60, true);
 			outerPanel.add(viewerSlider.getComponent(), BorderLayout.SOUTH);
@@ -55,6 +78,8 @@ public class SonarsOuterPanel {
 		else {
 			tritechAcquisition.getImageDataBlock().addObserver(new ImageObserver());
 		}
+		
+		displayControlPanel.setParams();
 	}
 
 	/**

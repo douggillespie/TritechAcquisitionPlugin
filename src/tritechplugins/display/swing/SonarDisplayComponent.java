@@ -2,10 +2,11 @@ package tritechplugins.display.swing;
 
 import java.awt.Component;
 
+import PamController.SettingsNameProvider;
 import tritechplugins.acquire.TritechAcquisition;
 import userDisplay.UserDisplayComponent;
 
-public class SonarDisplayComponent implements UserDisplayComponent {
+public class SonarDisplayComponent implements UserDisplayComponent, SettingsNameProvider {
 
 	private TritechAcquisition tritechAcquisition;
 	
@@ -16,7 +17,7 @@ public class SonarDisplayComponent implements UserDisplayComponent {
 	public SonarDisplayComponent(TritechAcquisition tritechAcquisition, String uniqueDisplayName) {
 		this.tritechAcquisition = tritechAcquisition;
 		this.uniqueName = uniqueDisplayName;
-		sonarsOuterPanel = new SonarsOuterPanel(tritechAcquisition);
+		sonarsOuterPanel = new SonarsOuterPanel(tritechAcquisition, this);
 	}
 
 	@Override
@@ -56,6 +57,11 @@ public class SonarDisplayComponent implements UserDisplayComponent {
 	@Override
 	public String getFrameTitle() {
 		return uniqueName;
+	}
+
+	@Override
+	public String getUnitName() {
+		return getUniqueName();
 	}
 
 }

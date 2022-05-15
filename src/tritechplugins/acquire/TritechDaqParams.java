@@ -10,6 +10,10 @@ public class TritechDaqParams implements Serializable, Cloneable{
 	private String offlineFileFolder;
 	
 	private boolean offlineSubFolders;
+	
+	private int range = 60;
+	
+	private int gain = 50;
 
 	/**
 	 * @return the offlineFileFolder
@@ -47,6 +51,40 @@ public class TritechDaqParams implements Serializable, Cloneable{
 	 */
 	public void setOfflineSubFolders(boolean offlineSubFolders) {
 		this.offlineSubFolders = offlineSubFolders;
+	}
+
+	/**
+	 * @return the range
+	 */
+	public int getRange() {
+		if (range == 0) {
+			range = 30;
+		}
+		return range;
+	}
+
+	/**
+	 * @param range the range to set
+	 */
+	public void setRange(int range) {
+		this.range = range;
+	}
+
+	/**
+	 * @return the gain
+	 */
+	public int getGain() {
+		if (gain == 0) {
+			gain = 50;
+		}
+		return gain;
+	}
+
+	/**
+	 * @param gain the gain to set
+	 */
+	public void setGain(int gain) {
+		this.gain = gain;
 	}
 	
 

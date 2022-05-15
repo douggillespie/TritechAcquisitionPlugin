@@ -18,20 +18,20 @@ public class AutoSonarLayout extends SonarLayout {
 		}
 		int w = bounds.width;
 		int h = bounds.height;
-		if (w/nSonar*aspect > h*2) {
+		if (w/nSonar/aspect > h) {
 			// side by side layout
 			Rectangle[] rects = new Rectangle[nSonar];
 			int wr = w/nSonar;
 			for (int i = 0; i < nSonar; i++) {
-				rects[i] = new Rectangle(i*wr, 0, wr, h);
+				rects[i] = new Rectangle(bounds.x+i*wr, bounds.y, wr, h);
 			}
 			return rects;
 		}
-		if (h*nSonar/aspect > w*2) {
+		if (h*nSonar*aspect > w*2) {
 			Rectangle[] rects = new Rectangle[nSonar];
 			int hr = h/nSonar;
 			for (int i = 0; i < nSonar; i++) {
-				rects[i] = new Rectangle(0, i*hr, w, hr);
+				rects[i] = new Rectangle(bounds.x, bounds.y+i*hr, w, hr);
 			}
 			return rects;
 		}
@@ -55,8 +55,8 @@ public class AutoSonarLayout extends SonarLayout {
 		Rectangle[] rects = new Rectangle[2];
 		int w = bounds.width*5/9;
 		int h = bounds.height*2/3;
-		rects[0] = new Rectangle(0, bounds.height*1/3, w, h);
-		rects[1] = new Rectangle(bounds.width*4/9, 0, w, h);
+		rects[0] = new Rectangle(bounds.x, bounds.y+bounds.height*1/3, w, h);
+		rects[1] = new Rectangle(bounds.x+bounds.width*4/9, bounds.y, w, h);
 		
 		return rects;
 	}

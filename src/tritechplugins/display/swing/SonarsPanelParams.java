@@ -20,5 +20,11 @@ public class SonarsPanelParams implements Serializable, Cloneable {
 	public int amplitudeMAx = 255;
 	
 	public ColourArrayType colourMap = ColourArrayType.HOT;
+
+	public int displayGain = 1;
+	
+	public boolean showGrid;
+
+	public boolean flipLeftRight;
 	
 }

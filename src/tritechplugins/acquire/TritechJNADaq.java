@@ -14,7 +14,9 @@ import geminisdk.Svs5StandardCallback;
 import geminisdk.structures.ChirpMode;
 import geminisdk.structures.ConfigOnline;
 import geminisdk.structures.GemStatusPacket;
+import geminisdk.structures.GeminiGain;
 import geminisdk.structures.GeminiRange;
+import geminisdk.structures.GeminiStructure;
 import geminisdk.structures.PingMode;
 import geminisdk.structures.RangeFrequencyConfig;
 import tritechgemini.imagedata.GLFImageRecord;
@@ -38,7 +40,11 @@ public class TritechJNADaq {
 	public boolean initialise() {
 
 		gSerialiser = GenesisSerialiser.getLibrary();
+		if (gSerialiser == null) {
+			return false;
+		}
 		svs5Commands = new Svs5Commands();
+		long ans1 = gSerialiser.svs5StartSvs5(new GeminiCallback());
 		
 		return svs5Commands != null;
 
@@ -56,8 +62,10 @@ public class TritechJNADaq {
 	}
 	
 	public boolean start() {
-		long ans1 = gSerialiser.svs5StartSvs5(new GeminiCallback());
 		long err;
+		if (gSerialiser == null) {
+			return false;
+		}
 		
 		while (deviceInfo.size() < 1) {
 			System.out.println("Waiting for devices ...");
@@ -68,10 +76,11 @@ public class TritechJNADaq {
 				e.printStackTrace();
 			}
 		}
-		GeminiRange range = new GeminiRange(5.);
-		err = svs5Commands.setConfiguration(range, 0);
-//		err += svs5Commands.setConfiguration(range, 1);
-		System.out.println("setRange returned " + err);
+//		GeminiRange range = new GeminiRange(tritechAcquisition.getDaqParams().getRange());
+//		err = svs5Commands.setConfiguration(range, 0);
+////		err += svs5Commands.setConfiguration(range, 1);
+//		System.out.println("setRange returned " + err);
+		err = setRange(tritechAcquisition.getDaqParams().getRange());
 		
 		ChirpMode chirpMode = new ChirpMode(ChirpMode.CHIRP_AUTO);
 		err = svs5Commands.setConfiguration(chirpMode, 0);
@@ -100,12 +109,15 @@ public class TritechJNADaq {
 //		err += svs5Commands.setConfiguration(cOnline, 0);
 		System.out.println("setOnline returned " + err);
 //
-return true;
+		return true;
 		
 	}
 	
 	public boolean stop() {
 
+		if (gSerialiser == null) {
+			return true;
+		}
 		ConfigOnline cOnline = new ConfigOnline(true);
 		long err = svs5Commands.setConfiguration(cOnline);
 		System.out.println("setOnline off returned " + err);
@@ -124,10 +136,13 @@ return true;
 			n = deviceInfo.size();
 			sonarData = deviceInfo.get((int) statusPacket.m_sonarId);
 			if (sonarData == null) {
-				sonarData = new SonarStatusData(statusPacket.m_sonarId);
+				sonarData = new SonarStatusData(statusPacket);
 				deviceInfo.put((int) statusPacket.m_sonarId, sonarData);
 			}
-			sonarData.lastStatusPacket = statusPacket;
+			else {
+				sonarData.setStatusPacket(statusPacket);
+			}
+//			sonarData.lastStatusPacket = statusPacket;
 		}
 		int nNow = deviceInfo.size();
 		if (nNow > n) {
@@ -151,7 +166,7 @@ return true;
 	
 	public void saySonarSummary(SonarStatusData sonarData) {
 		String ip = "?";
-		GemStatusPacket statusPacket = sonarData.lastStatusPacket;
+		GemStatusPacket statusPacket = sonarData.getStatusPacket();
 		try {
 			InetAddress iNA = InetAddress.getByName(String.valueOf(Integer.toUnsignedLong(statusPacket.m_sonarAltIp)));
 			ip = iNA.getHostAddress();
@@ -206,7 +221,11 @@ return true;
 		public void newStatusPacket(GemStatusPacket statusPacket) {
 			// m_sonarId and m_deviceId are the same thing. 
 //			System.out.printf("Sonar id %d device id = %d\n", statusPacket.m_sonarId, statusPacket.m_deviceID);
-			checkDeviceInfo(statusPacket);
+			SonarStatusData sonarStatusData = checkDeviceInfo(statusPacket);
+			if (sonarStatusData != null) {
+				tritechProcess.updateStatusData(sonarStatusData);
+			}
+			
 
 //			GeminiRange range;
 
@@ -231,14 +250,32 @@ return true;
 	}
 
 	public int[] getSonarIDs() {
+		// could probably actually use the keys since the sonar id's are the keys in the hash table.
 		 Collection<SonarStatusData> devs = deviceInfo.values();
 		int n = devs.size();
 		int[] ids = new int[n];
 		int i = 0;
 		for (SonarStatusData sd : devs) {
-			ids[i++] = sd.sonarId;
+			ids[i++] = sd.getStatusPacket().m_deviceID;
 		}
 		return ids;
+	}
+
+	public void rebootSonars() {
+		long ans  = svs5Commands.setConfiguration(GeminiStructure.SVS5_CONFIG_REBOOT_SONAR, null, 678);
+		System.out.println("Reboot returned : " + ans);
+	}
+
+	public long setRange(int range) {
+		GeminiRange rangeObj = new GeminiRange(range);
+		long err = svs5Commands.setConfiguration(rangeObj, 0);		
+		return err;
+	}
+
+	public long setGain(int gain) {
+		GeminiGain gainObj = new GeminiGain(gain);
+		long err = svs5Commands.setConfiguration(gainObj, 0);		
+		return err;
 	}
 
 

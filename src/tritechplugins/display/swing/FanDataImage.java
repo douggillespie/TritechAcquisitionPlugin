@@ -1,5 +1,6 @@
 package tritechplugins.display.swing;
 
+import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.awt.image.WritableRaster;
 
@@ -20,11 +21,14 @@ public class FanDataImage {
 	private ColourArray colours;
 
 	private boolean transparent;
+	
+	private int gain;
 
-	public FanDataImage(FanImageData fanData, ColourArray colours, boolean transparent) {
+	public FanDataImage(FanImageData fanData, ColourArray colours, boolean transparent, int gain) {
 		this.fanData = fanData;
 		this.colours = colours;
 		this.transparent = transparent;
+		this.gain = Math.max(1, gain);
 	}
 
 	public BufferedImage getBufferedImage() {
@@ -54,6 +58,8 @@ public class FanDataImage {
 		//		Color pixCol = new Color(0,0,0,0);
 		int[] transparent = {0,0,0,0};
 		int[] coloured = {0,0,0,255};
+
+		Color[] colourValues = colours.getColours();
 		for (int ix = 0; ix < nX; ix++) {
 			for (int iy = 0; iy < nY; iy++) {
 				short val = data[ix][iy];
@@ -61,11 +67,12 @@ public class FanDataImage {
 					raster.setPixel(ix, iy, transparent);
 				}
 				else {
-					val*=10;
+					val = (short) Math.min(255, val*gain);
 					val &= 0xFF;
-					coloured[0] = val;
-					coloured[1] = val*0;
-					coloured[2] = val;//sqrt255(val);
+					Color col = colourValues[val];
+					coloured[0] = col.getRed();
+					coloured[1] = col.getGreen();
+					coloured[2] = col.getBlue();//sqrt255(val);
 					//					coloured[3] = val;
 					raster.setPixel(ix, iy, coloured);
 				}

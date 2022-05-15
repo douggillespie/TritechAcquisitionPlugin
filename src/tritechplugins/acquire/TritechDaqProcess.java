@@ -1,6 +1,14 @@
 package tritechplugins.acquire;
 
+import java.awt.Frame;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Observable;
+
+import javax.swing.JMenu;
+import javax.swing.JMenuItem;
 
 import PamController.PamController;
 import PamguardMVC.PamProcess;
@@ -18,6 +26,8 @@ public class TritechDaqProcess extends PamProcess implements TritechRunMode {
 	private TritechAcquisition tritechAcquisition;
 	private boolean isAcquire;
 	private TritechJNADaq jnaDaq;
+	
+	private ArrayList<SonarStatusObserver> statusObservers = new ArrayList();
 
 	public ImageDataBlock getImageDataBlock() {
 		return imageDataBlock;
@@ -38,6 +48,26 @@ public class TritechDaqProcess extends PamProcess implements TritechRunMode {
 			System.out.printf("JNA Daq initialised %s version %s\n", new Boolean(isInit).toString(), version);
 		}
 	}
+	
+	/**
+	 * Get the range of gain values. This is a percentage between 1 and 100.  <br>
+	 *  see Sv5JavaInterface.h 
+	 * @return range of gain values.
+	 */
+	public int[] getGainRange() {
+		int[] range = {1, 100};
+		return range;
+	}
+	/**
+	 *  Range of range values. note that these are actually sent to
+	 *  the sonar as double precision values.<br>
+	 *  see Sv5JavaInterface.h 
+	 * @return range of gain values. 
+	 */
+	public int[] getRangeRange() {
+		int[] range = {1, 120};
+		return range;
+	}
 
 	
 	
@@ -48,7 +78,9 @@ public class TritechDaqProcess extends PamProcess implements TritechRunMode {
 
 	@Override
 	public void pamStop() {
-		jnaDaq.stop();
+		if (jnaDaq != null) {
+			jnaDaq.stop();
+		}
 	}
 
 	@Override
@@ -59,6 +91,51 @@ public class TritechDaqProcess extends PamProcess implements TritechRunMode {
 	@Override
 	public int[] getSonarIDs() {
 		return jnaDaq.getSonarIDs();
+	}
+
+	public JMenuItem createDaqMenu(Frame parentFrame) {
+		JMenu menu = new JMenu();
+		int[] sonarIDs = jnaDaq.getSonarIDs();
+		JMenuItem menuItem = new JMenuItem("Reboot sonar(s)");
+		menuItem.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				rebootSonars();
+			}
+		});
+		menu.add(menuItem);
+		return menuItem;
+	}
+
+	protected void rebootSonars() {
+		jnaDaq.rebootSonars();
+	}
+
+	public void setRange(int range) {
+		jnaDaq.setRange(range);
+	}
+
+	public void setGain(int gain) {
+		jnaDaq.setGain(gain);
+	}
+
+	/**
+	 * New status data from a sonar. These come thick and fast whether acquiring or not
+	 * @param sonarStatusData
+	 */
+	public void updateStatusData(SonarStatusData sonarStatusData) {
+		for (SonarStatusObserver obs : statusObservers) {
+			obs.updateStatus(sonarStatusData);
+		}
+	}
+	
+	/**
+	 * Add an observer which will receive updates every time new status data arrive. 
+	 * @param statusObserver
+	 */
+	public void addStatusObserver(SonarStatusObserver statusObserver) {
+		statusObservers.add(statusObserver);
 	}
 
 }
