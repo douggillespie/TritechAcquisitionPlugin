@@ -5,6 +5,7 @@ import java.awt.Color;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.event.MouseEvent;
@@ -59,7 +60,12 @@ public class SonarsPanel extends PamPanel {
 	
 	private int numImages; // may not be the same as numSonars for some display options
 	
-	private Rectangle[] imageRectangles;
+	private LayoutInfo[] imageRectangles;
+	
+	/*
+	 * time taken to create images. 
+	 */
+	private long[] imageTime;
 
 	private ImageFanMaker fanMaker = new FanPicksFromData(4);
 	
@@ -105,6 +111,7 @@ public class SonarsPanel extends PamPanel {
 		currentImageRecords = new GeminiImageRecordI[numSonars];
 		imageFanData = new FanImageData[numSonars];
 		images = new BufferedImage[numSonars];
+		imageTime = new long[numSonars];
 		sortRectangles();
 	}
 	
@@ -125,7 +132,7 @@ public class SonarsPanel extends PamPanel {
 		default:
 			break;
 		}
-		imageRectangles = new Rectangle[numImages];
+//		imageRectangles = new LayoutInfo[numImages];
 		if (numImages == 0) {
 			return;
 		}
@@ -179,9 +186,12 @@ public class SonarsPanel extends PamPanel {
 			images[sonarIndex] = null;
 			return;
 		}
+		long t1 = System.nanoTime();
 		imageFanData[sonarIndex] = fanMaker.createFanData(imageRecord);
 		FanDataImage fanImage = new FanDataImage(imageFanData[sonarIndex], colourArray, false, sonarsPanelParams.displayGain);
 		images[sonarIndex] = fanImage.getBufferedImage();
+		long t2 = System.nanoTime();
+		imageTime[sonarIndex] = t2-t1;
 		repaint(10);
 	}
 
@@ -204,7 +214,7 @@ public class SonarsPanel extends PamPanel {
 			
 		}
 		for (int i = 0; i < numImages; i++) {
-			paintSonarImage(g, imageRectangles[i], currentImageRecords[i], images[i]);
+			paintSonarImage(g, i, imageRectangles[i], currentImageRecords[i], images[i]);
 		}
 	}
 
@@ -236,7 +246,7 @@ public class SonarsPanel extends PamPanel {
 			if (imageRectangles[i] == null || currentImageRecords[i] == null) {
 				continue;
 			}
-			Rectangle aspRect = sonarLayout.checkAspect(imageRectangles[i], Math.toRadians(60));
+			Rectangle aspRect =  imageRectangles[i].getImageRectangle();// sonarLayout.checkAspect(imageRectangles[i], Math.toRadians(60));
 			double maxR = currentImageRecords[i].getMaxRange();
 			int pix = aspRect.height;
 			int x0 = aspRect.x + aspRect.width/2;
@@ -258,12 +268,12 @@ public class SonarsPanel extends PamPanel {
 		return null;		
 	}
 
-	private void paintSonarImage(Graphics g, Rectangle rectangle, GeminiImageRecordI geminiImageRecord,
+	private void paintSonarImage(Graphics g, int imageIndex, LayoutInfo layoutInfo, GeminiImageRecordI geminiImageRecord,
 			BufferedImage bufferedImage) {
-		if (rectangle == null || bufferedImage == null) {
+		if (layoutInfo == null || bufferedImage == null) {
 			return;
 		}
-		Rectangle trueAsp = sonarLayout.checkAspect(rectangle, Math.toRadians(60));
+		Rectangle trueAsp = layoutInfo.getImageRectangle();//.checkAspect(layoutInfo, Math.toRadians(60));
 		if (sonarsPanelParams.flipLeftRight) {
 			g.drawImage(bufferedImage, trueAsp.x+trueAsp.width, trueAsp.height+trueAsp.y, trueAsp.x, trueAsp.y, 
 					0, 0, bufferedImage.getWidth(), bufferedImage.getHeight(), null);
@@ -317,10 +327,17 @@ public class SonarsPanel extends PamPanel {
 		 */
 		Graphics2D g2d = (Graphics2D) g;
 		g2d.setColor(PamColors.getInstance().getColor(PamColor.AXIS));
-		int xt = trueAsp.x;
-		int yt = trueAsp.y;
+		Point txtPoint = layoutInfo.getTextPoint();
+		int xt = txtPoint.x;
+		int yt = txtPoint.y;
 		FontMetrics fm = g2d.getFontMetrics();
 		int lineHeight = fm.getHeight();
+		int maxCharWidth = fm.getMaxAdvance();
+		// clear a rectangle (deals with the text being on top of the axis)
+		Color currCol = g.getColor();
+		g.setColor(this.getBackground());
+		g.fillRect(xt, yt, maxCharWidth*2, lineHeight*4);
+		g.setColor(currCol);
 		yt += lineHeight;
 		xt += fm.charWidth(' ');
 		String str;
@@ -333,7 +350,7 @@ public class SonarsPanel extends PamPanel {
 		str = String.format("nRange %d, nAngle %d", geminiImageRecord.getnRange(), geminiImageRecord.getnBeam());
 		g2d.drawString(str, xt, yt);	
 		yt += lineHeight;
-		str = String.format("Load time %3.1f\u00B5s", geminiImageRecord.getLoadTime()/1000.);
+		str = String.format("Load %3.2fms; Image %3.2fms", geminiImageRecord.getLoadTime()/1000000., imageTime[imageIndex]/1000000.);
 		g2d.drawString(str, xt, yt);	
 	}
 

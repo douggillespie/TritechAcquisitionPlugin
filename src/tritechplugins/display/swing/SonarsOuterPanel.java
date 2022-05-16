@@ -54,16 +54,18 @@ public class SonarsOuterPanel {
 		outerPanel = new PamPanel(new BorderLayout());
 		outerPanel.add(sonarsPanel.getsonarsPanel(), BorderLayout.CENTER);
 		displayControlPanel = new DisplayControlPanel(this, sonarsPanel);
-		sonarsPanel.add(displayControlPanel.getMainPanel(), new CornerLayoutContraint(CornerLayoutContraint.LAST_LINE_END));
-//		if (tritechAcquisition.isViewer() == false) {
+		HidingPanel hideDisplay = new HidingPanel(sonarsPanel, displayControlPanel.getMainPanel(),HidingPanel.HORIZONTAL, false, "Display controls", nameProvider.getUnitName()+" Display");
+		sonarsPanel.add(hideDisplay, new CornerLayoutContraint(CornerLayoutContraint.LAST_LINE_END));
+		if (tritechAcquisition.isViewer() == false) {
 			daqControlPanel = new DaqControlPanel(tritechAcquisition);
-			HidingPanel hidingPanel = new HidingPanel(sonarsPanel, daqControlPanel.getMainPanel(),HidingPanel.HORIZONTAL, false);
+			HidingPanel hidingPanel = new HidingPanel(sonarsPanel, daqControlPanel.getMainPanel(),HidingPanel.HORIZONTAL, false, "Online controls", nameProvider.getUnitName()+" Controls");
 			sonarsPanel.add(hidingPanel, new CornerLayoutContraint(CornerLayoutContraint.LAST_LINE_START));
 			
 			sonarsStatusPanel = new SonarsStatusPanel(tritechAcquisition);
-			HidingPanel hidingStatus = new HidingPanel(sonarsPanel, sonarsStatusPanel.getMainPanel(), HidingPanel.HORIZONTAL, false);
+			HidingPanel hidingStatus = new HidingPanel(sonarsPanel, sonarsStatusPanel.getMainPanel(), HidingPanel.HORIZONTAL, false, "Sonar Online Status", nameProvider.getUnitName()+" Status");
+//			hidingStatus.setOpaque(false);
 			sonarsPanel.add(hidingStatus, new CornerLayoutContraint(CornerLayoutContraint.FIRST_LINE_START));
-//		}
+		}
 		
 		if (tritechAcquisition.isViewer()) {
 			viewerSlider = new PamScrollSlider("Gemin i display", PamScrollSlider.HORIZONTAL, 5, 60, true);

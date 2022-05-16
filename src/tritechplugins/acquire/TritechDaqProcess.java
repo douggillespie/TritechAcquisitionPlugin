@@ -113,10 +113,16 @@ public class TritechDaqProcess extends PamProcess implements TritechRunMode {
 	}
 
 	public void setRange(int range) {
+		if (jnaDaq == null) {
+			return;
+		}
 		jnaDaq.setRange(range);
 	}
 
 	public void setGain(int gain) {
+		if (jnaDaq == null) {
+			return;
+		}
 		jnaDaq.setGain(gain);
 	}
 
@@ -129,6 +135,26 @@ public class TritechDaqProcess extends PamProcess implements TritechRunMode {
 			obs.updateStatus(sonarStatusData);
 		}
 	}
+	
+	public void updateFrameRate(int frameRate) {
+		for (SonarStatusObserver obs : statusObservers) {
+			obs.updateFrameRate(frameRate);
+		}
+	}
+	
+	public String getLibVersion() {
+		if (jnaDaq == null) {
+			return "Offline";
+		}
+		return jnaDaq.getLibVersion();
+	}
+	
+//	public int getCurrentFrameRate() {
+//		if (jnaDaq == null) {
+//			return 0;
+//		}
+//		return jnaDaq.getCurrentFrameRate();
+//	}
 	
 	/**
 	 * Add an observer which will receive updates every time new status data arrive. 

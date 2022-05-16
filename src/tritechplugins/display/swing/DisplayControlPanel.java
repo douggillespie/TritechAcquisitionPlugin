@@ -38,7 +38,7 @@ public class DisplayControlPanel {
 
 	private SonarsPanel sonarsPanel;
 	
-	private HidingPanel hidingPanel;
+//	private HidingPanel hidingPanel;
 	
 	public DisplayControlPanel(SonarsOuterPanel sonarsOuterPanel, SonarsPanel sonarsPanel) {
 		this.sonarsOuterPanel = sonarsOuterPanel;
@@ -88,7 +88,7 @@ public class DisplayControlPanel {
 //		gainSlider.setPaintTicks(true);
 //		c.gridy++;
 		
-		hidingPanel = new HidingPanel(sonarsPanel, mainPanel, HidingPanel.HORIZONTAL, false);
+//		hidingPanel = new HidingPanel(sonarsPanel, mainPanel, HidingPanel.HORIZONTAL, false);
 		
 	}
 
@@ -132,7 +132,7 @@ public class DisplayControlPanel {
 	}
 
 	public JPanel getMainPanel() {
-		return hidingPanel;
+		return mainPanel;
 	}
 	
 	public void setParams() {

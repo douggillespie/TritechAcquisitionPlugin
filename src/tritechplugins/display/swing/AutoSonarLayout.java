@@ -1,6 +1,9 @@
 package tritechplugins.display.swing;
 
+import java.awt.Point;
 import java.awt.Rectangle;
+
+import PamController.PamController;
 
 public class AutoSonarLayout extends SonarLayout {
 
@@ -9,67 +12,81 @@ public class AutoSonarLayout extends SonarLayout {
 	}
 
 	@Override
-	public Rectangle[] getRectangles(Rectangle bounds, int nSonar, double maxAngle) {
+	public LayoutInfo[] getRectangles(Rectangle bounds, int nSonar, double maxAngle) {
 		// calculate the ratio of width to height for each rectangle. 
 		double aspect = getAspect(maxAngle); 
 		if (nSonar == 1) {
-			Rectangle rects[] = {bounds};
-			return rects;
+			LayoutInfo[] layoutInfo = {new LayoutInfo(checkAspect(bounds, maxAngle))};
+			return layoutInfo;
 		}
 		int w = bounds.width;
 		int h = bounds.height;
 		if (w/nSonar/aspect > h) {
 			// side by side layout
-			Rectangle[] rects = new Rectangle[nSonar];
+			LayoutInfo[] layout = new LayoutInfo[nSonar];
 			int wr = w/nSonar;
 			for (int i = 0; i < nSonar; i++) {
-				rects[i] = new Rectangle(bounds.x+i*wr, bounds.y, wr, h);
+				layout[i] = new LayoutInfo(checkAspect(new Rectangle(bounds.x+i*wr, bounds.y, wr, h), maxAngle));
 			}
-			return rects;
+			return layout;
 		}
 		if (h*nSonar*aspect > w*2) {
-			Rectangle[] rects = new Rectangle[nSonar];
+			LayoutInfo[] layout = new LayoutInfo[nSonar];
 			int hr = h/nSonar;
 			for (int i = 0; i < nSonar; i++) {
-				rects[i] = new Rectangle(bounds.x, bounds.y+i*hr, w, hr);
+				layout[i] = new LayoutInfo(checkAspect(new Rectangle(bounds.x, bounds.y+i*hr, w, hr),maxAngle));
 			}
-			return rects;
+			return layout;
 		}
 		if (nSonar == 2){
-			return diagonal2(bounds, aspect);
+			return diagonal2(bounds, maxAngle);
 		}
 		if (nSonar > 2){
-			return manyGrid(bounds, nSonar, aspect);
+			return manyGrid(bounds, nSonar, maxAngle);
 		}
 		
 		return null;
 	}
 
 
-	private Rectangle[] diagonal2(Rectangle bounds, double aspect) {
+	private LayoutInfo[] diagonal2(Rectangle bounds, double maxAngle) {
 		/*
 		 * 
 			drawSonarImage(g2d, 0, fanData[0], bufferedImage[0], 0, getHeight()*1/3, getWidth()*5/9, getHeight());
 			drawSonarImage(g2d, 1, fanData[1], bufferedImage[1], getWidth()*4/9, 0, getWidth(), getHeight()*2/3);
 		 */
 		Rectangle[] rects = new Rectangle[2];
-		int w = bounds.width*5/9;
-		int h = bounds.height*2/3;
-		rects[0] = new Rectangle(bounds.x, bounds.y+bounds.height*1/3, w, h);
-		rects[1] = new Rectangle(bounds.x+bounds.width*4/9, bounds.y, w, h);
+		int w1 = 9;
+		int w2 = 5;
+		int h1 = 11;
+		int h2 = 8;
+		int w = bounds.width*w2/w1;
+		int h = bounds.height*h2/h1;
+		rects[0] = checkAspect(new Rectangle(bounds.x, bounds.y+bounds.height*(h1-h2)/h1, w, h), maxAngle);
+		Point pt1;
+		if (PamController.getInstance().getRunMode() == PamController.RUN_PAMVIEW) {
+			pt1 = new Point(rects[0].x, rects[0].y);
+		}
+		else {
+			pt1 = new Point(rects[0].x+rects[0].width*3/4, rects[0].y+rects[0].height-rects[0].height/4);
+		}
+		rects[1] = checkAspect(new Rectangle(bounds.x+bounds.width*(w1-w2)/w1, bounds.y, w, h), maxAngle);
 		
-		return rects;
+		LayoutInfo[] layouts = new LayoutInfo[2];
+		layouts[0] = new LayoutInfo(rects[0], pt1);
+		layouts[1] = new LayoutInfo(rects[1]);
+		return layouts;
 	}
 
-	private Rectangle[] manyGrid(Rectangle bounds, int nSonar, double aspect) {
-		Rectangle rects[] = new Rectangle[nSonar];
+	private LayoutInfo[] manyGrid(Rectangle bounds, int nSonar, double maxAngle) {
+		LayoutInfo layouts[] = new LayoutInfo[nSonar];
 		int nx = 2;
 		int ny = (nSonar+1)/2;
 		int w = bounds.width/nx;
 		int h = bounds.height/ny;
 		int x = 0, y = 0;
 		for (int i = 0; i < nSonar; i++) {
-			rects[i] = new Rectangle(x, y, w, h);
+			layouts[i] = new LayoutInfo(checkAspect(new Rectangle(x, y, w, h), maxAngle));
 			if (i/nx < nx-1) {
 				x += w;
 			}
@@ -78,6 +95,6 @@ public class AutoSonarLayout extends SonarLayout {
 				y += h;
 			}
 		}
-		return rects;
+		return layouts;
 	}
 }

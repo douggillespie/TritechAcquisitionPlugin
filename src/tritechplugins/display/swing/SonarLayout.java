@@ -8,13 +8,14 @@ public abstract class SonarLayout {
 	}
 	
 	/**
-	 * Work out rectangles for each sonar, which may overlap if being clever. 
+	 * Work out rectangles for each sonar, which may overlap if being clever. All rectangles should have
+	 * been passed through checkAspect to make sure they are the right dimension. 
 	 * @param bounds outer bounding rectangle. 
 	 * @param nSonar number of sonars. 
 	 * @param maxAngle MAximum angle in radians. 
 	 * @return Rectangles for layout. 
 	 */
-	public abstract Rectangle[] getRectangles(Rectangle bounds, int nSonar, double maxAngle);
+	public abstract LayoutInfo[] getRectangles(Rectangle bounds, int nSonar, double maxAngle);
 	
 	/**
 	 * Get the ratio of width to height. 

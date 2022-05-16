@@ -10,9 +10,12 @@ import java.util.Set;
 import geminisdk.GenesisSerialiser;
 import geminisdk.GenesisSerialiser.GlfLib;
 import geminisdk.Svs5Commands;
+import geminisdk.Svs5ErrorType;
 import geminisdk.Svs5StandardCallback;
 import geminisdk.structures.ChirpMode;
 import geminisdk.structures.ConfigOnline;
+import geminisdk.structures.GemFileLocation;
+import geminisdk.structures.GemRecord;
 import geminisdk.structures.GemStatusPacket;
 import geminisdk.structures.GeminiGain;
 import geminisdk.structures.GeminiRange;
@@ -28,7 +31,7 @@ public class TritechJNADaq {
 	private TritechDaqProcess tritechProcess;
 	private GlfLib gSerialiser;
 	private Svs5Commands svs5Commands;
-
+	
 	private HashMap<Integer, SonarStatusData> deviceInfo = new HashMap<>();
 
 	public TritechJNADaq(TritechAcquisition tritechAcquisition, TritechDaqProcess tritechProcess) {
@@ -173,7 +176,7 @@ public class TritechJNADaq {
 		} catch (UnknownHostException e) {
 			ip = String.format("Unknown 0X%X", Integer.toUnsignedLong(statusPacket.m_sonarAltIp));
 		}
-		System.out.printf("Device id %d at ip address %s total images %d\n", statusPacket.m_sonarId, ip, sonarData.totalImages);
+//		System.out.printf("Device id %d at ip address %s total images %d\n", statusPacket.m_sonarId, ip, sonarData.totalImages);
 	}
 
 	public class GeminiCallback extends Svs5StandardCallback {
@@ -188,10 +191,12 @@ public class TritechJNADaq {
 		public void setFrameRate(int framesPerSecond) {
 //			GeminiRange range = new GeminiRange(0);
 //			svs5Commands.getConfiguration(range.defaultCommand(), range, 853);
-			if (frameCalls++ % 10 == 0) { 
-				System.out.println("Frame rate is " + framesPerSecond);
-//				summariseAllSonarData();
-			}
+//			if (frameCalls++ % 10 == 0) { 
+//				System.out.println("Frame rate is " + framesPerSecond);
+////				summariseAllSonarData();
+//			}
+//			currentFrameRate = framesPerSecond;
+			tritechProcess.updateFrameRate(framesPerSecond);
 		}
 
 		int nImages = 0;
@@ -277,6 +282,53 @@ public class TritechJNADaq {
 		long err = svs5Commands.setConfiguration(gainObj, 0);		
 		return err;
 	}
+	
+	/**
+	 * Set the output file location. Probably sensible to check the folder
+	 * exists before calling this. 
+	 * @param filePath file path
+	 * @return error code. 
+	 */
+	public long setFileLocation(String filePath) {
+		GemFileLocation gemLoc = new GemFileLocation(filePath);
+		long err = svs5Commands.setConfiguration(gemLoc, 0);
+		return err;
+	}
+	
+	/**
+	 * Get the output file path. 
+	 * @return file path or null if it can't be read. 
+	 */
+	public String getFileLocation() { 
+		GemFileLocation gemLoc = new GemFileLocation(new byte[256]);
+		long err = svs5Commands.getConfiguration(gemLoc.defaultCommand(), gemLoc, 0);
+		if (err == Svs5ErrorType.SVS5_SEQUENCER_STATUS_OK) {
+			return gemLoc.getFilePath();
+		}
+		return null;
+	}
+	
+	/**
+	 * Set recording on or off
+	 * @param record record status. 
+	 * @return 0 if no error issuing command. 
+	 */
+	long setRecord(boolean record) {
+		GemRecord gemRecord = new GemRecord(record);
+		long err = svs5Commands.setConfiguration(gemRecord, 0);
+		return err;
+	}
 
-
+	/**
+	 * Get if the system is currently recording. 
+	 * @return record state
+	 */
+	boolean getRecord() {
+		GemRecord gemRecord = new GemRecord(false);
+		long err = svs5Commands.getConfiguration(gemRecord.defaultCommand(), gemRecord, 0);
+		if (err == Svs5ErrorType.SVS5_SEQUENCER_STATUS_OK) {
+			return gemRecord.isRecord();
+		}
+		return false;
+	}
 }
