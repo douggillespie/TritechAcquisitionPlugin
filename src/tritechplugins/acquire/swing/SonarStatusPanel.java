@@ -88,9 +88,9 @@ public class SonarStatusPanel {
 	private InfoStrip addInfoStrip(String name, GridBagConstraints c) {
 		InfoStrip infoStrip = new InfoStrip(name);
 		c.gridx = 0;
-		mainPanel.add(new PamLabel(name + ": ", JLabel.RIGHT), c);
+		mainPanel.add(infoStrip.getNameLabel(), c);
 		c.gridx++;
-		mainPanel.add(infoStrip.value, c);
+		mainPanel.add(infoStrip.getValueLabel(), c);
 		c.gridy++;
 		return infoStrip;
 	}

@@ -14,6 +14,7 @@ import geminisdk.Svs5ErrorType;
 import geminisdk.Svs5StandardCallback;
 import geminisdk.structures.ChirpMode;
 import geminisdk.structures.ConfigOnline;
+import geminisdk.structures.GLFLogger;
 import geminisdk.structures.GemFileLocation;
 import geminisdk.structures.GemRecord;
 import geminisdk.structures.GemStatusPacket;
@@ -49,6 +50,14 @@ public class TritechJNADaq {
 		svs5Commands = new Svs5Commands();
 		long ans1 = gSerialiser.svs5StartSvs5(new GeminiCallback());
 		
+		svs5Commands.setConfiguration(new GLFLogger(true));
+
+
+		long err=0;//
+//		err = setFileLocation("C:\\GeminiData3");
+		String fileLoc = getFileLocation();
+		System.out.printf("Gemini file location is %d \"%s\"\n", err,  fileLoc);
+		
 		return svs5Commands != null;
 
 	}
@@ -79,10 +88,10 @@ public class TritechJNADaq {
 				e.printStackTrace();
 			}
 		}
-//		GeminiRange range = new GeminiRange(tritechAcquisition.getDaqParams().getRange());
-//		err = svs5Commands.setConfiguration(range, 0);
-////		err += svs5Commands.setConfiguration(range, 1);
-//		System.out.println("setRange returned " + err);
+		GeminiRange range = new GeminiRange(tritechAcquisition.getDaqParams().getRange());
+		err = svs5Commands.setConfiguration(range, 0);
+//		err += svs5Commands.setConfiguration(range, 1);
+		System.out.println("setRange returned " + err);
 		err = setRange(tritechAcquisition.getDaqParams().getRange());
 		
 		ChirpMode chirpMode = new ChirpMode(ChirpMode.CHIRP_AUTO);
@@ -99,18 +108,27 @@ public class TritechJNADaq {
 ////		err = svs5Commands.setConfiguration(simADC);
 ////		System.out.println("Simulate returned " + err);
 //
-		PingMode pingMode = new PingMode();
-		pingMode.m_bFreeRun = false;
-		pingMode.m_msInterval = 250;
-		err += svs5Commands.setConfiguration(pingMode, 0);
-		err = svs5Commands.setConfiguration(pingMode, 1);
-		System.out.println("setConfiguration pingMode returned " + err);
+//		PingMode pingMode = new PingMode();
+//		pingMode.m_bFreeRun = false;
+//		pingMode.m_msInterval = 250;
+//		err += svs5Commands.setConfiguration(pingMode, 0);
+//		err = svs5Commands.setConfiguration(pingMode, 1);
+//		System.out.println("setConfiguration pingMode returned " + err);
 
-		ConfigOnline cOnline = new ConfigOnline(false);
+
+//		err = setFileLocation("C:\\GeminiData");
+//		String fileLoc = getFileLocation();
+//		System.out.printf("Gemini file location is \"%s\"\n", fileLoc);
+		
+		ConfigOnline cOnline = new ConfigOnline(true);
 		err = svs5Commands.setConfiguration(cOnline, 0);
 //		cOnline.value = false;
 //		err += svs5Commands.setConfiguration(cOnline, 0);
 		System.out.println("setOnline returned " + err);
+
+		
+		err = setRecord(true);
+//		System.out.println("Set record returned " + err);
 //
 		return true;
 		
@@ -247,9 +265,33 @@ public class TritechJNADaq {
 //				System.out.printf("Range err %d, value %3.1f and %3.1f\n", rErr, r1,r2);
 			
 		}
+
+		@Override
+		protected void recUpdateMessage(byte[] data) {
+			String fileName = readNTString(data);
+//			System.out.printf("Record update message \"%s\"\n", fileName);
+			tritechProcess.updateFileName(fileName);
+		}
 		
 	}
 
+	/**
+	 * Read a String from a null terminated string. Basically has to find
+	 * the first zero, then ready up to that. 
+	 * @param data data, NTS possibly with junk after the NT.
+	 * @return String 
+	 */
+	private String readNTString(byte[] data) {
+		int end = data.length;
+		for (int i = 0; i < data.length; i++) {
+			if (data[i] == 0) {
+				end = i;
+				break;
+			}
+		}
+		return new String(data, 0, end);
+	}
+	
 	public int getNumSonars() {
 		return deviceInfo.size();
 	}
@@ -290,9 +332,11 @@ public class TritechJNADaq {
 	 * @return error code. 
 	 */
 	public long setFileLocation(String filePath) {
-		GemFileLocation gemLoc = new GemFileLocation(filePath);
-		long err = svs5Commands.setConfiguration(gemLoc, 0);
-		return err;
+//		GemFileLocation gemLoc = new GemFileLocation(filePath);
+//		long err = svs5Commands.setConfiguration(gemLoc, 0);
+//		return err;
+//		return 0;
+		return svs5Commands.sendStringCommand(GeminiStructure.SVS5_CONFIG_FILE_LOCATION, filePath, 0);
 	}
 	
 	/**
@@ -300,12 +344,13 @@ public class TritechJNADaq {
 	 * @return file path or null if it can't be read. 
 	 */
 	public String getFileLocation() { 
-		GemFileLocation gemLoc = new GemFileLocation(new byte[256]);
-		long err = svs5Commands.getConfiguration(gemLoc.defaultCommand(), gemLoc, 0);
-		if (err == Svs5ErrorType.SVS5_SEQUENCER_STATUS_OK) {
-			return gemLoc.getFilePath();
-		}
-		return null;
+//		GemFileLocation gemLoc = new GemFileLocation(new byte[64]);
+//		long err = svs5Commands.getConfiguration(gemLoc.defaultCommand(), gemLoc, 0);
+//		if (err == Svs5ErrorType.SVS5_SEQUENCER_STATUS_OK) {
+//			return gemLoc.getFilePath();
+//		}
+//		return null;
+		return svs5Commands.getStringCommand(GeminiStructure.SVS5_CONFIG_FILE_LOCATION, 128, 0);
 	}
 	
 	/**

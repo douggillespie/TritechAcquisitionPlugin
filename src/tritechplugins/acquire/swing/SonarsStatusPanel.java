@@ -93,4 +93,9 @@ public class SonarsStatusPanel implements SonarStatusObserver {
 		
 	}
 
+	@Override
+	public void updateFileName(String fileName) {
+		
+	}
+
 }

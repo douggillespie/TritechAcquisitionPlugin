@@ -8,4 +8,6 @@ public interface SonarStatusObserver {
 	
 	public void updateFrameRate(int frameRate);
 	
+	public void updateFileName(String fileName);
+	
 }

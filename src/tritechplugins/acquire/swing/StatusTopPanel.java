@@ -79,6 +79,12 @@ public class StatusTopPanel implements SonarStatusObserver {
 	public void updateFrameRate(int frameRate) {
 		this.frameRate.setText(String.format("%d fps", frameRate));
 	}
+
+	@Override
+	public void updateFileName(String fileName) {
+		errorStrip.setName("File");
+		errorStrip.setText(fileName);
+	}
 	
 
 }

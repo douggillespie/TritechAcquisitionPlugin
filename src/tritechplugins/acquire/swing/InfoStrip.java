@@ -9,18 +9,22 @@ import PamView.dialog.PamLabel;
 
 class InfoStrip {
 	
-	private String name;
+	private PamLabel nameLabel;
 	
-	PamLabel value;
+	private PamLabel valueLabel;
 
 	public InfoStrip(String name) {
 		super();
-		this.name = name;
-		value = new PamLabel();
+		this.nameLabel = new PamLabel(formatName(name), PamLabel.RIGHT);
+		valueLabel = new PamLabel();
+	}
+	
+	public String formatName(String bareName) {
+		return bareName + ": ";
 	}
 	
 	public void setText(String text) {
-		value.setText(text);
+		valueLabel.setText(text);
 	}
 	
 	public void setIpAddr(int ipAddr) {
@@ -37,7 +41,7 @@ class InfoStrip {
 	 * @return the name
 	 */
 	public String getName() {
-		return name;
+		return nameLabel.getText();
 	}
 
 	/**
@@ -50,11 +54,32 @@ class InfoStrip {
 	public static InfoStrip addInfoStrip(String name, JComponent component, GridBagConstraints c) {
 		InfoStrip iStrip = new InfoStrip(name);
 		c.gridx = 0;
-		component.add(new PamLabel(name + ": ", JLabel.RIGHT), c);
+		component.add(iStrip.nameLabel = new PamLabel(name + ": ", JLabel.RIGHT), c);
 		c.gridx++;
-		component.add(iStrip.value, c);
+		component.add(iStrip.valueLabel, c);
 		c.gridy++;
 		return iStrip;
+	}
+
+	/**
+	 * @param name the name to set
+	 */
+	public void setName(String name) {
+		nameLabel.setText(formatName(name));
+	}
+
+	/**
+	 * @return the nameLabel
+	 */
+	public PamLabel getNameLabel() {
+		return nameLabel;
+	}
+
+	/**
+	 * @return the valueLabel
+	 */
+	public PamLabel getValueLabel() {
+		return valueLabel;
 	}
 	
 }

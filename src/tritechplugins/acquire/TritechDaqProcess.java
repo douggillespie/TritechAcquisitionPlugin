@@ -136,6 +136,12 @@ public class TritechDaqProcess extends PamProcess implements TritechRunMode {
 		}
 	}
 	
+	public void updateFileName(String fileName) {
+		for (SonarStatusObserver obs : statusObservers) {
+			obs.updateFileName(fileName);
+		}		
+	}
+
 	public void updateFrameRate(int frameRate) {
 		for (SonarStatusObserver obs : statusObservers) {
 			obs.updateFrameRate(frameRate);
