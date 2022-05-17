@@ -12,6 +12,7 @@ import javax.swing.JMenuItem;
 
 import PamController.PamController;
 import PamguardMVC.PamProcess;
+import geminisdk.Svs5Exception;
 
 /**
  * Tritech DAQ will acquire from and control the Gemini's. Because we're still not sure if
@@ -109,21 +110,36 @@ public class TritechDaqProcess extends PamProcess implements TritechRunMode {
 	}
 
 	protected void rebootSonars() {
-		jnaDaq.rebootSonars();
+		try {
+			jnaDaq.rebootSonars();
+		} catch (Svs5Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
 	public void setRange(int range) {
 		if (jnaDaq == null) {
 			return;
 		}
-		jnaDaq.setRange(range);
+		try {
+			jnaDaq.setRange(range, 0);
+		} catch (Svs5Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
 	public void setGain(int gain) {
 		if (jnaDaq == null) {
 			return;
 		}
-		jnaDaq.setGain(gain);
+		try {
+			jnaDaq.setGain(gain, 0);
+		} catch (Svs5Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
 	/**
