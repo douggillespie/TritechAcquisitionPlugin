@@ -16,7 +16,9 @@ public class AutoSonarLayout extends SonarLayout {
 		// calculate the ratio of width to height for each rectangle. 
 		double aspect = getAspect(maxAngle); 
 		if (nSonar == 1) {
-			LayoutInfo[] layoutInfo = {new LayoutInfo(checkAspect(bounds, maxAngle))};
+			Rectangle rect = checkAspect(bounds, maxAngle);
+			Point pt = new Point(rect.x+rect.width*4/5, rect.y);
+			LayoutInfo[] layoutInfo = {new LayoutInfo(rect, pt)};
 			return layoutInfo;
 		}
 		int w = bounds.width;

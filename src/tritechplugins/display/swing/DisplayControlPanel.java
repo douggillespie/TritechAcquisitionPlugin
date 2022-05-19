@@ -9,6 +9,7 @@ import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSlider;
+import javax.swing.JTextField;
 import javax.swing.border.TitledBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -17,6 +18,7 @@ import PamView.ColourComboBox;
 import PamView.dialog.PamCheckBox;
 import PamView.dialog.PamGridBagContraints;
 import PamView.dialog.PamLabel;
+import PamView.dialog.PamTextField;
 import PamView.hidingpanel.HidingPanel;
 import PamView.panel.PamPanel;
 
@@ -38,6 +40,10 @@ public class DisplayControlPanel {
 
 	private SonarsPanel sonarsPanel;
 	
+	private JCheckBox removeBackground;
+	
+	private JTextField backgroundScale;
+	
 //	private HidingPanel hidingPanel;
 	
 	public DisplayControlPanel(SonarsOuterPanel sonarsOuterPanel, SonarsPanel sonarsPanel) {
@@ -53,16 +59,18 @@ public class DisplayControlPanel {
 		
 		gainSlider = new JSlider(1, 10);
 
-		mainPanel.add(gainText = new PamLabel("gain: x2    "), c);
-		c.gridx++;
+		c.gridwidth = 1;
+		mainPanel.add(gainText = new PamLabel("gain: x2 "), c);
+		c.gridx+=2;
+		c.gridwidth = 2;
 		mainPanel.add(showGrid = new PamCheckBox("Show grid  "), c);
 		showGrid.addActionListener(generalAction);
-		c.gridx++;
+		c.gridx+=c.gridwidth;
 		mainPanel.add(flipLeftRight = new PamCheckBox("Flip image"), c);
 		flipLeftRight.addActionListener(generalAction);
 		c.gridx = 0;
 		c.gridy++;
-		c.gridwidth = 3;
+		c.gridwidth = 6;
 		mainPanel.add(gainSlider, c);
 		gainSlider.addChangeListener(new ChangeListener() {
 			@Override
@@ -71,6 +79,10 @@ public class DisplayControlPanel {
 			}
 		});
 		c.gridy++;
+		c.gridwidth = 1;
+		mainPanel.add(new PamLabel("Colour ", JLabel.RIGHT), c);
+		c.gridx++;
+		c.gridwidth = 5;
 		mainPanel.add(colourComboBox, c);
 		colourComboBox.addActionListener(new ActionListener() {
 			@Override
@@ -78,11 +90,26 @@ public class DisplayControlPanel {
 				colourChange();
 			}
 		});
+		c.gridy++;
+		c.gridx = 0;
+		c.gridwidth = 2;
+		mainPanel.add(removeBackground = new JCheckBox("Remove background "), c);
+		c.gridx+= c.gridwidth;
+		c.gridwidth = 1;
+		mainPanel.add(new PamLabel("  scale "), c);
+		c.gridx += c.gridwidth;
+		mainPanel.add(backgroundScale = new PamTextField(2), c);
+		
+		removeBackground.addActionListener(generalAction);
+		backgroundScale.addActionListener(generalAction);
+		
 		
 		gainSlider.setToolTipText("Amplify the image");
 		colourComboBox.setToolTipText("Select colour scheme");
 		showGrid.setToolTipText("Overlay grid");
 		flipLeftRight.setToolTipText("Flip images left-right");
+		removeBackground.setToolTipText("Automatically remove stationary background from image");
+		backgroundScale.setToolTipText("Background scale factor: big numbers = slow background update, small = fast update");
 //		gainSlider.setMajorTickSpacing(5);
 //		gainSlider.setMinorTickSpacing(1);
 //		gainSlider.setPaintTicks(true);
@@ -110,6 +137,18 @@ public class DisplayControlPanel {
 		SonarsPanelParams params = sonarsPanel.getSonarsPanelParams();
 		params.showGrid = showGrid.isSelected();
 		params.flipLeftRight = flipLeftRight.isSelected();
+		params.subtractBackground = removeBackground.isSelected();
+		try {
+			double update = Double.valueOf(backgroundScale.getText());
+			int iUpdate = (int) Math.round(update);
+			if (iUpdate > 1) {
+				params.backgroundScaleFactor = iUpdate;
+			}
+//			System.out.println("Background scale updated to " + iUpdate);
+		}
+		catch (NumberFormatException e) {
+			
+		}
 	}
 
 	protected void colourChange() {
@@ -128,7 +167,7 @@ public class DisplayControlPanel {
 	
 	private void sayGain() {
 		SonarsPanelParams params = sonarsPanel.getSonarsPanelParams();
-		gainText.setText(String.format("Gain: x%d   ", Math.max(1, params.displayGain)));
+		gainText.setText(String.format("Gain: x%d ", Math.max(1, params.displayGain)));
 	}
 
 	public JPanel getMainPanel() {
@@ -141,6 +180,8 @@ public class DisplayControlPanel {
 		flipLeftRight.setSelected(params.flipLeftRight);
 		colourComboBox.setSelectedColourMap(params.colourMap);
 		gainSlider.setValue(params.displayGain);
+		removeBackground.setSelected(params.subtractBackground);
+		backgroundScale.setText(String.format("%d", params.backgroundScaleFactor));
 		sayGain();
 	}
 

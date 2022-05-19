@@ -9,6 +9,7 @@ import javax.swing.border.TitledBorder;
 
 import PamView.dialog.PamGridBagContraints;
 import PamView.panel.PamPanel;
+import geminisdk.OutputFileInfo;
 import tritechplugins.acquire.SonarStatusData;
 import tritechplugins.acquire.SonarStatusObserver;
 import tritechplugins.acquire.TritechAcquisition;
@@ -81,9 +82,9 @@ public class StatusTopPanel implements SonarStatusObserver {
 	}
 
 	@Override
-	public void updateFileName(String fileName) {
+	public void updateOutputFileInfo(OutputFileInfo outputFileInfo) {
 		errorStrip.setName("File");
-		errorStrip.setText(fileName);
+		errorStrip.setText(outputFileInfo.getM_strFileName());
 	}
 	
 

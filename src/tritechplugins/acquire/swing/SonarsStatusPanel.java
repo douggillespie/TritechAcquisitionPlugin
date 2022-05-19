@@ -8,6 +8,7 @@ import javax.swing.JPanel;
 
 import PamView.panel.PamAlignmentPanel;
 import PamView.panel.PamPanel;
+import geminisdk.OutputFileInfo;
 import tritechplugins.acquire.SonarStatusData;
 import tritechplugins.acquire.SonarStatusObserver;
 import tritechplugins.acquire.TritechAcquisition;
@@ -94,7 +95,8 @@ public class SonarsStatusPanel implements SonarStatusObserver {
 	}
 
 	@Override
-	public void updateFileName(String fileName) {
+	public void updateOutputFileInfo(OutputFileInfo outputFileInfo) {
+		// TODO Auto-generated method stub
 		
 	}
 

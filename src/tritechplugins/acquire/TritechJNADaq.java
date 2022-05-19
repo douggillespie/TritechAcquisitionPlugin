@@ -9,6 +9,8 @@ import java.util.Set;
 
 import geminisdk.GenesisSerialiser;
 import geminisdk.GenesisSerialiser.GlfLib;
+import geminisdk.LoggerStatusInfo;
+import geminisdk.OutputFileInfo;
 import geminisdk.Svs5Commands;
 import geminisdk.Svs5ErrorType;
 import geminisdk.Svs5Exception;
@@ -63,10 +65,10 @@ public class TritechJNADaq {
 
 
 
-			long err=0;//
-			err = setFileLocation("C:\\GeminiData\\LD");
-			String fileLoc = getFileLocation();
-			System.out.printf("Gemini file location is %d \"%s\"\n", err,  fileLoc);
+//			long err=0;//
+//			err = setFileLocation("C:\\GeminiData2");
+//			String fileLoc = getFileLocation();
+//			System.out.printf("Gemini file location is %d \"%s\"\n", err,  fileLoc);
 
 		} catch (Svs5Exception e) {
 			// TODO Auto-generated catch block
@@ -300,30 +302,19 @@ public class TritechJNADaq {
 		}
 
 		@Override
-		protected void recUpdateMessage(byte[] data) {
-			String fileName = readNTString(data);
+		public void recUpdateMessage(OutputFileInfo outputFileInfo) {
 			//			System.out.printf("Record update message \"%s\"\n", fileName);
-			tritechProcess.updateFileName(fileName);
+			tritechProcess.updateFileName(outputFileInfo);
+		}
+
+		@Override
+		public void loggerStatusInfo(LoggerStatusInfo loggerStatusInfo) {
+			System.out.printf("Logger status information code %d message %s", loggerStatusInfo.getErrorType(), loggerStatusInfo.toString());
 		}
 
 	}
 
-	/**
-	 * Read a String from a null terminated string. Basically has to find
-	 * the first zero, then ready up to that. 
-	 * @param data data, NTS possibly with junk after the NT.
-	 * @return String 
-	 */
-	private String readNTString(byte[] data) {
-		int end = data.length;
-		for (int i = 0; i < data.length; i++) {
-			if (data[i] == 0) {
-				end = i;
-				break;
-			}
-		}
-		return new String(data, 0, end);
-	}
+
 
 	public int getNumSonars() {
 		return deviceInfo.size();
@@ -432,7 +423,7 @@ public class TritechJNADaq {
 		return svs5Commands.sendStringCommand(GeminiStructure.SVS5_CONFIG_FILE_LOCATION, filePath, 0);
 	}
 
-	/**
+	/** **** Do not call this function since it sets the output path to null and stuff everything ****<p>
 	 * Get the output file path. 
 	 * @return file path or null if it can't be read. 
 	 * @throws Svs5Exception 

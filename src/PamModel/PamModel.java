@@ -50,6 +50,7 @@ import networkTransfer.receive.NetworkReceiver;
 import printscreen.PrintScreenControl;
 import rockBlock.RockBlockControl;
 import tritechplugins.acquire.TritechAcquisition;
+import tritechplugins.detect.ThresholdDetector;
 import turbineops.TurbineOperationControl;
 import GPS.GpsDataUnit;
 import Map.MapController;
@@ -518,7 +519,13 @@ final public class PamModel implements PamModelInterface, PamSettings {
 		 */
 		mi = PamModuleInfo.registerControlledUnit(TritechAcquisition.class.getName(), TritechAcquisition.unitType);
 		mi.setModulesMenuGroup(tritechGroup);
+		mi.setMaxNumber(1);
 		mi.setToolTipText("Acquires Tritech data (and loads offline files)");
+
+		mi = PamModuleInfo.registerControlledUnit(ThresholdDetector.class.getName(), ThresholdDetector.unitType);
+		mi.setModulesMenuGroup(tritechGroup);
+//		mi.setMaxNumber(1);
+		mi.setToolTipText("Basic detector for Tritech image data");
 		
 		/*
 		 * ************* Start Displays  Group *******************

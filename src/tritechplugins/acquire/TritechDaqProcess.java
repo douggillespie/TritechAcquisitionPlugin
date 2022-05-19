@@ -12,6 +12,7 @@ import javax.swing.JMenuItem;
 
 import PamController.PamController;
 import PamguardMVC.PamProcess;
+import geminisdk.OutputFileInfo;
 import geminisdk.Svs5Exception;
 
 /**
@@ -152,9 +153,9 @@ public class TritechDaqProcess extends PamProcess implements TritechRunMode {
 		}
 	}
 	
-	public void updateFileName(String fileName) {
+	public void updateFileName(OutputFileInfo outputFileInfo) {
 		for (SonarStatusObserver obs : statusObservers) {
-			obs.updateFileName(fileName);
+			obs.updateOutputFileInfo(outputFileInfo);
 		}		
 	}
 

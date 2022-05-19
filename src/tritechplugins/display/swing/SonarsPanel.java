@@ -12,6 +12,7 @@ import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import javax.swing.JPanel;
 
@@ -29,12 +30,14 @@ import PamView.PamColors.PamColor;
 import PamView.panel.CornerLayout;
 import PamView.panel.CornerLayoutContraint;
 import PamView.panel.PamPanel;
+import tritechgemini.detect.BackgroundSub;
 import tritechgemini.imagedata.FanImageData;
 import tritechgemini.imagedata.FanPicksFromData;
 import tritechgemini.imagedata.GeminiImageRecordI;
 import tritechgemini.imagedata.ImageFanMaker;
 import tritechplugins.acquire.ImageDataBlock;
 import tritechplugins.acquire.TritechAcquisition;
+import tritechplugins.detect.BackgroundRemoval;
 
 /*
  * Basic panel for drawing sonar information. Could be used in a userdisplaypanel OR in a 
@@ -61,6 +64,8 @@ public class SonarsPanel extends PamPanel {
 	private int numImages; // may not be the same as numSonars for some display options
 	
 	private LayoutInfo[] imageRectangles;
+	
+	private HashMap<Integer, BackgroundRemoval> backgroundSubtractors = new HashMap<>();
 	
 	/*
 	 * time taken to create images. 
@@ -161,11 +166,31 @@ public class SonarsPanel extends PamPanel {
 	public void setImageRecord(int sonarIndex, GeminiImageRecordI imageRecord) {
 //		System.out.printf("New image record for id %d %s\n", sonarIndex, imageRecord);
 		if (sonarIndex < numSonars) {
+			if (imageRecord != null && sonarsPanelParams.subtractBackground) {
+				BackgroundRemoval backgroundSub = findBackgroundSub(imageRecord.getDeviceId());
+				backgroundSub.setBackgroundScale(sonarsPanelParams.backgroundScaleFactor);
+				imageRecord = backgroundSub.removeBackground(imageRecord, true);
+			}
 			prepareSonarImage(sonarIndex, imageRecord);
-			
+			if (imageRecord != null) {	
+				imageRecord.freeImageData();
+			}
 		}
 	}
 
+	/**
+	 * Find background subtractor for device, creating if necessary. 
+	 * @param deviceID Device ID
+	 * @return background subtractor
+	 */
+	private BackgroundRemoval findBackgroundSub(int deviceID) {
+		BackgroundRemoval bs = backgroundSubtractors.get(deviceID);
+		if (bs == null) {
+			bs = new BackgroundRemoval();
+			backgroundSubtractors.put(deviceID, bs);
+		}
+		return bs;
+	}
 	/**
 	 * remake the images from fan data, e.g. after a colour map change. 
 	 */
@@ -255,7 +280,11 @@ public class SonarsPanel extends PamPanel {
 			if (rPix > pix) {
 				continue;
 			}
-			double maxAng = Math.abs(currentImageRecords[i].getBearingTable()[0]);
+			double maxAng = Math.toRadians(60);
+			if (currentImageRecords[i].getBearingTable() != null) {
+				maxAng = Math.abs(currentImageRecords[i].getBearingTable()[0]);
+				
+			}
 			double ang = Math.atan2(x-x0, y0-y);
 			if (ang > maxAng || ang < -maxAng) {
 				continue;
@@ -286,6 +315,9 @@ public class SonarsPanel extends PamPanel {
 		 * And the range ...
 		 */
 		double range = geminiImageRecord.getMaxRange();
+		if (geminiImageRecord.getBearingTable() == null) {
+			return;
+		}
 		double maxAng = Math.abs(geminiImageRecord.getBearingTable()[0]);
 		pamAxis.setMaxVal(range);
 		double y2 = trueAsp.y+trueAsp.height-trueAsp.height*Math.cos(maxAng);

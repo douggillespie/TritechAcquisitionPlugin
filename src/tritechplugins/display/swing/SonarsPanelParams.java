@@ -27,4 +27,8 @@ public class SonarsPanelParams implements Serializable, Cloneable {
 
 	public boolean flipLeftRight;
 	
+	public boolean subtractBackground = false;
+	
+	public int backgroundScaleFactor = 50;
+	
 }

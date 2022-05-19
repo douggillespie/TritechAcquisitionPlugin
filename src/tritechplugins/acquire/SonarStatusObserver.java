@@ -1,5 +1,7 @@
 package tritechplugins.acquire;
 
+import geminisdk.OutputFileInfo;
+
 public interface SonarStatusObserver {
 
 	public void updateStatus(SonarStatusData sonarStatusData);
@@ -8,6 +10,6 @@ public interface SonarStatusObserver {
 	
 	public void updateFrameRate(int frameRate);
 	
-	public void updateFileName(String fileName);
+	public void updateOutputFileInfo(OutputFileInfo outputFileInfo);
 	
 }
