@@ -34,7 +34,7 @@ class InfoStrip {
 			bytes[i] = (int) (asLong & 0xFF);
 			asLong >>= 8;
 		}
-		setText(String.format("%03d.%03d.%03d.%03d", bytes[3], bytes[2], bytes[1], bytes[0]));
+		setText(String.format("%03d.%03d.%03d.%03d", bytes[0], bytes[1], bytes[2], bytes[3]));
 	}
 
 	/**

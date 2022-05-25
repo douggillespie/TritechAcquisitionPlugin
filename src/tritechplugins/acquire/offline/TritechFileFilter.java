@@ -6,7 +6,7 @@ public class TritechFileFilter extends PamFileFilter {
 
 	public TritechFileFilter() {
 		super("Tritech Gemini image files", ".glf");
-		addFileType(".ecd");
+//		addFileType(".ecd");
 	}
 
 }

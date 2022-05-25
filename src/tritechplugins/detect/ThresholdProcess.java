@@ -18,9 +18,14 @@ public class ThresholdProcess extends PamProcess {
 	private ImageDataBlock sourceDataBlock;
 	private HashMap<Integer, ChannelDetector> channelDetectors = new HashMap<>();
 	
+	private RegionDataBlock regionDataBlock;
+	
 	public ThresholdProcess(ThresholdDetector thresholdDetector) {
 		super(thresholdDetector, null);
 		this.thresholdDetector = thresholdDetector;
+		regionDataBlock = new RegionDataBlock(thresholdDetector.getUnitName() + " targets", this);
+		addOutputDataBlock(regionDataBlock);
+		regionDataBlock.SetLogging(new RegionLogging(thresholdDetector, regionDataBlock));
 	}
 
 
@@ -90,6 +95,22 @@ public class ThresholdProcess extends PamProcess {
 		 else {
 			 return null;
 		 }
+	}
+
+
+	/**
+	 * @return the sourceDataBlock
+	 */
+	public ImageDataBlock getSourceDataBlock() {
+		return sourceDataBlock;
+	}
+
+
+	/**
+	 * @return the regionDataBlock
+	 */
+	public RegionDataBlock getRegionDataBlock() {
+		return regionDataBlock;
 	}
 	
 }

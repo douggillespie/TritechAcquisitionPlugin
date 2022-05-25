@@ -23,50 +23,55 @@ import tritechplugins.acquire.swing.DaqControlPanel;
 import tritechplugins.acquire.swing.SonarsStatusPanel;
 
 /**
- * Panel around a sonarspanel which has a few more controls, such as a slider bar in viewer mode
- * and possibly some DAQ controls when we get acquisition going online. 
+ * Panel around a sonarspanel which has a few more controls, such as a slider
+ * bar in viewer mode and possibly some DAQ controls when we get acquisition
+ * going online.
+ * 
  * @author dg50
  *
  */
 public class SonarsOuterPanel {
 
 	private PamPanel outerPanel;
-	
+
 	private TritechAcquisition tritechAcquisition;
-	
+
 	private SonarsPanel sonarsPanel;
-	
-	private PamScrollSlider viewerSlider; 
-	
+
+	private PamScrollSlider viewerSlider;
+
 	private TritechOffline tritechOffline;
 
 	private MultiFileCatalog geminiCatalog;
-	
+
 	private DisplayControlPanel displayControlPanel;
-	
+
 	private DaqControlPanel daqControlPanel;
-	
+
 	private SonarsStatusPanel sonarsStatusPanel;
-	
+
 	public SonarsOuterPanel(TritechAcquisition tritechAcquisition, SettingsNameProvider nameProvider) {
 		this.tritechAcquisition = tritechAcquisition;
 		sonarsPanel = new SonarsPanel(tritechAcquisition, nameProvider);
 		outerPanel = new PamPanel(new BorderLayout());
 		outerPanel.add(sonarsPanel.getsonarsPanel(), BorderLayout.CENTER);
 		displayControlPanel = new DisplayControlPanel(this, sonarsPanel);
-		HidingPanel hideDisplay = new HidingPanel(sonarsPanel, displayControlPanel.getMainPanel(),HidingPanel.HORIZONTAL, false, "Display controls", nameProvider.getUnitName()+" Display");
+		HidingPanel hideDisplay = new HidingPanel(sonarsPanel, displayControlPanel.getMainPanel(),
+				HidingPanel.HORIZONTAL, false, "Display controls", nameProvider.getUnitName() + " Display");
 		sonarsPanel.add(hideDisplay, new CornerLayoutContraint(CornerLayoutContraint.LAST_LINE_END));
 		if (tritechAcquisition.isViewer() == false) {
 			daqControlPanel = new DaqControlPanel(tritechAcquisition);
-			HidingPanel hidingPanel = new HidingPanel(sonarsPanel, daqControlPanel.getMainPanel(),HidingPanel.HORIZONTAL, false, "Online controls", nameProvider.getUnitName()+" Controls");
+			HidingPanel hidingPanel = new HidingPanel(sonarsPanel, daqControlPanel.getMainPanel(),
+					HidingPanel.HORIZONTAL, false, "Online controls", nameProvider.getUnitName() + " Controls");
 			sonarsPanel.add(hidingPanel, new CornerLayoutContraint(CornerLayoutContraint.LAST_LINE_START));
-			
+
 			sonarsStatusPanel = new SonarsStatusPanel(tritechAcquisition);
-			HidingPanel hidingStatus = new HidingPanel(sonarsPanel, sonarsStatusPanel.getMainPanel(), HidingPanel.HORIZONTAL, false, "Sonar Online Status", nameProvider.getUnitName()+" Status");
+			HidingPanel hidingStatus = new HidingPanel(sonarsPanel, sonarsStatusPanel.getMainPanel(),
+					HidingPanel.HORIZONTAL, false, "Sonar Online Status", nameProvider.getUnitName() + " Status");
 //			hidingStatus.setOpaque(false);
 			sonarsPanel.add(hidingStatus, new CornerLayoutContraint(CornerLayoutContraint.FIRST_LINE_START));
 		}
-		
+
 		if (tritechAcquisition.isViewer()) {
 			viewerSlider = new PamScrollSlider("Gemin i display", PamScrollSlider.HORIZONTAL, 5, 60, true);
 			outerPanel.add(viewerSlider.getComponent(), BorderLayout.SOUTH);
@@ -76,11 +81,10 @@ public class SonarsOuterPanel {
 			geminiCatalog = tritechOffline.getMultiFileCatalog();
 			geminiCatalog.addObserver(new GemCatalogObserver());
 			checkCatalog();
-		}
-		else {
+		} else {
 			tritechAcquisition.getImageDataBlock().addObserver(new ImageObserver());
 		}
-		
+
 		displayControlPanel.setParams();
 	}
 
@@ -98,8 +102,7 @@ public class SonarsOuterPanel {
 			checkCatalog();
 		}
 	}
-	
-	
+
 	private class ScrollObserver implements PamScrollObserver {
 
 		@Override
@@ -109,9 +112,9 @@ public class SonarsOuterPanel {
 
 		@Override
 		public void scrollRangeChanged(AbstractPamScroller pamScroller) {
-			// won't ever get used for a slider which only has a value. 
+			// won't ever get used for a slider which only has a value.
 		}
-		
+
 	}
 
 	private void checkCatalog() {
@@ -120,10 +123,11 @@ public class SonarsOuterPanel {
 			sonarsPanel.setNumSonars(sonarIDs.length);
 		}
 	}
-	
+
 	/**
-	 * New scroll position with a value set in milliseconds. 
-	 * @param valueMillis milliseconds. 
+	 * New scroll position with a value set in milliseconds.
+	 * 
+	 * @param valueMillis milliseconds.
 	 */
 	public void newScrollValue(long valueMillis) {
 		if (tritechOffline == null) {
@@ -138,9 +142,9 @@ public class SonarsOuterPanel {
 			GeminiImageRecordI imageRec = geminiCatalog.findRecordForTime(sonarIDs[i], valueMillis);
 			sonarsPanel.setImageRecord(i, imageRec);
 		}
-		
+
 	}
-	
+
 	private class ImageObserver extends PamObserverAdapter {
 
 		@Override
@@ -154,6 +158,6 @@ public class SonarsOuterPanel {
 //			sonarsPanel.setNumSonars(tritechAcquisition.get);
 			sonarsPanel.setImageRecord(0, imageDataUnit.getGeminiImage());
 		}
-		
+
 	}
 }

@@ -53,7 +53,7 @@ public class SonarsPanel extends PamPanel {
 
 	private ImageDataBlock imageDataBlock;
 	
-	private int numSonars = 1;
+	private int numSonars = 0;
 	
 	private GeminiImageRecordI[] currentImageRecords;
 	
@@ -66,6 +66,8 @@ public class SonarsPanel extends PamPanel {
 	private LayoutInfo[] imageRectangles;
 	
 	private HashMap<Integer, BackgroundRemoval> backgroundSubtractors = new HashMap<>();
+	
+	private HashMap<Integer, Integer> imageIndexes = new HashMap<>();
 	
 	/*
 	 * time taken to create images. 
@@ -165,10 +167,13 @@ public class SonarsPanel extends PamPanel {
 
 	public void setImageRecord(int sonarIndex, GeminiImageRecordI imageRecord) {
 //		System.out.printf("New image record for id %d %s\n", sonarIndex, imageRecord);
+		if (imageRecord != null) {
+			sonarIndex = checkSonarIndex(imageRecord.getDeviceId());
+		}
 		if (sonarIndex < numSonars) {
 			if (imageRecord != null && sonarsPanelParams.subtractBackground) {
 				BackgroundRemoval backgroundSub = findBackgroundSub(imageRecord.getDeviceId());
-				backgroundSub.setBackgroundScale(sonarsPanelParams.backgroundScaleFactor);
+				backgroundSub.setTimeConstant(sonarsPanelParams.backgroundScaleFactor);
 				imageRecord = backgroundSub.removeBackground(imageRecord, true);
 			}
 			prepareSonarImage(sonarIndex, imageRecord);
@@ -176,6 +181,22 @@ public class SonarsPanel extends PamPanel {
 				imageRecord.freeImageData();
 			}
 		}
+	}
+
+	/**
+	 * Gets an index for each sonar, allowing for new ones coming online
+	 * after start. Will update number of plots. 
+	 * @param deviceId device unique id. 
+	 * @return 0,1, etc. index for image drawing. 
+	 */
+	private int checkSonarIndex(int deviceId) {
+		Integer ind = imageIndexes.get(deviceId);
+		if (ind == null) {
+			ind = imageIndexes.size(); 
+			imageIndexes.put(deviceId, ind);
+			setNumSonars(imageIndexes.size());
+		}
+		return ind;
 	}
 
 	/**

@@ -19,5 +19,13 @@ public class ImageDataUnit extends PamDataUnit {
 	public GeminiImageRecordI getGeminiImage() {
 		return geminiImage;
 	}
+	
+	/**
+	 * Set the gemini image record. 
+	 * @param imageRecord
+	 */
+	public void setGeminiImage(GeminiImageRecordI imageRecord) {
+		this.geminiImage = imageRecord;
+	}
 
 }

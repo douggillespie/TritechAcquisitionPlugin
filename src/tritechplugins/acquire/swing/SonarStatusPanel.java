@@ -16,6 +16,7 @@ import PamView.dialog.PamGridBagContraints;
 import PamView.dialog.PamLabel;
 import PamView.panel.PamPanel;
 import geminisdk.structures.GemStatusPacket;
+import tritechgemini.imagedata.GLFStatusData;
 import tritechplugins.acquire.SonarStatusData;
 import tritechplugins.acquire.TritechAcquisition;
 
@@ -71,13 +72,13 @@ public class SonarStatusPanel {
 	public void updateStatus(SonarStatusData sonarStatusData) {
 		lastUpdate.setText(PamCalendar.formatDBDateTime(System.currentTimeMillis()));
 		rxPackets.setText(String.format("%d", sonarStatusData.getTotalImages()));
-		GemStatusPacket statusPacket = sonarStatusData.getStatusPacket();
-		ipStrip.setIpAddr(statusPacket.m_sonarFixIp);
-		subnetStrip.setIpAddr(statusPacket.m_subnetMask);
+		GLFStatusData statusPacket = sonarStatusData.getStatusPacket();
+		ipStrip.setIpAddr(statusPacket.m_sonarAltIp);
+		subnetStrip.setIpAddr(statusPacket.m_subNetMask);
 		pcipStrip.setIpAddr(statusPacket.m_surfaceIp);
 		String mac = String.format("%s:%s:%s", formatMacBit(statusPacket.m_macAddress1), formatMacBit(statusPacket.m_macAddress3), formatMacBit(statusPacket.m_macAddress3));
 		macStrip.setText(mac);
-		firmware.setText(String.format("%d", statusPacket.m_firmwareVer));
+		firmware.setText(String.format("0x%X", statusPacket.m_bfVersion));
 	}
 	
 	private Object formatMacBit(short macBit) {

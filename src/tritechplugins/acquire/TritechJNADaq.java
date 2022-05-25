@@ -5,6 +5,9 @@ import java.net.UnknownHostException;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map.Entry;
+
+import fileOfflineData.OfflineFileList;
+
 import java.util.Set;
 
 import geminisdk.GenesisSerialiser;
@@ -27,7 +30,9 @@ import geminisdk.structures.GeminiStructure;
 import geminisdk.structures.PingMode;
 import geminisdk.structures.RangeFrequencyConfig;
 import tritechgemini.imagedata.GLFImageRecord;
+import tritechgemini.imagedata.GLFStatusData;
 import tritechgemini.imagedata.GeminiImageRecordI;
+import tritechplugins.acquire.offline.TritechFileFilter;
 
 public class TritechJNADaq {
 
@@ -37,6 +42,7 @@ public class TritechJNADaq {
 	private Svs5Commands svs5Commands;
 
 	private HashMap<Integer, SonarStatusData> deviceInfo = new HashMap<>();
+	private int cuurrentRunMode;
 
 	public TritechJNADaq(TritechAcquisition tritechAcquisition, TritechDaqProcess tritechProcess) {
 		this.tritechAcquisition = tritechAcquisition;
@@ -52,28 +58,28 @@ public class TritechJNADaq {
 		}
 		svs5Commands = new Svs5Commands();
 		long ans1 = gSerialiser.svs5StartSvs5(new GeminiCallback());
-
-		try {
-
-			setOnline(false, 0);
-			Boolean isOn1 = getOnline(0);
-			setOnline(true, 0);
-			Boolean isOn2 = getOnline(0);
-			System.out.printf("Online status are %s and %s\n", isOn1, isOn2);
-
-			svs5Commands.setConfiguration(new GLFLogger(true));
-
-
-
+//
+//		try {
+//
+//			setOnline(false, 0);
+//			Boolean isOn1 = getOnline(0);
+//			setOnline(true, 0);
+////			Boolean isOn2 = getOnline(0);
+////			System.out.printf("Online status are %s and %s\n", isOn1, isOn2);
+//
+//			svs5Commands.setConfiguration(new GLFLogger(true));
+//
+//
+//
 //			long err=0;//
 //			err = setFileLocation("C:\\GeminiData2");
-//			String fileLoc = getFileLocation();
-//			System.out.printf("Gemini file location is %d \"%s\"\n", err,  fileLoc);
-
-		} catch (Svs5Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+////			String fileLoc = getFileLocation();
+////			System.out.printf("Gemini file location is %d \"%s\"\n", err,  fileLoc);
+//
+//		} catch (Svs5Exception e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
 
 		return svs5Commands != null;
 
@@ -90,12 +96,44 @@ public class TritechJNADaq {
 		}
 	}
 
-	public boolean start() {
-		long err;
+	public boolean prepareProcess() {
+
 		if (gSerialiser == null) {
 			return false;
 		}
+		
+		unprepareProcess();
 
+		TritechDaqParams params = tritechAcquisition.getDaqParams();
+		cuurrentRunMode = params.getRunMode();
+		
+		if (cuurrentRunMode == TritechDaqParams.RUN_ACQUIRE) {
+			return prepareAcquisition();
+		}
+		else if (cuurrentRunMode == TritechDaqParams.RUN_REPROCESS) {
+			return prepareFilePlayback();
+		}
+		else {
+			return false;
+		}
+	}
+	
+	private boolean prepareFilePlayback() {
+		if (gSerialiser == null) {
+			return false;
+		}
+		// make a list of files from the set folder, and pass to svs4
+		TritechDaqParams params = tritechAcquisition.getDaqParams();
+		OfflineFileList fileList = new OfflineFileList(params.getOfflineFileFolder(), new TritechFileFilter(), params.isOfflineSubFolders());
+		String[] allFiles = fileList.asStringList();
+		int ans = gSerialiser.setInputFileList(allFiles, allFiles.length);
+		System.out.println("Set list of files returned " + ans);
+		return ans == 0;
+//		return false;
+	}
+
+	public boolean prepareAcquisition() {
+		
 		int waitCount = 0;
 		while (deviceInfo.size() < 1) {
 			System.out.println("Waiting for devices ...");
@@ -110,7 +148,12 @@ public class TritechJNADaq {
 				return false;
 			}
 		}
+		int err = 0;
 		try {
+			if (tritechAcquisition.getDaqParams().getOfflineFileFolder() != null) {
+				setFileLocation(tritechAcquisition.getDaqParams().getOfflineFileFolder());
+			}
+			
 			GeminiRange range = new GeminiRange(tritechAcquisition.getDaqParams().getRange());
 			err = svs5Commands.setConfiguration(range, 0);
 			//		err += svs5Commands.setConfiguration(range, 1);
@@ -150,11 +193,28 @@ public class TritechJNADaq {
 			System.out.println("setOnline returned " + err);
 
 
-			err = setRecord(true);
 
 		} catch (Svs5Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+			return false;
+		}
+		return true;
+	}
+
+	private void unprepareProcess() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	public boolean start() {
+		long err;
+		try {
+			err = setRecord(true);
+		} catch (Svs5Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return false;
 		}
 		//		System.out.println("Set record returned " + err);
 		//
@@ -178,22 +238,25 @@ public class TritechJNADaq {
 			System.err.println("Tritech stop: " + e.getMessage());
 		}
 
-		long ans2 = gSerialiser.svs5StopSvs5();
-		System.out.printf("SvS5 stopped with code %d\n", ans2);
-
 		return true;
 	}
 
 
-	public SonarStatusData checkDeviceInfo(GemStatusPacket statusPacket) {
+	public void pamClose() {
+		// only want to run this when really cleaning up the process. 
+		long ans2 = gSerialiser.svs5StopSvs5();
+		System.out.printf("SvS5 stopped with code %d\n", ans2);
+	}
+
+	public SonarStatusData checkDeviceInfo(GLFStatusData statusPacket) {
 		int n = 0;
 		SonarStatusData sonarData = null;
 		synchronized (deviceInfo) {
 			n = deviceInfo.size();
-			sonarData = deviceInfo.get((int) statusPacket.m_sonarId);
+			sonarData = deviceInfo.get((int) statusPacket.m_deviceID);
 			if (sonarData == null) {
 				sonarData = new SonarStatusData(statusPacket);
-				deviceInfo.put((int) statusPacket.m_sonarId, sonarData);
+				deviceInfo.put((int) statusPacket.m_deviceID, sonarData);
 			}
 			else {
 				sonarData.setStatusPacket(statusPacket);
@@ -222,7 +285,7 @@ public class TritechJNADaq {
 
 	public void saySonarSummary(SonarStatusData sonarData) {
 		String ip = "?";
-		GemStatusPacket statusPacket = sonarData.getStatusPacket();
+		GLFStatusData statusPacket = sonarData.getStatusPacket();
 		try {
 			InetAddress iNA = InetAddress.getByName(String.valueOf(Integer.toUnsignedLong(statusPacket.m_sonarAltIp)));
 			ip = iNA.getHostAddress();
@@ -255,12 +318,12 @@ public class TritechJNADaq {
 		int nImages = 0;
 		@Override
 		public void newGLFLiveImage(GLFImageRecord glfImage) {
-			SonarStatusData sonarData = findSonarStatusData(glfImage.tm_deviceId);
+			SonarStatusData sonarData = findSonarStatusData(glfImage.genericHeader.tm_deviceId);
 			if (sonarData != null) {
 				sonarData.totalImages++;
 			}
 			else {
-				System.out.printf("Unable to find sonar data for id %d\n", glfImage.tm_deviceId);
+				System.out.printf("Unable to find sonar data for id %d\n", glfImage.genericHeader.tm_deviceId);
 			}
 			int chan = glfImage.getSonarIndex();
 			long timeMS = glfImage.recordTimeMillis;
@@ -276,10 +339,10 @@ public class TritechJNADaq {
 		}
 
 		@Override
-		public void newStatusPacket(GemStatusPacket statusPacket) {
+		public void newStatusPacket(GLFStatusData statusData) {
 			// m_sonarId and m_deviceId are the same thing. 
 			//			System.out.printf("Sonar id %d device id = %d\n", statusPacket.m_sonarId, statusPacket.m_deviceID);
-			SonarStatusData sonarStatusData = checkDeviceInfo(statusPacket);
+			SonarStatusData sonarStatusData = checkDeviceInfo(statusData);
 			if (sonarStatusData != null) {
 				tritechProcess.updateStatusData(sonarStatusData);
 			}
@@ -303,7 +366,8 @@ public class TritechJNADaq {
 
 		@Override
 		public void recUpdateMessage(OutputFileInfo outputFileInfo) {
-			//			System.out.printf("Record update message \"%s\"\n", fileName);
+			System.out.printf("Record update message \"%s\" nREc %d, percentDisk %3.1f\n", outputFileInfo.getM_strFileName(),
+					outputFileInfo.getM_uiNumberOfRecords(), outputFileInfo.getM_percentDiskSpaceFree());
 			tritechProcess.updateFileName(outputFileInfo);
 		}
 
@@ -333,7 +397,7 @@ public class TritechJNADaq {
 	}
 
 	public void rebootSonars() throws Svs5Exception {
-		long ans  = svs5Commands.setConfiguration(GeminiStructure.SVS5_CONFIG_REBOOT_SONAR, null, 345);
+		long ans  = svs5Commands.setConfiguration(GeminiStructure.SVS5_CONFIG_REBOOT_SONAR, null, 0);
 		System.out.println("Reboot returned : " + ans);
 	}
 
@@ -420,7 +484,8 @@ public class TritechJNADaq {
 		//		long err = svs5Commands.setConfiguration(gemLoc, 0);
 		//		return err;
 		//		return 0;
-		return svs5Commands.sendStringCommand(GeminiStructure.SVS5_CONFIG_FILE_LOCATION, filePath, 0);
+//		return svs5Commands.sendStringCommand(GeminiStructure.SVS5_CONFIG_FILE_LOCATION, filePath, 0);
+		return 0;
 	}
 
 	/** **** Do not call this function since it sets the output path to null and stuff everything ****<p>
@@ -435,7 +500,8 @@ public class TritechJNADaq {
 		//			return gemLoc.getFilePath();
 		//		}
 		//		return null;
-		return svs5Commands.getStringCommand(GeminiStructure.SVS5_CONFIG_FILE_LOCATION, 128, 0);
+//		return svs5Commands.getStringCommand(GeminiStructure.SVS5_CONFIG_FILE_LOCATION, 128, 0);
+		return null;
 	}
 
 	/**
@@ -445,9 +511,10 @@ public class TritechJNADaq {
 	 * @throws Svs5Exception 
 	 */
 	long setRecord(boolean record) throws Svs5Exception {
-		GemRecord gemRecord = new GemRecord(record);
-		long err = svs5Commands.setConfiguration(gemRecord, 0);
-		return err;
+//		GemRecord gemRecord = new GemRecord(record);
+//		long err = svs5Commands.setConfiguration(gemRecord, 0);
+//		return err;
+		return 0;
 	}
 
 	/**
@@ -456,11 +523,11 @@ public class TritechJNADaq {
 	 * @throws Svs5Exception 
 	 */
 	boolean getRecord() throws Svs5Exception {
-		GemRecord gemRecord = new GemRecord(false);
-		long err = svs5Commands.getConfiguration(gemRecord.defaultCommand(), gemRecord, 0);
-		if (err == Svs5ErrorType.SVS5_SEQUENCER_STATUS_OK) {
-			return gemRecord.isRecord();
-		}
+//		GemRecord gemRecord = new GemRecord(false);
+//		long err = svs5Commands.getConfiguration(gemRecord.defaultCommand(), gemRecord, 0);
+//		if (err == Svs5ErrorType.SVS5_SEQUENCER_STATUS_OK) {
+//			return gemRecord.isRecord();
+//		}
 		return false;
 	}
 }

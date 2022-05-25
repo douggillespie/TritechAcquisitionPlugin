@@ -14,6 +14,7 @@ import PamController.PamController;
 import PamguardMVC.PamProcess;
 import geminisdk.OutputFileInfo;
 import geminisdk.Svs5Exception;
+import tritechplugins.acquire.swing.DaqDialog;
 
 /**
  * Tritech DAQ will acquire from and control the Gemini's. Because we're still not sure if
@@ -74,6 +75,12 @@ public class TritechDaqProcess extends PamProcess implements TritechRunMode {
 	
 	
 	@Override
+	public void prepareProcess() {
+		super.prepareProcess();
+		jnaDaq.prepareProcess();
+	}
+
+	@Override
 	public void pamStart() {
 		jnaDaq.start();
 	}
@@ -83,6 +90,16 @@ public class TritechDaqProcess extends PamProcess implements TritechRunMode {
 		if (jnaDaq != null) {
 			jnaDaq.stop();
 		}
+	}
+
+	/**
+	 * Called when PAMGuard is really closing ...
+	 */
+	public void pamClose() {
+		if (jnaDaq != null) {
+			jnaDaq.pamClose();
+		}
+		
 	}
 
 	@Override
@@ -96,18 +113,35 @@ public class TritechDaqProcess extends PamProcess implements TritechRunMode {
 	}
 
 	public JMenuItem createDaqMenu(Frame parentFrame) {
-		JMenu menu = new JMenu();
-		int[] sonarIDs = jnaDaq.getSonarIDs();
-		JMenuItem menuItem = new JMenuItem("Reboot sonar(s)");
+		JMenu menu = new JMenu(tritechAcquisition.getUnitName());
+		JMenuItem menuItem;
+		menuItem = new JMenuItem("Settings ...");
+		menu.add(menuItem);
 		menuItem.addActionListener(new ActionListener() {
-			
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				showSettingsDialog(parentFrame);
+			}
+		});
+		
+		int[] sonarIDs = jnaDaq.getSonarIDs();
+		menuItem = new JMenuItem("Reboot sonar(s)");
+		menuItem.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				rebootSonars();
 			}
 		});
 		menu.add(menuItem);
-		return menuItem;
+		return menu;
+	}
+
+	protected void showSettingsDialog(Frame parentFrame) {
+		TritechDaqParams newParams = DaqDialog.showDialog(parentFrame, tritechAcquisition.getDaqParams());
+		if (newParams != null) {
+			tritechAcquisition.setDaqParams(newParams);
+			prepareProcess();
+		}
 	}
 
 	protected void rebootSonars() {
@@ -126,7 +160,6 @@ public class TritechDaqProcess extends PamProcess implements TritechRunMode {
 		try {
 			jnaDaq.setRange(range, 0);
 		} catch (Svs5Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
@@ -185,6 +218,13 @@ public class TritechDaqProcess extends PamProcess implements TritechRunMode {
 	 */
 	public void addStatusObserver(SonarStatusObserver statusObserver) {
 		statusObservers.add(statusObserver);
+	}
+
+	/**
+	 * @return the tritechAcquisition
+	 */
+	public TritechAcquisition getTritechAcquisition() {
+		return tritechAcquisition;
 	}
 
 }

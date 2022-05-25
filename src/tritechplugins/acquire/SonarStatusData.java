@@ -1,28 +1,29 @@
 package tritechplugins.acquire;
 
 import geminisdk.structures.GemStatusPacket;
+import tritechgemini.imagedata.GLFStatusData;
 
 public class SonarStatusData {
 		
 	protected int totalImages;
 
-	private GemStatusPacket statusPacket;
+	private GLFStatusData statusPacket;
 	
-	public SonarStatusData(GemStatusPacket statusPacket) {
+	public SonarStatusData(GLFStatusData statusPacket) {
 		this.statusPacket = statusPacket;
 	}
 
 	/**
 	 * @return the statusPacket
 	 */
-	public GemStatusPacket getStatusPacket() {
+	public GLFStatusData getStatusPacket() {
 		return statusPacket;
 	}
 
 	/**
 	 * @param statusPacket the statusPacket to set
 	 */
-	public void setStatusPacket(GemStatusPacket statusPacket) {
+	public void setStatusPacket(GLFStatusData statusPacket) {
 		this.statusPacket = statusPacket;
 	}
 

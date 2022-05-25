@@ -59,6 +59,12 @@ public class TritechAcquisition extends PamControlledUnit implements PamSettings
 		UserDisplayControl.addUserDisplayProvider(new SonarPanelProvider(this));
 	}
 
+	@Override
+	public void pamClose() {
+		super.pamClose();
+		tritechDaqProcess.pamClose();
+	}
+
 	public TritechDaqParams getDaqParams() {
 		return daqParams;
 	}
@@ -72,6 +78,9 @@ public class TritechAcquisition extends PamControlledUnit implements PamSettings
 		super.notifyModelChanged(changeType);
 		if (tritechOffline != null) {
 			tritechOffline.notifyModelChanged(changeType);
+		}
+		if (tritechDaqProcess != null && isViewer() == false) {
+			tritechDaqProcess.prepareProcess();
 		}
 	}
 
