@@ -30,7 +30,7 @@ public class RegionLogging extends SQLLogging {
 		tableDef.addTableItem(maxRange = new PamTableItem("MaxRange", Types.REAL));
 		tableDef.addTableItem(meanValue = new PamTableItem("MeanValue", Types.INTEGER));
 		tableDef.addTableItem(totalValue = new PamTableItem("TotalValue", Types.INTEGER));
-		tableDef.addTableItem(maxValue = new PamTableItem("MAxValue", Types.INTEGER));
+		tableDef.addTableItem(maxValue = new PamTableItem("MaxValue", Types.INTEGER));
 		return tableDef;
 	}
 
@@ -61,7 +61,9 @@ public class RegionLogging extends SQLLogging {
 		int totV = totalValue.getIntegerValue();
 		int maxV = maxValue.getIntegerValue();
 		
-		return null;
+		DetectedRegion region = new DetectedRegion(sonarId, minB, maxB, minR, maxR, meanV, totV, maxV);
+		RegionDataUnit rdu = new RegionDataUnit(timeMilliseconds, sonarId, region);
+		return rdu;
 	}
 
 }

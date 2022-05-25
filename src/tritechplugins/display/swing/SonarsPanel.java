@@ -8,16 +8,20 @@ import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
+import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 
 import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
 
 import Layout.PamAxis;
 import PamController.PamControlledUnitSettings;
+import PamController.PamController;
 import PamController.PamSettingManager;
 import PamController.PamSettings;
 import PamController.SettingsNameProvider;
@@ -27,9 +31,12 @@ import PamView.ColourArray;
 import PamView.ColourArray.ColourArrayType;
 import PamView.PamColors;
 import PamView.PamColors.PamColor;
+import PamView.PanelOverlayDraw;
 import PamView.panel.CornerLayout;
 import PamView.panel.CornerLayoutContraint;
 import PamView.panel.PamPanel;
+import PamguardMVC.PamDataBlock;
+import PamguardMVC.PamDataUnit;
 import tritechgemini.detect.BackgroundSub;
 import tritechgemini.imagedata.FanImageData;
 import tritechgemini.imagedata.FanPicksFromData;
@@ -38,6 +45,8 @@ import tritechgemini.imagedata.ImageFanMaker;
 import tritechplugins.acquire.ImageDataBlock;
 import tritechplugins.acquire.TritechAcquisition;
 import tritechplugins.detect.BackgroundRemoval;
+import tritechplugins.display.swing.overlays.SonarOverlayData;
+import tritechplugins.display.swing.overlays.SonarOverlayManager;
 
 /*
  * Basic panel for drawing sonar information. Could be used in a userdisplaypanel OR in a 
@@ -65,9 +74,13 @@ public class SonarsPanel extends PamPanel {
 	
 	private LayoutInfo[] imageRectangles;
 	
+	private SonarXYProjector[] xyProjectors;
+	
 	private HashMap<Integer, BackgroundRemoval> backgroundSubtractors = new HashMap<>();
 	
 	private HashMap<Integer, Integer> imageIndexes = new HashMap<>();
+	
+	protected SonarOverlayManager sonarOverlayManager;
 	
 	/*
 	 * time taken to create images. 
@@ -96,6 +109,8 @@ public class SonarsPanel extends PamPanel {
 		setNumSonars(numSonars);
 		updateColourMap(sonarsPanelParams.colourMap);
 		setToolTipText("Sonar display panel");
+		sonarOverlayManager = new SonarOverlayManager(this);
+		this.addMouseListener(new SonarPanelMouse());
 	}
 
 	/**
@@ -142,6 +157,12 @@ public class SonarsPanel extends PamPanel {
 //		imageRectangles = new LayoutInfo[numImages];
 		if (numImages == 0) {
 			return;
+		}
+		if (xyProjectors == null || xyProjectors.length != numImages) {
+			xyProjectors = new SonarXYProjector[numImages];
+			for (int i = 0; i < numImages; i++) {
+				xyProjectors[i] = new SonarXYProjector(this, i, i);
+			}
 		}
 		Rectangle theseBounds = getBounds();
 		int border = theseBounds.width/50;
@@ -324,6 +345,9 @@ public class SonarsPanel extends PamPanel {
 			return;
 		}
 		Rectangle trueAsp = layoutInfo.getImageRectangle();//.checkAspect(layoutInfo, Math.toRadians(60));
+		
+		xyProjectors[imageIndex].setLayout(trueAsp, geminiImageRecord);
+		
 		if (sonarsPanelParams.flipLeftRight) {
 			g.drawImage(bufferedImage, trueAsp.x+trueAsp.width, trueAsp.height+trueAsp.y, trueAsp.x, trueAsp.y, 
 					0, 0, bufferedImage.getWidth(), bufferedImage.getHeight(), null);
@@ -374,6 +398,8 @@ public class SonarsPanel extends PamPanel {
 				g.drawLine(x0,  y0, x, y);
 			}
 		}
+		
+		paintDetectorData(g, xyProjectors[imageIndex], geminiImageRecord);
 		/*
 		 *  and draw text into the corner of the image. Will eventually mess with font sizes, but for
 		 *  now, we're in get it going mode. 
@@ -407,6 +433,37 @@ public class SonarsPanel extends PamPanel {
 		g2d.drawString(str, xt, yt);	
 	}
 
+	private void paintDetectorData(Graphics g, SonarXYProjector sonarXYProjector,
+			GeminiImageRecordI geminiImageRecord) {
+		Collection<SonarOverlayData> selBlocks = sonarOverlayManager.getSelectedDataBlocks();
+		for (SonarOverlayData selBlock : selBlocks) {
+			paintDetectorData(g, selBlock, sonarXYProjector, geminiImageRecord);
+		}
+	}
+
+	private void paintDetectorData(Graphics g, SonarOverlayData selBlock, SonarXYProjector sonarXYProjector,
+			GeminiImageRecordI geminiImageRecord) {
+		PamDataBlock dataBlock = selBlock.getDataBlock();// PamController.getInstance().getDataBlockByLongName(selBlock.dataName);
+		if (dataBlock == null) {
+			return;
+		}
+		PanelOverlayDraw overlayDraw = dataBlock.getOverlayDraw();
+		if (overlayDraw == null) {
+			return;
+		}
+		ArrayList<PamDataUnit> dataCopy = null;
+		synchronized (dataBlock.getSynchLock()) {
+			dataCopy = dataBlock.getDataCopy();
+		}
+		for (PamDataUnit aUnit : dataCopy) {
+			if (aUnit.getTimeMilliseconds() != geminiImageRecord.getRecordTime()) {
+				continue;
+			}
+			overlayDraw.drawDataUnit(g, aUnit, sonarXYProjector);
+		}
+		
+	}
+
 	/**
 	 * work out a vaguely sensible range step. 
 	 * @param range
@@ -421,6 +478,31 @@ public class SonarsPanel extends PamPanel {
 	public void updateColourMap(ColourArrayType colourMap) {
 		colourArray = ColourArray.createStandardColourArray(NCOLOURS, colourMap);
 		remakeImages();
+	}
+	
+	private class SonarPanelMouse extends MouseAdapter {
+
+		@Override
+		public void mousePressed(MouseEvent e) {
+			if (e.isPopupTrigger()) {
+				mousePopup(e);
+			}
+		}
+
+		@Override
+		public void mouseReleased(MouseEvent e) {
+			if (e.isPopupTrigger()) {
+				mousePopup(e);
+			}
+		}
+
+		
+	}
+
+	private void mousePopup(MouseEvent e) {
+		JPopupMenu popMenu = new JPopupMenu();
+		sonarOverlayManager.addSelectionMenuItems(popMenu, null, true, false, true);
+		popMenu.show(e.getComponent(), e.getX(), e.getY());
 	}
 	
 	private class SettingsIO implements PamSettings {

@@ -1,12 +1,14 @@
 package tritechplugins.display.swing;
 
 import java.awt.BorderLayout;
+import java.util.List;
 
 import PamController.SettingsNameProvider;
 import PamUtils.PamCalendar;
 import PamView.hidingpanel.HidingPanel;
 import PamView.panel.CornerLayoutContraint;
 import PamView.panel.PamPanel;
+import PamguardMVC.PamDataBlock;
 import PamguardMVC.PamDataUnit;
 import PamguardMVC.PamObservable;
 import PamguardMVC.PamObserverAdapter;
@@ -85,6 +87,13 @@ public class SonarsOuterPanel {
 			tritechAcquisition.getImageDataBlock().addObserver(new ImageObserver());
 		}
 
+		List<PamDataBlock> datas = sonarsPanel.sonarOverlayManager.listDataBlocks(true);
+		if (datas != null) {
+			for (PamDataBlock aBlock : datas) {
+				viewerSlider.addDataBlock(aBlock);
+			}
+		}
+		
 		displayControlPanel.setParams();
 	}
 

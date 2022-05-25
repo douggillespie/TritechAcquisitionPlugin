@@ -26,6 +26,7 @@ public class ThresholdProcess extends PamProcess {
 		regionDataBlock = new RegionDataBlock(thresholdDetector.getUnitName() + " targets", this);
 		addOutputDataBlock(regionDataBlock);
 		regionDataBlock.SetLogging(new RegionLogging(thresholdDetector, regionDataBlock));
+		regionDataBlock.setOverlayDraw(new RegionOverlayDraw());
 	}
 
 
