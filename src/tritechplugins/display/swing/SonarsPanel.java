@@ -293,8 +293,28 @@ public class SonarsPanel extends PamPanel {
 			return null;
 		}
 
-		String str = String.format("<html>Range %3.1fm, Angle %3.1f%s<br>xy (%3.1f, %3.1f)m</html>", 
+
+		String str = String.format("<html>Range %3.1fm, Angle %3.1f%s<br>xy (%3.1f, %3.1f)m", 
 				sonarCoord.getRange(), sonarCoord.getAngleDegrees(), LatLong.deg, sonarCoord.getX(), sonarCoord.getY());
+		FanImageData fanData = imageFanData[sonarCoord.getSonarIndex()];
+		// get the amplitude for the nearest xy pixel.
+		int xPix = 0, yPix = 0;
+		try {
+			xPix = (int) Math.round(sonarCoord.getX() / fanData.getMetresPerPixX());
+			yPix = (int) Math.round(sonarCoord.getY() / fanData.getMetresPerPixY());
+			short[][] imValues = fanData.getImageValues();
+			if (sonarsPanelParams.flipLeftRight) {
+				xPix = -xPix;
+			}
+			xPix += imValues.length/2;
+//			yPix = imValues[0].length-yPix;
+			int val = imValues[xPix][yPix];
+			str += String.format("<br>Level %d", val);
+		}
+		catch (Exception e) {
+			str += String.format("<p>Invalid pixel (%d,%d)", xPix, yPix);
+		}
+		str += "</html>";
 		
 		return str;
 	}
@@ -333,7 +353,7 @@ public class SonarsPanel extends PamPanel {
 			}
 			double xr = (x-x0)*maxR/aspRect.height;
 			double yr = (y0-y)*maxR/aspRect.height;
-			return new SonarCoordinate(currentImageRecords[i].getDeviceId(), xr, yr);
+			return new SonarCoordinate(i, currentImageRecords[i].getDeviceId(), xr, yr);
 		}
 		
 		return null;		

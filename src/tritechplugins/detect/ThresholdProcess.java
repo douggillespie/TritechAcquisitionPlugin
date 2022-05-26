@@ -11,6 +11,7 @@ import PamguardMVC.PamObservable;
 import PamguardMVC.PamProcess;
 import tritechplugins.acquire.ImageDataBlock;
 import tritechplugins.acquire.ImageDataUnit;
+import tritechplugins.detect.swing.RegionOverlayDraw;
 
 public class ThresholdProcess extends PamProcess {
 

@@ -17,15 +17,28 @@ public class ThresholdOfflineTask extends OfflineTask {
 	
 	private int imagesDone;
 	private long processStart;
+	private ThresholdDetector thresholdDetector;
 
-	public ThresholdOfflineTask(ThresholdProcess thresholdProcess, ImageDataBlock imageDataBlock) {
+	public ThresholdOfflineTask(ThresholdDetector thresholdDetector, ThresholdProcess thresholdProcess, ImageDataBlock imageDataBlock) {
 		super(imageDataBlock);
+		this.thresholdDetector =thresholdDetector;
 		this.thresholdProcess = thresholdProcess;
 		this.imageDataBlock = imageDataBlock;
 //		fileCatalog = 
 		fileCatalog = imageDataBlock.findFileCatalog();
 		addRequiredDataBlock(imageDataBlock);
 		addAffectedDataBlock(thresholdProcess.getRegionDataBlock());
+	}
+
+	@Override
+	public boolean hasSettings() {
+		return true;
+	}
+
+	@Override
+	public boolean callSettings() {
+		thresholdDetector.showSettingsDialog(null);
+		return true;
 	}
 
 	@Override

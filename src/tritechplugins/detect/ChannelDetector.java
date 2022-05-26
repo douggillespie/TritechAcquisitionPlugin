@@ -91,8 +91,8 @@ public class ChannelDetector {
 
 	private boolean wantRegion(GeminiImageRecordI image, DetectedRegion region, byte[] imageData) {
 		// get rough coordinates of the corners in x,y
-		int minPix = 20;
-		int minArea = 2;
+		int minPix = 10;
+		int minArea = 0;
 		if (region.getRegionSize() < minPix) {
 			return false;
 		}

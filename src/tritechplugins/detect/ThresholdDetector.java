@@ -3,16 +3,21 @@ package tritechplugins.detect;
 import java.awt.Frame;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.Serializable;
 
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 
 import PamController.PamControlledUnit;
+import PamController.PamControlledUnitSettings;
 import PamController.PamController;
+import PamController.PamSettingManager;
+import PamController.PamSettings;
 import offlineProcessing.OLProcessDialog;
 import offlineProcessing.OfflineTaskGroup;
+import tritechplugins.detect.swing.ThresholdDialog;
 
-public class ThresholdDetector extends PamControlledUnit {
+public class ThresholdDetector extends PamControlledUnit implements PamSettings {
 	
 	private ThresholdProcess thresholdProcess;
 	
@@ -25,6 +30,7 @@ public class ThresholdDetector extends PamControlledUnit {
 		thresholdProcess = new ThresholdProcess(this);
 		addPamProcess(thresholdProcess);
 		
+		PamSettingManager.getInstance().registerSettings(this);
 	}
 	
 	@Override
@@ -52,9 +58,17 @@ public class ThresholdDetector extends PamControlledUnit {
 
 	@Override
 	public JMenuItem createDetectionMenu(Frame parentFrame) {
+		JMenu menu = new JMenu(getUnitName());
+		JMenuItem menuItem = new JMenuItem("Settings...");
+		menu.add(menuItem);
+		menuItem.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				showSettingsDialog(parentFrame);
+			}
+		});
 		if (isViewer()) {
-			JMenu menu = new JMenu(getUnitName());
-			JMenuItem menuItem = new JMenuItem("Run offline ...");
+			 menuItem = new JMenuItem("Run offline ...");
 			menu.add(menuItem);
 			menuItem.addActionListener(new ActionListener() {
 				@Override
@@ -64,7 +78,15 @@ public class ThresholdDetector extends PamControlledUnit {
 			});
 			return menu;
 		}
-		return null;
+		return menu;
+	}
+
+	protected void showSettingsDialog(Frame parentFrame) {
+		ThresholdParams newParams = ThresholdDialog.showDialog(parentFrame, this);
+		if (newParams != null) {
+			this.thresholdParams = newParams;
+			thresholdProcess.prepareProcess();
+		}
 	}
 
 	/**
@@ -72,11 +94,27 @@ public class ThresholdDetector extends PamControlledUnit {
 	 * @param parentFrame
 	 */
 	protected void runOffline(Frame parentFrame) {
-		ThresholdOfflineTask thresholdOfflineTask = new ThresholdOfflineTask(thresholdProcess, thresholdProcess.getSourceDataBlock());
+		ThresholdOfflineTask thresholdOfflineTask = new ThresholdOfflineTask(this, thresholdProcess, thresholdProcess.getSourceDataBlock());
 		OfflineTaskGroup taskGroup = new OfflineTaskGroup(this, getUnitName());
 		taskGroup.addTask(thresholdOfflineTask);
 		OLProcessDialog processDialog = new OLProcessDialog(parentFrame, taskGroup, getUnitType());
 		processDialog.setVisible(true);
+	}
+
+	@Override
+	public Serializable getSettingsReference() {
+		return thresholdParams;
+	}
+
+	@Override
+	public long getSettingsVersion() {
+		return ThresholdParams.serialVersionUID;
+	}
+
+	@Override
+	public boolean restoreSettings(PamControlledUnitSettings pamControlledUnitSettings) {
+		thresholdParams = (ThresholdParams) pamControlledUnitSettings.getSettings();
+		return true;
 	}
 
 }

@@ -1,7 +1,8 @@
-package tritechplugins.detect;
+package tritechplugins.detect.swing;
 
 import java.awt.Color;
 import java.awt.Graphics;
+import java.awt.Point;
 import java.awt.Rectangle;
 
 import PamUtils.Coordinate3d;
@@ -14,6 +15,7 @@ import PamView.PamSymbolType;
 import PamView.PanelOverlayDraw;
 import PamguardMVC.PamDataUnit;
 import tritechgemini.detect.DetectedRegion;
+import tritechplugins.detect.RegionDataUnit;
 
 /**
  * Uses simple x,y projector to draw outlines of regions for given frame. 
@@ -51,13 +53,27 @@ public class RegionOverlayDraw extends PanelOverlayDraw {
 		y[3] =  minR*Math.cos(maxAng);
 		int[] xp = new int[4];
 		int[] yp = new int[4];
+		int minx = Integer.MAX_VALUE;
+		int maxx = Integer.MIN_VALUE;
+		int miny = Integer.MAX_VALUE;
+		int maxy = Integer.MIN_VALUE;
 		for (int i = 0; i < 4; i++) {
 			Coordinate3d pos = generalProjector.getCoord3d(x[i], y[i], 0);
 			xp[i] = (int) Math.round(pos.x);
 			yp[i] = (int) Math.round(pos.y);
+			minx = Math.min(minx, xp[i]);
+			maxx = Math.max(maxx, xp[i]);
+			miny = Math.min(miny, yp[i]);
+			maxy = Math.max(maxy, yp[i]);
 		}
 		
 		PamSymbol symbol = getPamSymbol(pamDataUnit, generalProjector);
+		
+//		if it's tiny,  plot the symbol
+		if (maxx-minx <= 2 || maxy-miny <=2) {
+			symbol.draw(g, new Point((minx+maxx)/2, (miny+maxy)/2));
+		}
+		
 		if (symbol != null && symbol.isFill()) {
 			g.setColor(symbol.getFillColor());
 			g.fillPolygon(xp, yp, 4);

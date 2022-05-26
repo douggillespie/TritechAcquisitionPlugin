@@ -9,19 +9,30 @@ public class SonarCoordinate {
 
 	private int sonarId;
 	private double x, y;
+	private int sonarIndex;
+
 
 	/**
 	 * 
 	 * @param sonarId sonar Id
 	 * @param x x coordinate
 	 * @param y y coordinate
+	 * @param yr 
 	 */
-	public SonarCoordinate(int sonarId, double x, double y) {
+	public SonarCoordinate(int sonarIndex, int sonarId, double x, double y) {
+		this.sonarIndex = sonarIndex;
 		this.sonarId = sonarId;
 		this.x = x;
 		this.y = y;
 	}
 
+	/**
+	 * @return the sonarIndex
+	 */
+	public int getSonarIndex() {
+		return sonarIndex;
+	}
+	
 	/**
 	 * 
 	 * @return the sonar Id
