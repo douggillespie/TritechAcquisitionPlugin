@@ -37,7 +37,6 @@ import PamView.panel.CornerLayoutContraint;
 import PamView.panel.PamPanel;
 import PamguardMVC.PamDataBlock;
 import PamguardMVC.PamDataUnit;
-import tritechgemini.detect.BackgroundSub;
 import tritechgemini.imagedata.FanImageData;
 import tritechgemini.imagedata.FanPicksFromData;
 import tritechgemini.imagedata.GeminiImageRecordI;
@@ -87,7 +86,7 @@ public class SonarsPanel extends PamPanel {
 	 */
 	private long[] imageTime;
 
-	private ImageFanMaker fanMaker = new FanPicksFromData(4);
+	private ImageFanMaker[] fanMakers;
 	
 	private SonarLayout sonarLayout = new AutoSonarLayout();
 	
@@ -123,6 +122,7 @@ public class SonarsPanel extends PamPanel {
 	public SonarsPanelParams getSonarsPanelParams() {
 		return sonarsPanelParams;
 	}
+	
 
 	public void setSonarsPanelParams(SonarsPanelParams sonarsPanelParams) {
 		this.sonarsPanelParams = sonarsPanelParams;
@@ -134,6 +134,10 @@ public class SonarsPanel extends PamPanel {
 		imageFanData = new FanImageData[numSonars];
 		images = new BufferedImage[numSonars];
 		imageTime = new long[numSonars];
+		fanMakers = new ImageFanMaker[numSonars];
+		for (int i = 0; i < numSonars; i++) {
+			fanMakers[i] = new FanPicksFromData(4);
+		}
 		sortRectangles();
 	}
 	
@@ -194,7 +198,8 @@ public class SonarsPanel extends PamPanel {
 		if (sonarIndex < numSonars) {
 			if (imageRecord != null && sonarsPanelParams.subtractBackground) {
 				BackgroundRemoval backgroundSub = findBackgroundSub(imageRecord.getDeviceId());
-				backgroundSub.setTimeConstant(sonarsPanelParams.backgroundScaleFactor);
+				backgroundSub.setTimeConstant(sonarsPanelParams.backgroundTimeFactor);
+				backgroundSub.setRemovalScale(sonarsPanelParams.backgroundScale);
 				imageRecord = backgroundSub.removeBackground(imageRecord, true);
 			}
 			prepareSonarImage(sonarIndex, imageRecord);
@@ -254,12 +259,33 @@ public class SonarsPanel extends PamPanel {
 			return;
 		}
 		long t1 = System.nanoTime();
-		imageFanData[sonarIndex] = fanMaker.createFanData(imageRecord);
+		int nBearing = imageRecord.getnBeam();
+		int nXPix = imageRectangles[sonarIndex].getImageRectangle().width;
+		int usePix = getImagePixels(nBearing, nXPix);
+		imageFanData[sonarIndex] = fanMakers[sonarIndex].createFanData(imageRecord, usePix);
 		FanDataImage fanImage = new FanDataImage(imageFanData[sonarIndex], colourArray, false, sonarsPanelParams.displayGain);
 		images[sonarIndex] = fanImage.getBufferedImage();
 		long t2 = System.nanoTime();
 		imageTime[sonarIndex] = t2-t1;
 		repaint(10);
+	}
+
+	/**
+	 * Get the number of image pixels based on the number of bearings in the image and the size on screen. 
+	 * @param nBearing
+	 * @param nXPix
+	 * @return pixels width of image
+	 */
+	private int getImagePixels(int nBearing, int nXPix) {
+		switch (sonarsPanelParams.resolution) {
+		case SonarsPanelParams.RESOLUTION_DEFAULT:
+			return nBearing;
+		case SonarsPanelParams.RESOLUTION_HIGH:
+			return Math.max(nBearing, nXPix/2);
+		case SonarsPanelParams.RESOLUTION_BEST:
+			return Math.max(nBearing, nXPix);
+		}
+		return nBearing;
 	}
 
 	@Override

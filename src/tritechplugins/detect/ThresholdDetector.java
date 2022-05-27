@@ -4,6 +4,7 @@ import java.awt.Frame;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.Serializable;
+import java.util.ArrayList;
 
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
@@ -15,13 +16,19 @@ import PamController.PamSettingManager;
 import PamController.PamSettings;
 import offlineProcessing.OLProcessDialog;
 import offlineProcessing.OfflineTaskGroup;
+import tritechplugins.detect.swing.DetectorHistogramProvider;
 import tritechplugins.detect.swing.ThresholdDialog;
+import userDisplay.UserDisplayControl;
 
 public class ThresholdDetector extends PamControlledUnit implements PamSettings {
 	
 	private ThresholdProcess thresholdProcess;
 	
 	private ThresholdParams thresholdParams = new ThresholdParams();
+	
+	private DetectorHistogramProvider histogramProvider;
+	
+	private ArrayList<ThresholdObserver> thresholdObservers = new ArrayList();
 
 	public static final String unitType = "Gemini Threshold Detector";
 	public ThresholdDetector(String unitName) {
@@ -29,6 +36,9 @@ public class ThresholdDetector extends PamControlledUnit implements PamSettings 
 		
 		thresholdProcess = new ThresholdProcess(this);
 		addPamProcess(thresholdProcess);
+		
+		histogramProvider = new DetectorHistogramProvider(this);
+		UserDisplayControl.addUserDisplayProvider(histogramProvider);
 		
 		PamSettingManager.getInstance().registerSettings(this);
 	}
@@ -117,4 +127,18 @@ public class ThresholdDetector extends PamControlledUnit implements PamSettings 
 		return true;
 	}
 
+	public void addThresholdObserver(ThresholdObserver thresholdObserver) {
+		thresholdObservers.add(thresholdObserver);
+	}
+	
+	public void notifyRawUpdate(int sonarId, byte[] data) {
+		for (ThresholdObserver obs : thresholdObservers) {
+			obs.newRawData(sonarId, data);
+		}
+	}
+	public void notifyTreatedUpdate(int sonarId, byte[] data) {
+		for (ThresholdObserver obs : thresholdObservers) {
+			obs.newTreatedData(sonarId, data);
+		}
+	}
 }

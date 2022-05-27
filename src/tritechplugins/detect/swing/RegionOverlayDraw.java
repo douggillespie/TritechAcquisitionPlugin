@@ -1,7 +1,9 @@
 package tritechplugins.detect.swing;
 
+import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.Rectangle;
 
@@ -68,6 +70,8 @@ public class RegionOverlayDraw extends PanelOverlayDraw {
 		}
 		
 		PamSymbol symbol = getPamSymbol(pamDataUnit, generalProjector);
+		Graphics2D g2d = (Graphics2D) g;
+		g2d.setStroke(new BasicStroke(2));
 		
 //		if it's tiny,  plot the symbol
 		if (maxx-minx <= 2 || maxy-miny <=2) {

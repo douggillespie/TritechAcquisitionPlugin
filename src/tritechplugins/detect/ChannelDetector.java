@@ -54,6 +54,10 @@ public class ChannelDetector {
 		
 		
 		byte[] noBackground = backgroundRemoval.removeBackground(imageData, true);
+		
+		thresholdDetector.notifyRawUpdate(sonarId, imageData);
+		thresholdDetector.notifyTreatedUpdate(sonarId, noBackground);
+		
 		GeminiImageRecordI clonedImage = image.clone();
 		clonedImage.setImageData(noBackground);
 		ArrayList<DetectedRegion> regions = regionDetector.detectRegions(clonedImage, params.highThreshold, params.lowThreshold, params.connectionType);

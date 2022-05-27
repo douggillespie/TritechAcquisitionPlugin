@@ -19,6 +19,7 @@ import PamView.dialog.PamCheckBox;
 import PamView.dialog.PamGridBagContraints;
 import PamView.dialog.PamLabel;
 import PamView.dialog.PamTextField;
+import PamView.dialog.SettingsButton;
 import PamView.hidingpanel.HidingPanel;
 import PamView.panel.PamPanel;
 
@@ -42,7 +43,9 @@ public class DisplayControlPanel {
 	
 	private JCheckBox removeBackground;
 	
-	private JTextField backgroundScale;
+	private JTextField backgroundTimeFac;
+	
+	private JTextField backgroundScaleFac;
 	
 //	private HidingPanel hidingPanel;
 	
@@ -61,13 +64,28 @@ public class DisplayControlPanel {
 
 		c.gridwidth = 1;
 		mainPanel.add(gainText = new PamLabel("gain: x2 "), c);
-		c.gridx+=2;
-		c.gridwidth = 2;
-		mainPanel.add(showGrid = new PamCheckBox("Show grid  "), c);
+		c.gridx+=1;
+		c.gridwidth = 1;
+		c.anchor = GridBagConstraints.EAST;
+		mainPanel.add(showGrid = new PamCheckBox("Grid"), c);
+		c.anchor = GridBagConstraints.WEST;
 		showGrid.addActionListener(generalAction);
 		c.gridx+=c.gridwidth;
+		c.gridwidth = 2;
 		mainPanel.add(flipLeftRight = new PamCheckBox("Flip image"), c);
 		flipLeftRight.addActionListener(generalAction);
+		c.gridx+=c.gridwidth+1;
+		c.gridwidth = 1;
+		SettingsButton moreButton = new SettingsButton();
+		mainPanel.add(moreButton, c);
+		moreButton.setToolTipText("More display options");
+		moreButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				moreSettings();
+			}
+		});
+		
 		c.gridx = 0;
 		c.gridy++;
 		c.gridwidth = 6;
@@ -80,7 +98,7 @@ public class DisplayControlPanel {
 		});
 		c.gridy++;
 		c.gridwidth = 1;
-		mainPanel.add(new PamLabel("Colour ", JLabel.RIGHT), c);
+		mainPanel.add(new PamLabel("Colour", JLabel.RIGHT), c);
 		c.gridx++;
 		c.gridwidth = 5;
 		mainPanel.add(colourComboBox, c);
@@ -93,29 +111,43 @@ public class DisplayControlPanel {
 		c.gridy++;
 		c.gridx = 0;
 		c.gridwidth = 2;
-		mainPanel.add(removeBackground = new JCheckBox("Remove background "), c);
+		mainPanel.add(removeBackground = new JCheckBox("Cut background "), c);
 		c.gridx+= c.gridwidth;
 		c.gridwidth = 1;
-		mainPanel.add(new PamLabel("  scale "), c);
+		mainPanel.add(new PamLabel(" Time"), c);
 		c.gridx += c.gridwidth;
-		mainPanel.add(backgroundScale = new PamTextField(2), c);
+		mainPanel.add(backgroundTimeFac = new PamTextField(2), c);
+		c.gridx++;
+		mainPanel.add(new PamLabel(" Scale"), c);
+		c.gridx += c.gridwidth;
+		mainPanel.add(backgroundScaleFac = new PamTextField(2), c);
 		
 		removeBackground.addActionListener(generalAction);
-		backgroundScale.addActionListener(generalAction);
-		
+		backgroundTimeFac.addActionListener(generalAction);
+		backgroundScaleFac.addActionListener(generalAction);
 		
 		gainSlider.setToolTipText("Amplify the image");
 		colourComboBox.setToolTipText("Select colour scheme");
 		showGrid.setToolTipText("Overlay grid");
 		flipLeftRight.setToolTipText("Flip images left-right");
 		removeBackground.setToolTipText("Automatically remove stationary background from image");
-		backgroundScale.setToolTipText("Background scale factor: big numbers = slow background update, small = fast update");
+		backgroundTimeFac.setToolTipText("Background scale factor: big numbers = slow background update, small = fast update");
 //		gainSlider.setMajorTickSpacing(5);
 //		gainSlider.setMinorTickSpacing(1);
 //		gainSlider.setPaintTicks(true);
 //		c.gridy++;
 		
 //		hidingPanel = new HidingPanel(sonarsPanel, mainPanel, HidingPanel.HORIZONTAL, false);
+		
+	}
+
+	protected void moreSettings() {
+		SonarsPanelParams newParams = MoreDisplayParamsDialog.showDialog(null, sonarsPanel.getSonarsPanelParams());
+		if (newParams != null) {
+			sonarsPanel.setSonarsPanelParams(newParams);
+			setParams();
+			sonarsPanel.remakeImages();
+		}
 		
 	}
 
@@ -139,12 +171,18 @@ public class DisplayControlPanel {
 		params.flipLeftRight = flipLeftRight.isSelected();
 		params.subtractBackground = removeBackground.isSelected();
 		try {
-			double update = Double.valueOf(backgroundScale.getText());
+			double update = Double.valueOf(backgroundTimeFac.getText());
 			int iUpdate = (int) Math.round(update);
 			if (iUpdate > 1) {
-				params.backgroundScaleFactor = iUpdate;
+				params.backgroundTimeFactor = iUpdate;
 			}
 //			System.out.println("Background scale updated to " + iUpdate);
+		}
+		catch (NumberFormatException e) {
+		}
+		try {
+			double fac = Double.valueOf(backgroundScaleFac.getText());
+			params.backgroundScale = fac;			
 		}
 		catch (NumberFormatException e) {
 			
@@ -181,7 +219,8 @@ public class DisplayControlPanel {
 		colourComboBox.setSelectedColourMap(params.colourMap);
 		gainSlider.setValue(params.displayGain);
 		removeBackground.setSelected(params.subtractBackground);
-		backgroundScale.setText(String.format("%d", params.backgroundScaleFactor));
+		backgroundTimeFac.setText(String.format("%d", params.backgroundTimeFactor));
+		backgroundScaleFac.setText(String.format("%3.2f", params.backgroundScale));
 		sayGain();
 	}
 
