@@ -73,7 +73,7 @@ public class TritechOffline implements TritechRunMode, OfflineDataStore {
 		}
 	}
 	
-	@Override
+//	@Override
 	public int getNumSonars() {
 		int[] ids = multiFileCatalog.getSonarIDs();
 		if (ids == null) {
@@ -84,7 +84,7 @@ public class TritechOffline implements TritechRunMode, OfflineDataStore {
 		}
 	}
 
-	@Override
+//	@Override
 	public int[] getSonarIDs() {
 		return multiFileCatalog.getSonarIDs();
 	}

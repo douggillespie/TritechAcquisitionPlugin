@@ -10,8 +10,10 @@ import javax.swing.border.TitledBorder;
 import PamView.dialog.PamGridBagContraints;
 import PamView.panel.PamPanel;
 import geminisdk.OutputFileInfo;
+import geminisdk.structures.LoggerPlaybackUpdate;
 import tritechplugins.acquire.SonarStatusData;
 import tritechplugins.acquire.SonarStatusObserver;
+import tritechplugins.acquire.Svs5JNADaqSystem;
 import tritechplugins.acquire.TritechAcquisition;
 import tritechplugins.acquire.TritechDaqProcess;
 
@@ -24,9 +26,11 @@ public class StatusTopPanel implements SonarStatusObserver {
 	private InfoStrip errorStrip;
 	private InfoStrip frameRate;
 	private boolean haveVersion = false;
+	private Svs5JNADaqSystem svs5DaqSystem;
 
-	public StatusTopPanel(TritechAcquisition tritechAcquisition) {
+	public StatusTopPanel(TritechAcquisition tritechAcquisition, Svs5JNADaqSystem svs5DaqSystem) {
 		this.tritechAcquisition = tritechAcquisition;
+		this.svs5DaqSystem = svs5DaqSystem;
 		this.tritechDaqProcess = tritechAcquisition.getTritechDaqProcess();
 		
 		topPanel = new PamPanel(new GridBagLayout());
@@ -65,7 +69,7 @@ public class StatusTopPanel implements SonarStatusObserver {
 	}
 	
 	public void sayVersion() {
-		String v = tritechDaqProcess.getLibVersion();
+		String v = svs5DaqSystem.getLibVersion();
 		if (v == null) {
 			versionStrip.setText("Can't get library version");
 		}
@@ -85,6 +89,18 @@ public class StatusTopPanel implements SonarStatusObserver {
 	public void updateOutputFileInfo(OutputFileInfo outputFileInfo) {
 		errorStrip.setName("File");
 		errorStrip.setText(outputFileInfo.getM_strFileName());
+	}
+
+	@Override
+	public void updateLoggerPlayback(LoggerPlaybackUpdate loggerPlaybackUpdate) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void updateFileIndex(int fileIndex) {
+		// TODO Auto-generated method stub
+		
 	}
 	
 

@@ -164,7 +164,7 @@ public class ThresholdHistrogramPlot {
 	
 	public void setData(String dataName, byte[] data) {
 		ThresholdHistogram aHist = findHistogram(dataName);
-		aHist.downScaleData(2);
+		aHist.scaleData(.99);
 		aHist.addData(data);
 		repaintAll();
 	}

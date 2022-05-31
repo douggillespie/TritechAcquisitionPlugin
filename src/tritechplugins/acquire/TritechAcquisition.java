@@ -3,6 +3,7 @@ package tritechplugins.acquire;
 import java.awt.Frame;
 import java.awt.Window;
 import java.io.Serializable;
+import java.util.ArrayList;
 
 import javax.swing.JMenuItem;
 
@@ -29,6 +30,8 @@ public class TritechAcquisition extends PamControlledUnit implements PamSettings
 	private TritechDaqParams daqParams = new TritechDaqParams();
 	
 	private TritechOffline tritechOffline;
+	
+	private ArrayList<ConfigurationObserver> configurationObservers = new ArrayList();
 	
 	public TritechOffline getTritechOffline() {
 		return tritechOffline;
@@ -73,6 +76,10 @@ public class TritechAcquisition extends PamControlledUnit implements PamSettings
 		this.daqParams = daqParams;
 	}
 
+	public void configurationChanged() {
+		notifyConfigurationObservers();
+	}
+
 	@Override
 	public void notifyModelChanged(int changeType) {
 		super.notifyModelChanged(changeType);
@@ -82,6 +89,7 @@ public class TritechAcquisition extends PamControlledUnit implements PamSettings
 		if (tritechDaqProcess != null && isViewer() == false) {
 			tritechDaqProcess.prepareProcess();
 		}
+		
 	}
 
 	@Override
@@ -174,6 +182,27 @@ public class TritechAcquisition extends PamControlledUnit implements PamSettings
 		}
 		else {
 			return null;
+		}
+	}
+	
+	/**
+	 * Add observer to get notifications of major configuration changes. 
+	 * @param configObserver
+	 */
+	public void addConfigurationObserver(ConfigurationObserver configObserver) {
+		configurationObservers.add(configObserver);
+	}
+	/**
+	 * Remove observer getting notifications of major configuration changes. 
+	 * @param configObserver
+	 */
+	public void removeConfigurationObserver(ConfigurationObserver configObserver) {
+		configurationObservers.remove(configObserver);
+	}
+	
+	public void notifyConfigurationObservers() {
+		for (ConfigurationObserver configObs : configurationObservers) {
+			configObs.configurationChanged();
 		}
 	}
 

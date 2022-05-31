@@ -203,7 +203,11 @@ public class SonarsPanel extends PamPanel {
 				imageRecord = backgroundSub.removeBackground(imageRecord, true);
 			}
 			prepareSonarImage(sonarIndex, imageRecord);
-			if (imageRecord != null) {	
+			if (imageRecord != null && PamController.getInstance().getRunMode() == PamController.RUN_PAMVIEW) {	
+				/*
+				 * Only free data in viewer since in normal mode data can always be recovered. Probably 
+				 *
+				 */
 				imageRecord.freeImageData();
 			}
 		}

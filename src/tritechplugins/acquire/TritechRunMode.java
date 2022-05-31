@@ -7,8 +7,8 @@ package tritechplugins.acquire;
  */
 public interface TritechRunMode {
 
-	public int getNumSonars();
-	
-	public int[] getSonarIDs();
+//	public int getNumSonars();
+//	
+//	public int[] getSonarIDs();
 	
 }

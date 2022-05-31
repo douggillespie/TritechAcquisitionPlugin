@@ -43,12 +43,12 @@ public class ThresholdHistogram {
 	}
 	
 	/**
-	 * Downlscale the data by the given factor. 
+	 * Scale the data by the given factor. 
 	 * @param factor
 	 */
-	public void downScaleData(int factor) {
+	public void scaleData(double factor) {
 		for (int i = 0; i < data.length; i++) {
-			data[i] /= factor;
+			data[i] *= factor;
 		}
 	}
 	

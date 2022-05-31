@@ -6,6 +6,7 @@ import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
+import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.Timer;
@@ -19,6 +20,7 @@ import geminisdk.structures.GemStatusPacket;
 import tritechgemini.imagedata.GLFStatusData;
 import tritechplugins.acquire.SonarStatusData;
 import tritechplugins.acquire.TritechAcquisition;
+import tritechplugins.display.swing.SonarDisplayDecoration;
 
 /*
  * Status panel for a single sonar. 
@@ -65,10 +67,6 @@ public class SonarStatusPanel {
 //		t.start();
 	}
 
-	public Component getComponent() {
-		return mainPanel;
-	}
-
 	public void updateStatus(SonarStatusData sonarStatusData) {
 		lastUpdate.setText(PamCalendar.formatDBDateTime(System.currentTimeMillis()));
 		rxPackets.setText(String.format("%d", sonarStatusData.getTotalImages()));
@@ -95,5 +93,10 @@ public class SonarStatusPanel {
 		c.gridy++;
 		return infoStrip;
 	}
+
+	public JComponent getComponent() {
+		return mainPanel;
+	}
+
 
 }

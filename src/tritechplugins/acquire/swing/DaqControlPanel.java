@@ -13,12 +13,16 @@ import javax.swing.event.ChangeListener;
 
 import PamView.dialog.PamGridBagContraints;
 import PamView.dialog.PamLabel;
+import PamView.hidingpanel.HidingPanel;
 import PamView.panel.PamPanel;
+import geminisdk.Svs5Exception;
 import tritechplugins.acquire.TritechAcquisition;
 import tritechplugins.acquire.TritechDaqParams;
 import tritechplugins.acquire.TritechDaqProcess;
+import tritechplugins.acquire.TritechJNADaq;
+import tritechplugins.display.swing.SonarDisplayDecoration;
 
-public class DaqControlPanel {
+public class DaqControlPanel implements SonarDisplayDecoration {
 
 	private JPanel mainPanel;
 	private TritechAcquisition tritechAcquisition;
@@ -26,9 +30,12 @@ public class DaqControlPanel {
 	
 	private ValueSlider gainSlider;
 	private ValueSlider rangeSlider;
+	private TritechJNADaq jnaAcquisition;
+	private HidingPanel hidingPanel;
 		
-	public DaqControlPanel(TritechAcquisition tritechAcquisition) {
+	public DaqControlPanel(TritechAcquisition tritechAcquisition, TritechJNADaq jnaAcquisition) {
 		this.tritechAcquisition = tritechAcquisition;
+		this.jnaAcquisition = jnaAcquisition;
 		tritechProcess = tritechAcquisition.getTritechDaqProcess();
 		
 		mainPanel = new PamPanel();
@@ -48,7 +55,10 @@ public class DaqControlPanel {
 		mainPanel.add(new PamLabel("Range"), c);
 		c.gridx++;
 		mainPanel.add(rangeSlider.getComponent(), c);
-		
+
+		hidingPanel = new HidingPanel(null, mainPanel,
+				HidingPanel.HORIZONTAL, false, "Online controls", tritechAcquisition.getUnitName() + " Controls");
+				
 		gainSlider.addChangeListener(new ChangeListener() {
 			@Override
 			public void stateChanged(ChangeEvent e) {
@@ -73,22 +83,37 @@ public class DaqControlPanel {
 		
 	}
 
-	public JComponent getMainPanel() {
-		return mainPanel;
-	}
-
 	protected void rangeChanged() {
 //		System.out.printf("New range value = %dm\n", rangeSlider.getValue());
 		TritechDaqParams daqParams = tritechAcquisition.getDaqParams();
 		daqParams.setRange(rangeSlider.getValue());
-		tritechProcess.setRange(daqParams.getRange());
+		try {
+			jnaAcquisition.setRange(daqParams.getRange(), 0);
+		} catch (Svs5Exception e) {
+			e.printStackTrace();
+		}
 	}
 
 	protected void gainChanged() {
 //		System.out.printf("New gain value = %d%%\n", gainSlider.getValue());
 		TritechDaqParams daqParams = tritechAcquisition.getDaqParams();
 		daqParams.setGain(gainSlider.getValue());
-		tritechProcess.setGain(daqParams.getGain());
+		try {
+			jnaAcquisition.setGain(daqParams.getGain(), 0);
+		} catch (Svs5Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	@Override
+	public JComponent getComponent() {
+		return hidingPanel;
+	}
+
+	@Override
+	public void destroyComponent() {
+		// TODO Auto-generated method stub
+		
 	}
 
 }

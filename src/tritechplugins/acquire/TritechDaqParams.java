@@ -16,6 +16,10 @@ public class TritechDaqParams implements Serializable, Cloneable{
 	
 	private int runMode = RUN_ACQUIRE;
 	
+	/**
+	 * folder for both processing and reprocessing. Ges
+	 * a bit confused when debugging, so may have to change. 
+	 */
 	private String offlineFileFolder = "C:\\GeminiData\\LD";
 	
 	private boolean offlineSubFolders = false;
