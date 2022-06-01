@@ -1,4 +1,4 @@
-package tritechplugins.display.swing;
+package tritechplugins.acquire.swing;
 
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
@@ -10,6 +10,7 @@ import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.border.BevelBorder;
+import javax.swing.border.EtchedBorder;
 
 import PamView.dialog.PamLabel;
 import PamView.panel.PamAlignmentPanel;
@@ -19,7 +20,9 @@ import geminisdk.structures.LoggerPlaybackUpdate;
 import tritechplugins.acquire.SonarStatusData;
 import tritechplugins.acquire.SonarStatusObserver;
 import tritechplugins.acquire.TritechAcquisition;
+import tritechplugins.acquire.TritechDaqParams;
 import tritechplugins.acquire.TritechJNAPlayback;
+import tritechplugins.display.swing.GeminiTaskBar;
 
 public class PlaybackTaskBar implements GeminiTaskBar, SonarStatusObserver {
 
@@ -28,21 +31,22 @@ public class PlaybackTaskBar implements GeminiTaskBar, SonarStatusObserver {
 	private JLabel currentFile;
 	private JLabel percentProcessed; 
 	private JComboBox<String> playSpeed;
-	double[] playSpeeds = {-1, .5, 1, 2, 4, 8, 16};
 	private PamAlignmentPanel leftAlighnedPanel;
 	private TritechJNAPlayback jnaPlayback;
+	private double[] playSpeeds;
 	
 	public PlaybackTaskBar(TritechAcquisition tritechAcquisition, TritechJNAPlayback jnaPlayback) {
 		this.tritechAcquisition = tritechAcquisition;
 		this.jnaPlayback = jnaPlayback;
 		mainPanel = new PamPanel(new FlowLayout());
 		leftAlighnedPanel = new PamAlignmentPanel(mainPanel, BorderLayout.WEST);
-		leftAlighnedPanel.setBorder(new BevelBorder(BevelBorder.RAISED));
+		leftAlighnedPanel.setBorder(new EtchedBorder(EtchedBorder.LOWERED));
 		mainPanel.add(new PamLabel("File playback: play speed "));
 		mainPanel.add(playSpeed = new JComboBox<String>());
 		mainPanel.add(new PamLabel(" current file "));
 		mainPanel.add(currentFile = new JLabel());
 		mainPanel.add(percentProcessed = new JLabel());
+		playSpeeds = TritechDaqParams.playSpeeds;
 		for (int i = 0; i < playSpeeds.length; i++) {
 			double speed = playSpeeds[i];
 			if (i == 0) {
@@ -59,6 +63,17 @@ public class PlaybackTaskBar implements GeminiTaskBar, SonarStatusObserver {
 			}
 		});
 		tritechAcquisition.getTritechDaqProcess().addStatusObserver(this);
+		
+		setParams();
+	}
+
+	private void setParams() {
+		double selSpeed = tritechAcquisition.getDaqParams().getPlaySpeed();
+		for (int i = 0; i < playSpeeds.length; i++) {
+			if (playSpeeds[i] == selSpeed) {
+				playSpeed.setSelectedIndex(i);
+			}
+		}
 	}
 
 	protected void newPlaySpeed() {
@@ -67,6 +82,7 @@ public class PlaybackTaskBar implements GeminiTaskBar, SonarStatusObserver {
 			return;
 		}
 		double speed = playSpeeds[ind];
+		tritechAcquisition.getDaqParams().setPlaySpeed(speed);
 		jnaPlayback.setPlaybackSpeed(speed);
 	}
 

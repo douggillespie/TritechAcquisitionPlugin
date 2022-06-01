@@ -1,13 +1,23 @@
 package tritechplugins.acquire;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import javax.swing.SwingWorker;
 
+import PamController.PamControlledUnitSettings;
+import PamController.PamController;
+import PamUtils.PamCalendar;
 import fileOfflineData.OfflineFileList;
+import tritechgemini.fileio.CatalogException;
 import tritechgemini.fileio.CatalogStreamObserver;
 import tritechgemini.fileio.GeminiFileCatalog;
 import tritechgemini.imagedata.GLFStatusData;
 import tritechgemini.imagedata.GeminiImageRecordI;
 import tritechplugins.acquire.offline.TritechFileFilter;
+import tritechplugins.acquire.swing.JavaFileStatusBar;
+import tritechplugins.display.swing.SonarDisplayDecoration;
+import tritechplugins.display.swing.SonarDisplayDecorations;
 
 /**
  * Acquisition system to use the pure java file reader which can work without
@@ -32,6 +42,7 @@ public class JavaFileAcquisition extends TritechDaqSystem  implements CatalogStr
 	 */
 	private String[] allFiles;
 	
+	private ArrayList<JavaFileObserver> javaFileObservers = new ArrayList<>();
 	
 	private GeminiFileCatalog<GeminiImageRecordI> currentCatalog;
 
@@ -40,6 +51,11 @@ public class JavaFileAcquisition extends TritechDaqSystem  implements CatalogStr
 	private StreamingThread streamThread;
 	
 	private Object synchObject = new Object();
+
+
+	private JavaFileDecorations javaFileDecorations;
+
+	private long lastCallbackTime, lastFrameTime;
 	
 	public JavaFileAcquisition(TritechAcquisition tritechAcquisition, TritechDaqProcess tritechProcess) {
 		super(tritechAcquisition, tritechProcess);
@@ -57,6 +73,8 @@ public class JavaFileAcquisition extends TritechDaqSystem  implements CatalogStr
 	@Override
 	public boolean start() {
 		continueStream = true;
+		lastCallbackTime = System.currentTimeMillis();
+		lastFrameTime = 0;
 		synchronized (synchObject) {
 			streamThread = new StreamingThread(allFiles);
 			streamThread.execute();
@@ -124,44 +142,121 @@ public class JavaFileAcquisition extends TritechDaqSystem  implements CatalogStr
 				return 0;
 			}
 			while (currentFile < fileList.length && continueStream) {
-				synchronized (synchObject) {
-					currentCatalog = GeminiFileCatalog.getFileCatalog(fileList[currentFile], false);
+				JavaFileStatus fileStatus = new JavaFileStatus(fileList.length, currentFile, fileList[currentFile]);
+				this.publish(fileStatus);
+				try {
+					synchronized (synchObject) {
+						currentCatalog = GeminiFileCatalog.getFileCatalog(fileList[currentFile], false);
+					}
+					currentCatalog.streamCatalog(JavaFileAcquisition.this);
+					currentFile++;
 				}
-				currentCatalog.streamCatalog(JavaFileAcquisition.this);
-				currentFile++;
+				catch (CatalogException e) {
+					System.out.println("Catalog error " + e.getMessage());
+					System.out.println("In file " + fileList[currentFile]);
+				}
 			}
 			return currentFile;
+		}
+
+		@Override
+		protected void process(List<JavaFileStatus> chunks) {
+			for (JavaFileStatus status : chunks) {
+				notifyObservers(status);
+			}
+		}
+
+		@Override
+		protected void done() {
+			// stop after one extra loop around AWT queue
+			PamController.getInstance().stopLater();
 		}
 		
 	}
 
 	@Override
 	public void newImageRecord(GeminiImageRecordI glfImage) {
-		// this will arrive in the swing worker thread - that's fine. 
+		ImageDataBlock datablock = tritechProcess.getImageDataBlock();
+		ImageDataUnit imageDataUnit = new ImageDataUnit(glfImage.getRecordTime(), 0, glfImage);
 		
+		delayPlayback(glfImage.getRecordTime());
+		
+		datablock.addPamData(imageDataUnit);
+	}
+
+	/**
+	 * think about delaying playback if speed is set. 
+	 * @param recordTime
+	 */
+	private int delayPlayback(long recordTime) {
+		double speed = tritechAcquisition.getDaqParams().getPlaySpeed();
+		if (speed <= 0 || lastFrameTime == 0) {
+			// no need to do anything apart from 
+			lastFrameTime = recordTime;
+			lastCallbackTime = System.currentTimeMillis();
+			return 0;
+		}
+		long interFrameMillis = recordTime-lastFrameTime;
+		long now = System.currentTimeMillis();
+		long elapsedMills = now - lastCallbackTime;
+		int delay = 0;
+		if (interFrameMillis > elapsedMills * speed) {
+			delay = (int) (interFrameMillis/speed-elapsedMills);
+			if (delay > 0) {
+			try {
+				Thread.sleep(delay);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+			}
+		}
+		lastFrameTime = recordTime;
+		lastCallbackTime = System.currentTimeMillis();
+		return delay;
 	}
 
 	@Override
 	public void newStatusData(GLFStatusData statusData) {
 		// this will arrive in the swing worker thread - that's fine. 
+		System.out.println("Status data");
+	}
+
+	@Override
+	public SonarDisplayDecorations getSwingDecorations() {
+		if (javaFileDecorations == null) {
+			javaFileDecorations = new JavaFileDecorations();
+		}
+		return javaFileDecorations;
+	}
+	
+	class JavaFileDecorations extends SonarDisplayDecorations {
+
+		@Override
+		public SonarDisplayDecoration getTopBar() {
+			return new JavaFileStatusBar(tritechAcquisition, JavaFileAcquisition.this);
+		}
 		
 	}
 	
-//	private class StreamingThread implements Runnable {
-//
-//		private String[] fileList;
-//
-//		public StreamingThread(String[] allFiles) {
-//			this.fileList = allFiles;
-//			for (int )
-//		}
-//
-//		@Override
-//		public void run() {
-//			
-//			
-//		}
-//		
-//	}
+	private void notifyObservers(JavaFileStatus javaFileStatus) {
+		for (JavaFileObserver obs: javaFileObservers) {
+			obs.update(javaFileStatus);
+		}
+	}
 
+	/**
+	 * Add an observer to get updates when moving to next file. 
+	 * @param javaFileObserver
+	 */
+	public void addObserver(JavaFileObserver javaFileObserver) {
+		javaFileObservers.add(javaFileObserver);
+	}
+	/**
+	 * Remove an observer from updates when moving to next file. 
+	 * @param javaFileObserver
+	 */
+	public void removeObserver(JavaFileObserver javaFileObserver) {
+		javaFileObservers.remove(javaFileObserver);
+	}
+	
 }

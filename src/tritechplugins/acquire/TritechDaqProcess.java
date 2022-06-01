@@ -97,8 +97,8 @@ public class TritechDaqProcess extends PamProcess implements TritechRunMode {
 			return TritechJNADaq.class;
 		}
 		else {
-//			return JavaFileAcquisition.class;
-			return TritechJNAPlayback.class;
+			return JavaFileAcquisition.class;
+//			return TritechJNAPlayback.class;
 		}
 		
 	}

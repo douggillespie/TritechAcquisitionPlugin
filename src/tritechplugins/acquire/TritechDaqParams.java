@@ -15,9 +15,15 @@ public class TritechDaqParams implements Serializable, Cloneable{
 	public static final int RUN_SIMULATE = 2;
 	
 	private int runMode = RUN_ACQUIRE;
+
+	/*
+	 * List of available playback speeds for offline analysis in 'normal' mode via 
+	 * svs5 or via the pure Java reader -1 or 0 mean free run (-1 works with svs5). 
+	 */
+	public static final double[] playSpeeds = {-1, .5, 1, 2, 4, 8, 16};
 	
 	/**
-	 * folder for both processing and reprocessing. Ges
+	 * folder for both processing and reprocessing. Gets
 	 * a bit confused when debugging, so may have to change. 
 	 */
 	private String offlineFileFolder = "C:\\GeminiData\\LD";
@@ -29,6 +35,8 @@ public class TritechDaqParams implements Serializable, Cloneable{
 	private int gain = 50;
 	
 	private int chirpMode = ChirpMode.CHIRP_ENABLED;
+	
+	private double playSpeed = 1.0;
 	
 	/**
 	 * 1200i only
@@ -183,6 +191,20 @@ public class TritechDaqParams implements Serializable, Cloneable{
 	 */
 	public void setRunMode(int runMode) {
 		this.runMode = runMode;
+	}
+
+	/**
+	 * @return the playSpeed
+	 */
+	public double getPlaySpeed() {
+		return playSpeed;
+	}
+
+	/**
+	 * @param playSpeed the playSpeed to set
+	 */
+	public void setPlaySpeed(double playSpeed) {
+		this.playSpeed = playSpeed;
 	}
 
 }
