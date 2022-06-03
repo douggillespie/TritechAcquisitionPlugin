@@ -33,6 +33,8 @@ public class ThresholdDialog extends PamDialog {
 	private JTextField thresholdOn, thresholdOff;
 
 	private JTextField backgroundTime, backgroundScale;
+	
+	private JTextField minObjectSize, maxObjectSize;
 
 	private JComboBox<String> connectionType;
 
@@ -46,12 +48,14 @@ public class ThresholdDialog extends PamDialog {
 		thresholdOff = new JTextField(3);
 		backgroundTime = new JTextField(3);
 		backgroundScale = new JTextField(3);
+		minObjectSize = new JTextField(3);
+		maxObjectSize = new JTextField(3);
 		connectionType = new JComboBox<String>();
 
 		JPanel mainPanel = new JPanel(new GridBagLayout());
 		mainPanel.setBorder(new TitledBorder("Threshold detector"));
 		GridBagConstraints c = new PamGridBagContraints();
-		c.gridwidth = 3;
+		c.gridwidth = 5;
 		mainPanel.add(new JLabel("Data source", JLabel.LEFT), c);
 		c.gridy++;
 		c.gridx = 0;
@@ -60,47 +64,75 @@ public class ThresholdDialog extends PamDialog {
 		
 		c.gridy++;
 		c.gridx = 0;
+		c.gridwidth = 1;
 		mainPanel.add(new JLabel("Background time scale ", JLabel.RIGHT), c);
 		c.gridx++;
+		c.gridwidth = 2;
 		mainPanel.add(backgroundTime, c);
-		c.gridx++;
+		c.gridx+=c.gridwidth;
+//		c.gridwidth = 1;
 		mainPanel.add(new JLabel(" frames ", JLabel.LEFT), c);
 
 		c.gridy++;
 		c.gridx = 0;
+		c.gridwidth = 1;
 		mainPanel.add(new JLabel("Background removal scale ", JLabel.RIGHT), c);
 		c.gridx++;
+		c.gridwidth = 2;
 		mainPanel.add(backgroundScale, c);
-		c.gridx++;
+		c.gridx+=c.gridwidth;
+//		c.gridwidth = 1;
 		mainPanel.add(new JLabel(" multiplier ", JLabel.LEFT), c);
 
 		c.gridy++;
 		c.gridx = 0;
+		c.gridwidth = 1;
 		mainPanel.add(new JLabel(" Detection on threshold ", JLabel.RIGHT), c);
 		c.gridx++;
+		c.gridwidth = 2;
 		mainPanel.add(thresholdOn, c);
-		c.gridx++;
+		c.gridx+=c.gridwidth;
+//		c.gridwidth = 1;
 		mainPanel.add(new JLabel(" counts ", JLabel.LEFT), c);
 
 		c.gridy++;
 		c.gridx = 0;
+		c.gridwidth = 1;
 		mainPanel.add(new JLabel(" Detection off threshold ", JLabel.RIGHT), c);
 		c.gridx++;
+		c.gridwidth = 2;
 		mainPanel.add(thresholdOff, c);
-		c.gridx++;
+		c.gridx+=c.gridwidth;
+//		c.gridwidth = 1;
 		mainPanel.add(new JLabel(" counts ", JLabel.LEFT), c);
 
 
 		c.gridx = 0;
 		c.gridy++;
+		c.gridwidth = 1;
 		mainPanel.add(new JLabel(" Connection type ", JLabel.RIGHT), c);
-		c.gridx++;
+		c.gridx+=c.gridwidth;
+		c.gridwidth = 3;
 		mainPanel.add(connectionType, c);
-
+		
 		int[] conTypes = RegionDetector.getConnectionTypes();
 		for (int i = 0; i < conTypes.length; i++) {
 			connectionType.addItem(String.format("Connect %d", conTypes[i]));
 		}
+		
+
+		c.gridy++;
+		c.gridx = 0;
+		c.gridwidth = 1;
+		mainPanel.add(new JLabel("Size range ", JLabel.RIGHT), c);
+		c.gridx++;
+		mainPanel.add(minObjectSize, c);
+		c.gridx++;
+		mainPanel.add(new JLabel(" to ", JLabel.CENTER), c);
+		c.gridx++;
+		mainPanel.add(maxObjectSize, c);
+		c.gridx++;
+		mainPanel.add(new JLabel(" m ", JLabel.LEFT), c);
 
 		setDialogComponent(mainPanel);
 	}
@@ -121,6 +153,8 @@ public class ThresholdDialog extends PamDialog {
 		backgroundScale.setText(String.format("%3.2f", thresholdParams.backgroundScale));
 		thresholdOn.setText(String.format("%d", thresholdParams.highThreshold));
 		thresholdOff.setText(String.format("%d", thresholdParams.lowThreshold));
+		minObjectSize.setText(String.format("%3.1f", thresholdParams.minSize));
+		maxObjectSize.setText(String.format("%3.1f", thresholdParams.maxSize));
 
 		int[] conTypes = RegionDetector.getConnectionTypes();
 		for (int i = 0; i < conTypes.length; i++) {
@@ -150,6 +184,13 @@ public class ThresholdDialog extends PamDialog {
 		}
 		catch (NumberFormatException e) {
 			return showWarning("Invalid scale value");
+		}
+		try {
+			thresholdParams.minSize = Double.valueOf(minObjectSize.getText());
+			thresholdParams.maxSize = Double.valueOf(maxObjectSize.getText());
+		}
+		catch (NumberFormatException e) {
+			return showWarning("Invalid size value");
 		}
 
 		return true;

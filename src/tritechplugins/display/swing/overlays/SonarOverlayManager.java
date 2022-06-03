@@ -16,7 +16,6 @@ public class SonarOverlayManager extends OverlayDataManager<SonarOverlayData> {
 	private static ParameterType[] paramTypes = {ParameterType.X, ParameterType.Y};
 	private static ParameterUnits[] paramUnits = {ParameterUnits.METERS, ParameterUnits.METERS};
 	
-	private HashMap<String, SonarOverlayData> overlayDatas = new HashMap<>();
 	private SonarsPanel sonarsPanel;
 	
 	public SonarOverlayManager(SonarsPanel sonarsPanel) {
@@ -37,19 +36,24 @@ public class SonarOverlayManager extends OverlayDataManager<SonarOverlayData> {
 
 	@Override
 	public SonarOverlayData getOverlayInfo(PamDataBlock dataBlock) {
+		HashMap<String, SonarOverlayData> overlayDatas = getOverlayData();
 		SonarOverlayData overlayData = overlayDatas.get(dataBlock.getLongDataName());
 		if (overlayData == null) {
-			overlayData = new SonarOverlayData(dataBlock);
+			overlayData = new SonarOverlayData(dataBlock.getLongDataName());
 			overlayDatas.put(dataBlock.getLongDataName(), overlayData);
 		}
 		return overlayData;
 	}
 
+	private HashMap<String, SonarOverlayData> getOverlayData() {
+		return sonarsPanel.getSonarsPanelParams().getOverlayDatas();
+	}
 	/**
 	 * Get a list of selected datablocks. 
 	 * @return
 	 */
 	public Collection<SonarOverlayData> getSelectedDataBlocks() {
+		HashMap<String, SonarOverlayData> overlayDatas = getOverlayData();
 		Collection<SonarOverlayData> values = overlayDatas.values();
 		ArrayList<SonarOverlayData> selected = new ArrayList<>();
 		for (SonarOverlayData aData : values) {

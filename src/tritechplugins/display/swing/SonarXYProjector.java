@@ -12,8 +12,10 @@ public class SonarXYProjector extends GeneralProjector {
 	private int imageIndex;
 	private int sonarID;
 	private SonarsPanel sonarsPanel;
-	private Rectangle rectangle;
+//	private Rectangle rectangle;
 	private GeminiImageRecordI imageRecord;
+	private boolean flipImage = false;
+	private SonarZoomTransform sonarZoomTransform;
 
 	public SonarXYProjector(SonarsPanel sonarsPanel, int imageIndex, int sonarID) {
 		this.sonarsPanel = sonarsPanel;
@@ -27,28 +29,58 @@ public class SonarXYProjector extends GeneralProjector {
 		return getCoord3d(new Coordinate3d(x, y, z));
 	}
 	
-	public void setLayout(Rectangle rectangle, GeminiImageRecordI imageRecord) {
-		this.rectangle = rectangle;
-		this.imageRecord = imageRecord;
-		
-	}
-
+//	public void setLayout(Rectangle rectangle, GeminiImageRecordI imageRecord) {
+//		this.rectangle = rectangle;
+//		this.imageRecord = imageRecord;
+//		
+//	}
+//
+//	@Override
+//	public Coordinate3d getCoord3d(PamCoordinate dataObject) {
+//		if (rectangle == null || imageRecord == null) {
+//			return null;
+//		}
+//		double maxRange = imageRecord.getMaxRange();
+//		double pixScale = rectangle.height/maxRange;
+//		double xCoord = -dataObject.getCoordinate(0);
+//		if (flipImage) {
+//			xCoord = - xCoord;
+//		}
+//		double x = rectangle.getCenterX() + xCoord*pixScale;
+//		double y = rectangle.getMaxY() - dataObject.getCoordinate(1)*pixScale;
+//		return new Coordinate3d(x,y);
+	//	}
 	@Override
 	public Coordinate3d getCoord3d(PamCoordinate dataObject) {
-		if (rectangle == null || imageRecord == null) {
+		if (sonarZoomTransform == null) {
 			return null;
 		}
-		double maxRange = imageRecord.getMaxRange();
-		double pixScale = rectangle.height/maxRange;
-		double x = rectangle.getCenterX() + dataObject.getCoordinate(0)*pixScale;
-		double y = rectangle.getMaxY() - dataObject.getCoordinate(1)*pixScale;
-		return new Coordinate3d(x,y);
+		return sonarZoomTransform.imageMetresToScreen(-dataObject.getCoordinate(0), dataObject.getCoordinate(1));
+		
 	}
 
 	@Override
 	public PamCoordinate getDataPosition(PamCoordinate screenPosition) {
 		// TODO Auto-generated method stub
 		return null;
+	}
+
+	/**
+	 * @return the flipImage
+	 */
+	public boolean isFlipImage() {
+		return flipImage;
+	}
+
+	/**
+	 * @param flipImage the flipImage to set
+	 */
+	public void setFlipImage(boolean flipImage) {
+		this.flipImage = flipImage;
+	}
+
+	public void setLayout(SonarZoomTransform sonarZoomTransform) {
+		this.sonarZoomTransform = sonarZoomTransform;
 	}
 
 }

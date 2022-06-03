@@ -11,7 +11,8 @@ import tritechgemini.detect.DetectedRegion;
 
 public class RegionLogging extends SQLLogging {
 	
-	private PamTableItem sonarId, minBearing, maxBearing, minRange, maxRange, meanValue, totalValue, maxValue;
+	private PamTableItem sonarId, minBearing, maxBearing, minRange, maxRange, objectSize;
+	private PamTableItem meanValue, totalValue, maxValue;
 	private ThresholdDetector thresholdDetector;
 
 	public RegionLogging(ThresholdDetector thresholdDetector, RegionDataBlock regionDataBlock) {
@@ -28,6 +29,7 @@ public class RegionLogging extends SQLLogging {
 		tableDef.addTableItem(maxBearing = new PamTableItem("MaxBearing", Types.REAL));
 		tableDef.addTableItem(minRange = new PamTableItem("MinRange", Types.REAL));
 		tableDef.addTableItem(maxRange = new PamTableItem("MaxRange", Types.REAL));
+		tableDef.addTableItem(objectSize = new PamTableItem("ObjectSize", Types.REAL));
 		tableDef.addTableItem(meanValue = new PamTableItem("MeanValue", Types.INTEGER));
 		tableDef.addTableItem(totalValue = new PamTableItem("TotalValue", Types.INTEGER));
 		tableDef.addTableItem(maxValue = new PamTableItem("MaxValue", Types.INTEGER));
@@ -45,6 +47,7 @@ public class RegionLogging extends SQLLogging {
 		maxBearing.setValue((float) Math.max(b1, b2));
 		minRange.setValue((float) region.getMinRange());
 		maxRange.setValue((float) region.getMaxRange());
+		objectSize.setValue((float) region.getObjectSize());
 		meanValue.setValue(region.getAverageValue());
 		totalValue.setValue(region.getTotalValue());
 		maxValue.setValue(region.getMaxValue());
@@ -57,11 +60,12 @@ public class RegionLogging extends SQLLogging {
 		double maxB = maxBearing.getFloatValue();
 		double minR = minRange.getFloatValue();
 		double maxR = maxRange.getFloatValue();
+		double size = objectSize.getFloatValue();
 		int meanV = meanValue.getIntegerValue();
 		int totV = totalValue.getIntegerValue();
 		int maxV = maxValue.getIntegerValue();
 		
-		DetectedRegion region = new DetectedRegion(sonarId, minB, maxB, minR, maxR, meanV, totV, maxV);
+		DetectedRegion region = new DetectedRegion(sonarId, minB, maxB, minR, maxR, size, meanV, totV, maxV);
 		RegionDataUnit rdu = new RegionDataUnit(timeMilliseconds, sonarId, region);
 		return rdu;
 	}

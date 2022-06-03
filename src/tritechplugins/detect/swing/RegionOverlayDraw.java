@@ -5,7 +5,9 @@ import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Point;
+import java.awt.Polygon;
 import java.awt.Rectangle;
+import java.awt.Shape;
 
 import PamUtils.Coordinate3d;
 import PamView.GeneralProjector;
@@ -86,6 +88,10 @@ public class RegionOverlayDraw extends PanelOverlayDraw {
 			g.setColor(symbol.getLineColor());
 		}
 		g.drawPolygon(xp, yp, 4);
+		
+		Shape shape = new Polygon(xp, yp, 4);
+		
+		generalProjector.addHoverData(shape, pamDataUnit);
 		
 		return null;
 	}

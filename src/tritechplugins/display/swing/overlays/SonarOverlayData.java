@@ -8,18 +8,10 @@ import PamguardMVC.PamDataBlock;
 public class SonarOverlayData extends OverlayDataInfo implements Serializable, Cloneable {
 
 	private static final long serialVersionUID = 1L;
-	private PamDataBlock dataBlock;
 
-	public SonarOverlayData(PamDataBlock dataBlock) {
-		super(dataBlock.getDataName());
-		this.dataBlock = dataBlock;
+	public SonarOverlayData(String dataBlockName) {
+		super(dataBlockName);
 	}
 
-	/**
-	 * @return the dataBlock
-	 */
-	public PamDataBlock getDataBlock() {
-		return dataBlock;
-	}
 
 }
