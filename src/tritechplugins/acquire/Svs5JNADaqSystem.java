@@ -156,6 +156,9 @@ abstract public class Svs5JNADaqSystem extends TritechDaqSystem {
 	}
 
 	public String getLibVersion() {
+		if (gSerialiser == null) {
+			return "Not installed";
+		}
 		String sv5Inf = gSerialiser.svs5GetLibraryVersionInfo();
 		return sv5Inf;
 	}

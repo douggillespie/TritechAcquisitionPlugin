@@ -65,9 +65,9 @@ public class JavaFileAcquisition extends TritechDaqSystem  implements CatalogStr
 	@Override
 	public boolean prepareProcess() {
 		TritechDaqParams params = tritechAcquisition.getDaqParams();
-		OfflineFileList fileList = new OfflineFileList(params.getOfflineFileFolder(), new TritechFileFilter(), params.isOfflineSubFolders());
+		OfflineFileList fileList = new OfflineFileList(params.getOfflineFileFolder(), new TritechFileFilter(), params.isOfflineSubFolders() | true);
 		allFiles = fileList.asStringList();
-		return false;
+		return allFiles.length>0;
 	}
 
 	@Override
@@ -149,12 +149,13 @@ public class JavaFileAcquisition extends TritechDaqSystem  implements CatalogStr
 						currentCatalog = GeminiFileCatalog.getFileCatalog(fileList[currentFile], false);
 					}
 					currentCatalog.streamCatalog(JavaFileAcquisition.this);
-					currentFile++;
 				}
 				catch (CatalogException e) {
 					System.out.println("Catalog error " + e.getMessage());
 					System.out.println("In file " + fileList[currentFile]);
+//					break;
 				}
+				currentFile++;
 			}
 			return currentFile;
 		}
@@ -202,12 +203,13 @@ public class JavaFileAcquisition extends TritechDaqSystem  implements CatalogStr
 		int delay = 0;
 		if (interFrameMillis > elapsedMills * speed) {
 			delay = (int) (interFrameMillis/speed-elapsedMills);
+			delay = Math.min(1000, delay);
 			if (delay > 0) {
-			try {
-				Thread.sleep(delay);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
+				try {
+					Thread.sleep(delay);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
 			}
 		}
 		lastFrameTime = recordTime;
@@ -218,7 +220,7 @@ public class JavaFileAcquisition extends TritechDaqSystem  implements CatalogStr
 	@Override
 	public void newStatusData(GLFStatusData statusData) {
 		// this will arrive in the swing worker thread - that's fine. 
-		System.out.println("Status data");
+//		System.out.println("Status data");
 	}
 
 	@Override
