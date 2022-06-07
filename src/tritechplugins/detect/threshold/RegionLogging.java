@@ -1,8 +1,9 @@
-package tritechplugins.detect;
+package tritechplugins.detect.threshold;
 
 import java.sql.Types;
 
 import PamguardMVC.PamDataUnit;
+import generalDatabase.PamSubtableDefinition;
 import generalDatabase.PamTableDefinition;
 import generalDatabase.PamTableItem;
 import generalDatabase.SQLLogging;
@@ -23,7 +24,7 @@ public class RegionLogging extends SQLLogging {
 	}
 
 	private PamTableDefinition makeBaseTable() {
-		PamTableDefinition tableDef = new PamTableDefinition(thresholdDetector + " targets");
+		PamTableDefinition tableDef = new PamSubtableDefinition(thresholdDetector.getUnitName() + " targets");
 		tableDef.addTableItem(sonarId = new PamTableItem("SonarID", Types.INTEGER));
 		tableDef.addTableItem(minBearing = new PamTableItem("MinBearing", Types.REAL));
 		tableDef.addTableItem(maxBearing = new PamTableItem("MaxBearing", Types.REAL));
@@ -54,7 +55,7 @@ public class RegionLogging extends SQLLogging {
 	}
 
 	@Override
-	protected PamDataUnit createDataUnit(SQLTypes sqlTypes, long timeMilliseconds, int databaseIndex) {
+	protected RegionDataUnit createDataUnit(SQLTypes sqlTypes, long timeMilliseconds, int databaseIndex) {
 		int sonarId = this.sonarId.getIntegerValue();
 		double minB = minBearing.getFloatValue();
 		double maxB = maxBearing.getFloatValue();
@@ -65,7 +66,7 @@ public class RegionLogging extends SQLLogging {
 		int totV = totalValue.getIntegerValue();
 		int maxV = maxValue.getIntegerValue();
 		
-		DetectedRegion region = new DetectedRegion(sonarId, minB, maxB, minR, maxR, size, meanV, totV, maxV);
+		DetectedRegion region = new DetectedRegion(timeMilliseconds, sonarId, minB, maxB, minR, maxR, size, meanV, totV, maxV);
 		RegionDataUnit rdu = new RegionDataUnit(timeMilliseconds, sonarId, region);
 		return rdu;
 	}

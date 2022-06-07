@@ -1,4 +1,4 @@
-package tritechplugins.detect;
+package tritechplugins.detect.threshold;
 
 import tritechgemini.detect.BackgroundSub;
 import tritechgemini.imagedata.GeminiImageRecordI;

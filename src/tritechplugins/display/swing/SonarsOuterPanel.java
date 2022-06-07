@@ -3,6 +3,7 @@ package tritechplugins.display.swing;
 import java.awt.BorderLayout;
 import java.util.List;
 
+import PamController.PamController;
 import PamController.SettingsNameProvider;
 import PamUtils.PamCalendar;
 import PamView.hidingpanel.HidingPanel;
@@ -26,6 +27,7 @@ import tritechplugins.acquire.TritechDaqSystem;
 import tritechplugins.acquire.offline.TritechOffline;
 import tritechplugins.acquire.swing.DaqControlPanel;
 import tritechplugins.acquire.swing.SonarsStatusPanel;
+import tritechplugins.detect.track.TrackLinkDataUnit;
 
 /**
  * Panel around a sonarspanel which has a few more controls, such as a slider
@@ -87,7 +89,7 @@ public class SonarsOuterPanel implements ConfigurationObserver {
 //		}
 
 		if (tritechAcquisition.isViewer()) {
-			viewerSlider = new PamScrollSlider("Gemin i display", PamScrollSlider.HORIZONTAL, 5, 60, true);
+			viewerSlider = new PamScrollSlider("Gemini display", PamScrollSlider.HORIZONTAL, 5, 60, true);
 			outerPanel.add(viewerSlider.getComponent(), BorderLayout.SOUTH);
 			viewerSlider.addDataBlock(tritechAcquisition.getImageDataBlock());
 			viewerSlider.addObserver(new ScrollObserver());
@@ -99,12 +101,16 @@ public class SonarsOuterPanel implements ConfigurationObserver {
 			tritechAcquisition.getImageDataBlock().addObserver(new ImageObserver());
 		}
 
-		List<PamDataBlock> datas = sonarsPanel.sonarOverlayManager.listDataBlocks(true);
-		if (datas != null) {
-			for (PamDataBlock aBlock : datas) {
-				if (viewerSlider != null) {
+		if (viewerSlider != null) {
+			List<PamDataBlock> datas = sonarsPanel.sonarOverlayManager.listDataBlocks(true);
+			if (datas != null) {
+				for (PamDataBlock aBlock : datas) {
 					viewerSlider.addDataBlock(aBlock);
 				}
+			}
+			PamDataBlock trackBlocks = PamController.getInstance().getDataBlock(TrackLinkDataUnit.class, 0);
+			if (trackBlocks != null) {
+				viewerSlider.addDataBlock(trackBlocks);
 			}
 		}
 		

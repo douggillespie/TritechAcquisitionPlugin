@@ -50,7 +50,7 @@ import networkTransfer.receive.NetworkReceiver;
 import printscreen.PrintScreenControl;
 import rockBlock.RockBlockControl;
 import tritechplugins.acquire.TritechAcquisition;
-import tritechplugins.detect.ThresholdDetector;
+import tritechplugins.detect.threshold.ThresholdDetector;
 import turbineops.TurbineOperationControl;
 import GPS.GpsDataUnit;
 import Map.MapController;

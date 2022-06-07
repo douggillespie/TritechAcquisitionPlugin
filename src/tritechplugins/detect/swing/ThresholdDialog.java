@@ -16,9 +16,9 @@ import PamView.dialog.SourcePanel;
 import PamguardMVC.PamDataBlock;
 import tritechgemini.detect.RegionDetector;
 import tritechplugins.acquire.ImageDataUnit;
-import tritechplugins.detect.RegionDataUnit;
-import tritechplugins.detect.ThresholdDetector;
-import tritechplugins.detect.ThresholdParams;
+import tritechplugins.detect.threshold.RegionDataUnit;
+import tritechplugins.detect.threshold.ThresholdDetector;
+import tritechplugins.detect.threshold.ThresholdParams;
 
 public class ThresholdDialog extends PamDialog {
 

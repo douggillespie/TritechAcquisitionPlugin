@@ -1,4 +1,4 @@
-package tritechplugins.detect;
+package tritechplugins.detect.threshold;
 
 import java.awt.Frame;
 import java.awt.event.ActionEvent;
@@ -18,24 +18,42 @@ import offlineProcessing.OLProcessDialog;
 import offlineProcessing.OfflineTaskGroup;
 import tritechplugins.detect.swing.DetectorHistogramProvider;
 import tritechplugins.detect.swing.ThresholdDialog;
+import tritechplugins.detect.track.TrackLinkProcess;
 import userDisplay.UserDisplayControl;
 
 public class ThresholdDetector extends PamControlledUnit implements PamSettings {
 	
 	private ThresholdProcess thresholdProcess;
 	
+	/**
+	 * @return the thresholdProcess
+	 */
+	public ThresholdProcess getThresholdProcess() {
+		return thresholdProcess;
+	}
 	private ThresholdParams thresholdParams = new ThresholdParams();
 	
 	private DetectorHistogramProvider histogramProvider;
 	
 	private ArrayList<ThresholdObserver> thresholdObservers = new ArrayList();
 
+	private TrackLinkProcess trackLinkProcess;
+
+	/**
+	 * @return the trackLinkProcess
+	 */
+	public TrackLinkProcess getTrackLinkProcess() {
+		return trackLinkProcess;
+	}
 	public static final String unitType = "Gemini Threshold Detector";
 	public ThresholdDetector(String unitName) {
 		super(unitType, unitName);
 		
 		thresholdProcess = new ThresholdProcess(this);
 		addPamProcess(thresholdProcess);
+
+		trackLinkProcess = new TrackLinkProcess(this, thresholdProcess);
+		addPamProcess(trackLinkProcess);
 		
 		histogramProvider = new DetectorHistogramProvider(this);
 		UserDisplayControl.addUserDisplayProvider(histogramProvider);

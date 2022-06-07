@@ -1,7 +1,8 @@
-package tritechplugins.detect;
+package tritechplugins.detect.threshold;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 import PamController.PamControlledUnit;
 import PamController.PamController;
@@ -9,9 +10,11 @@ import PamguardMVC.PamDataBlock;
 import PamguardMVC.PamDataUnit;
 import PamguardMVC.PamObservable;
 import PamguardMVC.PamProcess;
+import tritechgemini.detect.DetectedRegion;
 import tritechplugins.acquire.ImageDataBlock;
 import tritechplugins.acquire.ImageDataUnit;
 import tritechplugins.detect.swing.RegionOverlayDraw;
+import tritechplugins.detect.track.TrackLinkProcess;
 
 public class ThresholdProcess extends PamProcess {
 
@@ -21,13 +24,26 @@ public class ThresholdProcess extends PamProcess {
 	
 	private RegionDataBlock regionDataBlock;
 	
+	private RegionLogging regionLogging;
+	
+	/**
+	 * @return the regionLogging
+	 */
+	public RegionLogging getRegionLogging() {
+		return regionLogging;
+	}
+
+
 	public ThresholdProcess(ThresholdDetector thresholdDetector) {
 		super(thresholdDetector, null);
 		this.thresholdDetector = thresholdDetector;
 		regionDataBlock = new RegionDataBlock(thresholdDetector.getUnitName() + " targets", this);
 		addOutputDataBlock(regionDataBlock);
-		regionDataBlock.SetLogging(new RegionLogging(thresholdDetector, regionDataBlock));
+		regionLogging = new RegionLogging(thresholdDetector, regionDataBlock);
+		// not sure I need this - logging function get called from the super detection clss. 
+//		regionDataBlock.SetLogging(regionLogging);
 		regionDataBlock.setOverlayDraw(new RegionOverlayDraw());
+		
 	}
 
 
@@ -35,7 +51,11 @@ public class ThresholdProcess extends PamProcess {
 	public void newData(PamObservable o, PamDataUnit arg) {
 		ImageDataUnit imageData = (ImageDataUnit) arg;
 		ChannelDetector cd = findChannelDetector(imageData.getGeminiImage().getDeviceId(), true);
-		cd.newData(imageData);
+		List<DetectedRegion> regions = cd.newData(imageData);
+		TrackLinkProcess trackLinkProcess = thresholdDetector.getTrackLinkProcess();
+		if (trackLinkProcess != null) {
+			trackLinkProcess.newRegionsList(imageData.getGeminiImage().getDeviceId(), imageData.getTimeMilliseconds(), regions);
+		}
 	}
 
 
@@ -71,8 +91,7 @@ public class ThresholdProcess extends PamProcess {
 
 	@Override
 	public void pamStart() {
-		// TODO Auto-generated method stub
-
+//		trackLinkProcess.startProcess();
 	}
 
 	@Override

@@ -51,7 +51,7 @@ import tritechgemini.imagedata.GeminiImageRecordI;
 import tritechgemini.imagedata.ImageFanMaker;
 import tritechplugins.acquire.ImageDataBlock;
 import tritechplugins.acquire.TritechAcquisition;
-import tritechplugins.detect.BackgroundRemoval;
+import tritechplugins.detect.threshold.BackgroundRemoval;
 import tritechplugins.display.swing.overlays.OverlayTailDialogPanel;
 import tritechplugins.display.swing.overlays.SonarOverlayData;
 import tritechplugins.display.swing.overlays.SonarOverlayManager;

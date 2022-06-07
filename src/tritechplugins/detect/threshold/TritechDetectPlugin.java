@@ -1,4 +1,4 @@
-package tritechplugins.detect;
+package tritechplugins.detect.threshold;
 
 import PamModel.PamDependency;
 import PamModel.PamPluginInterface;

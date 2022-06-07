@@ -1,6 +1,7 @@
-package tritechplugins.detect;
+package tritechplugins.detect.threshold;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.ListIterator;
 
 import PamUtils.PamCalendar;
@@ -41,11 +42,11 @@ public class ChannelDetector {
 	 * New data, either real time or in offline processing. 
 	 * @param imageData
 	 */
-	public void newData(ImageDataUnit imageDataUnit) {
+	public List<DetectedRegion> newData(ImageDataUnit imageDataUnit) {
 		GeminiImageRecordI image = imageDataUnit.getGeminiImage();
 		byte[] imageData = image.getImageData();
 		if (imageData == null) {
-			return;
+			return null;
 		}
 		ThresholdParams params = thresholdDetector.getThresholdParams();
 		backgroundRemoval.setTimeConstant(params.backgroundTimeConst);
@@ -65,13 +66,13 @@ public class ChannelDetector {
 		ArrayList<DetectedRegion> regions = regionDetector.detectRegions(clonedImage, params.highThreshold, params.lowThreshold, params.connectionType);
 		
 		if (regions == null || regions.size() == 0) {
-			return;
+			return null;
 		}
-		
-		int nFound = regions.size();
-		
+				
 		/*
 		 * Filter the regions somehow ...
+		 * Might be better to copy into a new list, since this is an array list and removing
+		 * items is inefficient. 
 		 */
 		ListIterator<DetectedRegion> it = regions.listIterator();
 		while (it.hasNext()) {
@@ -80,16 +81,18 @@ public class ChannelDetector {
 				it.remove();
 			}
 		}
+		
+		return regions;
 		/*
 		 * Make data units out of what's left. 
 		 */
-		for (DetectedRegion region : regions) {
-			RegionDataUnit rdu = new RegionDataUnit(image.getRecordTime(), image.getDeviceId(), region);
-			regionDataBlock.addPamData(rdu);
-			if (thresholdDetector.isViewer()) {
-				regionDataBlock.getLogging().logData(DBControlUnit.findConnection(), rdu);
-			}
-		}
+//		for (DetectedRegion region : regions) {
+//			RegionDataUnit rdu = new RegionDataUnit(image.getRecordTime(), image.getDeviceId(), region);
+//			regionDataBlock.addPamData(rdu);
+//			if (thresholdDetector.isViewer()) {
+//				regionDataBlock.getLogging().logData(DBControlUnit.findConnection(), rdu);
+//			}
+//		}
 		
 //		System.out.printf("Detected %3d regions, retained %d on sonar %d at %s\n", nFound, regions.size(), sonarId, PamCalendar.formatDBDateTime(imageDataUnit.getTimeMilliseconds(), true));
 		

@@ -2,7 +2,7 @@ package tritechplugins.acquire;
 
 import PamModel.PamDependency;
 import PamModel.PamPluginInterface;
-import tritechplugins.detect.ThresholdDetector;
+import tritechplugins.detect.threshold.ThresholdDetector;
 
 public class TritechDaqPlugin implements PamPluginInterface {
 

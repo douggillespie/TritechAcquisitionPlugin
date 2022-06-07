@@ -1,6 +1,6 @@
 package tritechplugins.detect.swing;
 
-import tritechplugins.detect.ThresholdDetector;
+import tritechplugins.detect.threshold.ThresholdDetector;
 import userDisplay.UserDisplayComponent;
 import userDisplay.UserDisplayControl;
 import userDisplay.UserDisplayProvider;

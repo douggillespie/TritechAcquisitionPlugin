@@ -19,7 +19,7 @@ import PamView.PamSymbolType;
 import PamView.PanelOverlayDraw;
 import PamguardMVC.PamDataUnit;
 import tritechgemini.detect.DetectedRegion;
-import tritechplugins.detect.RegionDataUnit;
+import tritechplugins.detect.threshold.RegionDataUnit;
 
 /**
  * Uses simple x,y projector to draw outlines of regions for given frame. 

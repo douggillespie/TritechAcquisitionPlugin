@@ -8,8 +8,8 @@ import javax.swing.BoxLayout;
 import javax.swing.JPanel;
 
 import PamView.panel.PamPanel;
-import tritechplugins.detect.ThresholdDetector;
-import tritechplugins.detect.ThresholdObserver;
+import tritechplugins.detect.threshold.ThresholdDetector;
+import tritechplugins.detect.threshold.ThresholdObserver;
 import userDisplay.UserDisplayComponent;
 
 public class DetectorHistogramPanel implements UserDisplayComponent, ThresholdObserver {
