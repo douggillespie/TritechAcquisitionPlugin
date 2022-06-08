@@ -43,6 +43,7 @@ import PamView.dialog.GenericSwingDialog;
 import PamView.panel.CornerLayout;
 import PamView.panel.CornerLayoutContraint;
 import PamView.panel.PamPanel;
+import PamView.symbol.PamSymbolChooser;
 import PamguardMVC.PamDataBlock;
 import PamguardMVC.PamDataUnit;
 import tritechgemini.imagedata.FanImageData;
@@ -52,6 +53,7 @@ import tritechgemini.imagedata.ImageFanMaker;
 import tritechplugins.acquire.ImageDataBlock;
 import tritechplugins.acquire.TritechAcquisition;
 import tritechplugins.detect.threshold.BackgroundRemoval;
+import tritechplugins.detect.threshold.RegionDataUnit;
 import tritechplugins.display.swing.overlays.OverlayTailDialogPanel;
 import tritechplugins.display.swing.overlays.SonarOverlayData;
 import tritechplugins.display.swing.overlays.SonarOverlayManager;
@@ -267,6 +269,7 @@ public class SonarsPanel extends PamPanel {
 	}
 
 
+
 	public void setImageRecord(int sonarIndex, GeminiImageRecordI imageRecord) {
 		//		System.out.printf("New image record for id %d %s\n", sonarIndex, imageRecord);
 		if (imageRecord != null) {
@@ -287,6 +290,15 @@ public class SonarsPanel extends PamPanel {
 				 */
 				imageRecord.freeImageData();
 			}
+		}
+	}
+	
+	public SonarXYProjector getFirstXYProjector() {
+		if (xyProjectors != null && xyProjectors.length > 0) {
+			return xyProjectors[0];
+		}
+		else {
+			return new SonarXYProjector(this, 0, 0);
 		}
 	}
 
@@ -798,6 +810,12 @@ public class SonarsPanel extends PamPanel {
 		if (dataBlock == null) {
 			return;
 		}
+		if (dataBlock.getPamSymbolManager() != null) {
+			sonarXYProjector.setPamSymbolChooser(dataBlock.getPamSymbolManager().getSymbolChooser(getDataSelectorName(), sonarXYProjector));
+		}
+		else {
+			sonarXYProjector.setPamSymbolChooser(null);
+		}
 		PanelOverlayDraw overlayDraw = dataBlock.getOverlayDraw();
 		if (overlayDraw == null) {
 			return;
@@ -821,6 +839,11 @@ public class SonarsPanel extends PamPanel {
 			break;
 		}
 		for (PamDataUnit aUnit : dataCopy) {
+			if (aUnit instanceof RegionDataUnit) {
+				if (((RegionDataUnit) aUnit).getSonarId() != geminiImageRecord.getDeviceId()) {
+					continue;
+				}
+			}
 			if (aUnit.getTimeMilliseconds() < tailStart || aUnit.getTimeMilliseconds() > tailEnd) {
 				continue;
 			}
@@ -982,6 +1005,10 @@ public class SonarsPanel extends PamPanel {
 			return true;
 		}
 
+	}
+
+	public String getDataSelectorName() {
+		return nameProvider.getUnitName();
 	}
 
 }

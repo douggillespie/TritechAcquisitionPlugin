@@ -15,6 +15,7 @@ import tritechplugins.acquire.ImageDataBlock;
 import tritechplugins.acquire.ImageDataUnit;
 import tritechplugins.detect.swing.RegionOverlayDraw;
 import tritechplugins.detect.track.TrackLinkProcess;
+import tritechplugins.display.swing.overlays.SonarSymbolManager;
 
 public class ThresholdProcess extends PamProcess {
 
@@ -38,10 +39,12 @@ public class ThresholdProcess extends PamProcess {
 		super(thresholdDetector, null);
 		this.thresholdDetector = thresholdDetector;
 		regionDataBlock = new RegionDataBlock(thresholdDetector.getUnitName() + " targets", this);
+		regionDataBlock.setPamSymbolManager(new SonarSymbolManager(regionDataBlock));
 		addOutputDataBlock(regionDataBlock);
 		regionLogging = new RegionLogging(thresholdDetector, regionDataBlock);
 		// not sure I need this - logging function get called from the super detection clss. 
 //		regionDataBlock.SetLogging(regionLogging);
+		regionDataBlock.setPamSymbolManager(new SonarSymbolManager(regionDataBlock));
 		regionDataBlock.setOverlayDraw(new RegionOverlayDraw());
 		
 	}

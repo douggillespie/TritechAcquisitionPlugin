@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 
+import PamView.GeneralProjector;
 import PamView.GeneralProjector.ParameterType;
 import PamView.GeneralProjector.ParameterUnits;
 import PamView.paneloverlay.OverlayDataInfo;
@@ -21,6 +22,7 @@ public class SonarOverlayManager extends OverlayDataManager<SonarOverlayData> {
 	public SonarOverlayManager(SonarsPanel sonarsPanel) {
 		super(paramTypes, paramUnits);
 		this.sonarsPanel = sonarsPanel;
+		
 	}
 
 	@Override
@@ -31,7 +33,7 @@ public class SonarOverlayManager extends OverlayDataManager<SonarOverlayData> {
 
 	@Override
 	public String getDataSelectorName() {
-		return "Sonars Panel";
+		return sonarsPanel.getDataSelectorName();
 	}
 
 	@Override
@@ -62,6 +64,11 @@ public class SonarOverlayManager extends OverlayDataManager<SonarOverlayData> {
 			}
 		}
 		return selected;
+	}
+
+	@Override
+	protected GeneralProjector getProjector() {
+		return sonarsPanel.getFirstXYProjector();
 	}
 
 }

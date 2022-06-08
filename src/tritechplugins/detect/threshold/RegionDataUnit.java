@@ -75,5 +75,19 @@ public class RegionDataUnit extends PamDataUnit {
 		return str;
 	}
 
+	@Override
+	public int getChannelBitmap() {
+		if (super.getChannelBitmap() != 0) {
+			return super.getChannelBitmap();
+		}
+		else if (getParentDataBlock() instanceof RegionDataBlock) {
+			RegionDataBlock regionDataBlock = (RegionDataBlock) getParentDataBlock();
+			return regionDataBlock.sonarIdToChannelMap(this.sonarId);
+		}
+		else {
+			return super.getChannelBitmap();
+		}
+	}
+
 
 }

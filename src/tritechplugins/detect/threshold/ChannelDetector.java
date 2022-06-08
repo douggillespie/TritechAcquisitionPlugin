@@ -53,7 +53,7 @@ public class ChannelDetector {
 		backgroundRemoval.setRemovalScale(params.backgroundScale);
 		backgroundRemoval.setRemovalScale(1.5);
 				
-		byte[] noBackground = backgroundRemoval.removeBackground(imageData, true);
+		byte[] noBackground = backgroundRemoval.removeBackground(imageData, image.getnBeam(), image.getnRange(), true);
 		
 		thresholdDetector.notifyRawUpdate(sonarId, imageData);
 		thresholdDetector.notifyTreatedUpdate(sonarId, noBackground);
