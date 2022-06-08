@@ -58,9 +58,26 @@ public class TrackLinkDataUnit extends SuperDetection<RegionDataUnit> {
 	@Override
 	public String getSummaryString() {
 		String str = "<html>Gemini Track UID " + getUID();
-		str += String.format("<br>Duration %3.1fs, points %d<br>", getDurationInMilliseconds()/1000., trackChain.getChainLength());
+		str += String.format("<br>Sonars %s, Mean Occupancy %3.1f%%<br>Duration %3.1fs, points %d<br>", 
+				trackChain.getsonarIdString(), trackChain.getMeanOccupancy(), getDurationInMilliseconds()/1000., 
+				trackChain.getChainLength());
 		
 		return str;
 	}
+	
+	/**
+	 * Get the mean occupancy from the chain. 
+	 * @return
+	 */
+	public double getMeanOccupancy() {
+		return trackChain.getMeanOccupancy();
+	}
 
+	/**
+	 * Set the mean occupancy for the chain (reading back from database)
+	 * @param meanOccupancy
+	 */
+	public void setMeanOccupancy(double meanOccupancy) {
+		trackChain.setMeanOccupancy(meanOccupancy);
+	}
 }

@@ -48,7 +48,7 @@ public class RegionDataUnit extends PamDataUnit {
 					PamCalendar.formatTime(basicData.getTimeMilliseconds(), 3, false),
 					"UTC");
 		}
-		str += String.format("Size: %d pix, %3.1fm<br>", region.getRegionSize(), region.getObjectSize());
+		str += String.format("Size: %d pix, %3.1fm, Occupancy %3.1f%%<br>", region.getRegionSize(), region.getObjectSize(), region.getOccupancy());
 		str += String.format("Level: Mean %d, Max %d<br>", region.getAverageValue(), region.getMaxValue());
 		str += String.format("Angles: %3.1f to %3.1f<br>", Math.toDegrees(region.getMinBearing()), 
 				Math.toDegrees(region.getMaxBearing()));

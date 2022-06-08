@@ -421,7 +421,7 @@ public class SonarsPanel extends PamPanel {
 			str = "<html>";
 		}
 
-		str += String.format("Mouse ...<br>Range %3.1fm, Angle %3.1f%s<br>xy (%3.1f, %3.1f)m", 
+		str += String.format("<b>Mouse ...</b><br>Range %3.1fm, Angle %3.1f%s<br>xy (%3.1f, %3.1f)m", 
 				sonarCoord.getRange(), sonarCoord.getAngleDegrees(), LatLong.deg, sonarCoord.getX(), sonarCoord.getY());
 		FanImageData fanData = imageFanData[sonarCoord.getSonarIndex()];
 		// get the amplitude for the nearest xy pixel.

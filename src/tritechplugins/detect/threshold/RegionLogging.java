@@ -13,7 +13,7 @@ import tritechgemini.detect.DetectedRegion;
 public class RegionLogging extends SQLLogging {
 	
 	private PamTableItem sonarId, minBearing, maxBearing, minRange, maxRange, objectSize;
-	private PamTableItem meanValue, totalValue, maxValue;
+	private PamTableItem meanValue, totalValue, maxValue, occupancy;
 	private ThresholdDetector thresholdDetector;
 
 	public RegionLogging(ThresholdDetector thresholdDetector, RegionDataBlock regionDataBlock) {
@@ -34,6 +34,7 @@ public class RegionLogging extends SQLLogging {
 		tableDef.addTableItem(meanValue = new PamTableItem("MeanValue", Types.INTEGER));
 		tableDef.addTableItem(totalValue = new PamTableItem("TotalValue", Types.INTEGER));
 		tableDef.addTableItem(maxValue = new PamTableItem("MaxValue", Types.INTEGER));
+		tableDef.addTableItem(occupancy = new PamTableItem("Occupancy", Types.REAL));
 		return tableDef;
 	}
 
@@ -52,6 +53,7 @@ public class RegionLogging extends SQLLogging {
 		meanValue.setValue(region.getAverageValue());
 		totalValue.setValue(region.getTotalValue());
 		maxValue.setValue(region.getMaxValue());
+		occupancy.setValue((float) region.getOccupancy());
 	}
 
 	@Override
@@ -65,8 +67,9 @@ public class RegionLogging extends SQLLogging {
 		int meanV = meanValue.getIntegerValue();
 		int totV = totalValue.getIntegerValue();
 		int maxV = maxValue.getIntegerValue();
+		double occ = occupancy.getFloatValue();
 		
-		DetectedRegion region = new DetectedRegion(timeMilliseconds, sonarId, minB, maxB, minR, maxR, size, meanV, totV, maxV);
+		DetectedRegion region = new DetectedRegion(timeMilliseconds, sonarId, minB, maxB, minR, maxR, size, meanV, totV, maxV, occ);
 		RegionDataUnit rdu = new RegionDataUnit(timeMilliseconds, sonarId, region);
 		return rdu;
 	}

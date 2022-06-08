@@ -28,6 +28,7 @@ public class ThresholdOfflineTask extends OfflineTask {
 		fileCatalog = imageDataBlock.findFileCatalog();
 		addRequiredDataBlock(imageDataBlock);
 		addAffectedDataBlock(thresholdProcess.getRegionDataBlock());
+		addAffectedDataBlock(thresholdDetector.getTrackLinkProcess().getTrackLinkDataBlock());
 	}
 
 	@Override

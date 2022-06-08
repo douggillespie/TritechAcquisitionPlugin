@@ -12,18 +12,20 @@ public class TrackChain {
 
 	private LinkedList<DetectedRegion> regions;
 	
-	/**
-	 * @return the regions
-	 */
-	public LinkedList<DetectedRegion> getRegions() {
-		return regions;
-	}
-
+	private double meanOccupancy;
+	
 	public TrackChain(DetectedRegion region) {
 		this.regions = new LinkedList<>();
 		if (region != null) {
 			addRegion(region);
 		}
+	}
+	
+	/**
+	 * @return the regions
+	 */
+	public LinkedList<DetectedRegion> getRegions() {
+		return regions;
 	}
 	
 	/**
@@ -185,5 +187,37 @@ public class TrackChain {
 			str += String.format(",%d", ids[i]);
 		}
 		return str;
+	}
+
+	/**
+	 * @param meanOccupancy the meanOccupancy to set
+	 */
+	public void setMeanOccupancy(double meanOccupancy) {
+		this.meanOccupancy = meanOccupancy;
+	}
+
+	/**
+	 * Get the mean occupancy of all points in the chain. 
+	 * @return the meanOccupancy
+	 */
+	public double getMeanOccupancy() {
+		if (meanOccupancy == 0) {
+			meanOccupancy = calcMeanOccupancy();
+		}
+		return meanOccupancy;
+	}
+
+	/**
+	 * Calculate a mean occupancy for all points in the chain. 
+	 * @return mean occupancy
+	 */
+	private double calcMeanOccupancy() {
+		double totalOcc = 0;
+		double totalPix = 0;
+		for (DetectedRegion r : regions) {
+			totalOcc += (r.getOccupancy()*r.getnPoints());
+			totalPix += r.getnPoints();
+		}
+		return totalOcc/totalPix;
 	}
 }

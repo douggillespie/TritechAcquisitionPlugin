@@ -13,7 +13,7 @@ import tritechplugins.detect.threshold.ThresholdDetector;
 
 public class TrackLogging extends SuperDetLogging {
 
-	PamTableItem nPoints, endTime, sonarIds, durationSecs, straightLength, wobblyLength;
+	PamTableItem nPoints, endTime, sonarIds, durationSecs, straightLength, wobblyLength, occupancy;
 	private ThresholdDetector thresholdDetector;
 	
 	public TrackLogging(ThresholdDetector thresholdDetector, SuperDetDataBlock pamDataBlock, boolean createDataUnits) {
@@ -25,6 +25,8 @@ public class TrackLogging extends SuperDetLogging {
 	@Override
 	protected PamDataUnit createDataUnit(SQLTypes sqlTypes, long timeMilliseconds, int databaseIndex) {
 		TrackLinkDataUnit trackLinkDataUnit = new TrackLinkDataUnit(timeMilliseconds);
+		double occ = occupancy.getFloatValue();
+		trackLinkDataUnit.setMeanOccupancy(occ);
 		return trackLinkDataUnit;
 	}
 
@@ -44,6 +46,7 @@ public class TrackLogging extends SuperDetLogging {
 		durationSecs.setValue((float) (trackDataUnit.getDurationInMilliseconds()/1000.));
 		straightLength.setValue((float) chain.getEnd2EndMetres());
 		wobblyLength.setValue((float) chain.getWobblyLength());
+		occupancy.setValue((float) chain.getMeanOccupancy());
 		chain.getEndsVector();
 	}
 	
@@ -55,6 +58,7 @@ public class TrackLogging extends SuperDetLogging {
 		tableDef.addTableItem(durationSecs = new PamTableItem("Duration", Types.REAL));
 		tableDef.addTableItem(straightLength = new PamTableItem("Straight Length", Types.REAL));
 		tableDef.addTableItem(wobblyLength = new PamTableItem("Wobbly Length", Types.REAL));
+		tableDef.addTableItem(occupancy = new PamTableItem("Mean Occupancy", Types.REAL));
 		
 		return tableDef;
 	}
