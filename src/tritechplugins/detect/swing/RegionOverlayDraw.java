@@ -63,6 +63,10 @@ public class RegionOverlayDraw extends PanelOverlayDraw {
 		int maxy = Integer.MIN_VALUE;
 		for (int i = 0; i < 4; i++) {
 			Coordinate3d pos = generalProjector.getCoord3d(x[i], y[i], 0);
+			if (pos == null) {
+				// at least one corner is outside the plot rectangle, so don't draw. 
+				return null; 
+			}
 			xp[i] = (int) Math.round(pos.x);
 			yp[i] = (int) Math.round(pos.y);
 			minx = Math.min(minx, xp[i]);

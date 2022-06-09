@@ -1,5 +1,6 @@
 package tritechplugins.display.swing;
 
+import java.awt.Point;
 import java.awt.Rectangle;
 
 import PamUtils.Coordinate3d;
@@ -55,8 +56,14 @@ public class SonarXYProjector extends GeneralProjector {
 		if (sonarZoomTransform == null) {
 			return null;
 		}
-		return sonarZoomTransform.imageMetresToScreen(-dataObject.getCoordinate(0), dataObject.getCoordinate(1));
-		
+		Coordinate3d coord = sonarZoomTransform.imageMetresToScreen(-dataObject.getCoordinate(0), dataObject.getCoordinate(1));
+		Point p = new Point((int) coord.getCoordinate(0), (int) coord.getCoordinate(1));
+		if (sonarZoomTransform.getScreenRectangle().contains(p)) {
+			return coord;
+		}
+		else {
+			return null;
+		}
 	}
 
 	@Override

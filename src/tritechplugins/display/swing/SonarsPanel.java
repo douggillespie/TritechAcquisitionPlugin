@@ -6,6 +6,7 @@ import java.awt.Color;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.MouseInfo;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
@@ -14,12 +15,14 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
+import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 
+import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
@@ -93,7 +96,7 @@ public class SonarsPanel extends PamPanel {
 	protected SonarOverlayManager sonarOverlayManager;
 
 	/*
-	 * time taken to create images. 
+	 * time taken to create images.
 	 */
 	private long[] imageTime;
 
@@ -113,15 +116,15 @@ public class SonarsPanel extends PamPanel {
 
 	private MouseEvent mouseDragPoint;
 
-	private SonarPanelMouse sonarsPanelMouse; 
-	
-	private double zoomFactor = 1.0;
-	
-	private Coordinate3d zoomCentre = new Coordinate3d(0,0);
+	private SonarPanelMouse sonarsPanelMouse;
 
-	// units of this are metres in the original sonar image. 
+	private double zoomFactor = 1.0;
+
+	private Coordinate3d zoomCentre = new Coordinate3d(0, 0);
+
+	// units of this are metres in the original sonar image.
 	private BufferedImage[] zoomedImages;
-	
+
 	private SonarZoomTransform[] sonarZoomTransforms;
 
 	public SonarsPanel(TritechAcquisition tritechAcquisition, SettingsNameProvider nameProvider) {
@@ -151,7 +154,6 @@ public class SonarsPanel extends PamPanel {
 	public SonarsPanelParams getSonarsPanelParams() {
 		return sonarsPanelParams;
 	}
-
 
 	public void setSonarsPanelParams(SonarsPanelParams sonarsPanelParams) {
 		this.sonarsPanelParams = sonarsPanelParams;
@@ -237,7 +239,7 @@ public class SonarsPanel extends PamPanel {
 		default:
 			break;
 		}
-		//		imageRectangles = new LayoutInfo[numImages];
+		// imageRectangles = new LayoutInfo[numImages];
 		if (numImages == 0) {
 			return;
 		}
@@ -248,30 +250,30 @@ public class SonarsPanel extends PamPanel {
 			}
 		}
 		Rectangle theseBounds = getBounds();
-		int border = theseBounds.width/50;
+		int border = theseBounds.width / 50;
 		Graphics g = this.getGraphics();
 		if (g != null) {
 			int charWidth = g.getFontMetrics().getMaxAdvance();
 			int charHeight = g.getFontMetrics().getHeight();
-			theseBounds.x = charWidth; 
-			theseBounds.y = charHeight/2;
-			theseBounds.width -= 2*charWidth;
-			theseBounds.height -= 2*charHeight;
+			theseBounds.x = charWidth;
+			theseBounds.y = charHeight / 2;
+			theseBounds.width -= 2 * charWidth;
+			theseBounds.height -= 2 * charHeight;
 		}
 		imageRectangles = sonarLayout.getRectangles(theseBounds, numImages, Math.toRadians(60));
-		//		if (numImages == 1) {
-		//			imageRectangles[0] = new Rectangle(panelWidth, panelHeight);
-		//		}
-		//		if (numImages == 2) {
-		//			imageRectangles[0] = new Rectangle(panelWidth/2, panelHeight);
-		//			imageRectangles[1] = new Rectangle(panelWidth/2, 0, panelWidth/2, panelHeight);
-		//		}
+		// if (numImages == 1) {
+		// imageRectangles[0] = new Rectangle(panelWidth, panelHeight);
+		// }
+		// if (numImages == 2) {
+		// imageRectangles[0] = new Rectangle(panelWidth/2, panelHeight);
+		// imageRectangles[1] = new Rectangle(panelWidth/2, 0, panelWidth/2,
+		// panelHeight);
+		// }
 	}
 
-
-
 	public void setImageRecord(int sonarIndex, GeminiImageRecordI imageRecord) {
-		//		System.out.printf("New image record for id %d %s\n", sonarIndex, imageRecord);
+		// System.out.printf("New image record for id %d %s\n", sonarIndex,
+		// imageRecord);
 		if (imageRecord != null) {
 			sonarIndex = checkSonarIndex(imageRecord.getDeviceId());
 		}
@@ -283,35 +285,36 @@ public class SonarsPanel extends PamPanel {
 				imageRecord = backgroundSub.removeBackground(imageRecord, true);
 			}
 			prepareSonarImage(sonarIndex, imageRecord);
-			if (imageRecord != null && PamController.getInstance().getRunMode() == PamController.RUN_PAMVIEW) {	
+			if (imageRecord != null && PamController.getInstance().getRunMode() == PamController.RUN_PAMVIEW) {
 				/*
-				 * Only free data in viewer since in normal mode data can always be recovered. Probably 
+				 * Only free data in viewer since in normal mode data can always be recovered.
+				 * Probably
 				 *
 				 */
-				imageRecord.freeImageData();
+//				imageRecord.freeImageData();
 			}
 		}
 	}
-	
+
 	public SonarXYProjector getFirstXYProjector() {
 		if (xyProjectors != null && xyProjectors.length > 0) {
 			return xyProjectors[0];
-		}
-		else {
+		} else {
 			return new SonarXYProjector(this, 0, 0);
 		}
 	}
 
 	/**
-	 * Gets an index for each sonar, allowing for new ones coming online
-	 * after start. Will update number of plots. 
-	 * @param deviceId device unique id. 
-	 * @return 0,1, etc. index for image drawing. 
+	 * Gets an index for each sonar, allowing for new ones coming online after
+	 * start. Will update number of plots.
+	 * 
+	 * @param deviceId device unique id.
+	 * @return 0,1, etc. index for image drawing.
 	 */
 	private int checkSonarIndex(int deviceId) {
 		Integer ind = imageIndexes.get(deviceId);
 		if (ind == null) {
-			ind = imageIndexes.size(); 
+			ind = imageIndexes.size();
 			imageIndexes.put(deviceId, ind);
 			setNumSonars(imageIndexes.size());
 		}
@@ -319,7 +322,8 @@ public class SonarsPanel extends PamPanel {
 	}
 
 	/**
-	 * Find background subtractor for device, creating if necessary. 
+	 * Find background subtractor for device, creating if necessary.
+	 * 
 	 * @param deviceID Device ID
 	 * @return background subtractor
 	 */
@@ -331,15 +335,18 @@ public class SonarsPanel extends PamPanel {
 		}
 		return bs;
 	}
+
 	/**
-	 * remake the images from fan data, e.g. after a colour map change. 
+	 * remake the images from fan data, e.g. after a colour map change.
 	 */
 	public void remakeImages() {
 		for (int i = 0; i < imageFanData.length; i++) {
-			if (imageFanData != null) {
-				FanDataImage fanImage = new FanDataImage(imageFanData[i], colourArray, false, sonarsPanelParams.displayGain);
-				images[i] = fanImage.getBufferedImage();
-			}
+			imageFanData[i] = null;
+			images[i] = null;
+//			if (imageFanData != null) {
+//				FanDataImage fanImage = new FanDataImage(imageFanData[i], colourArray, false, sonarsPanelParams.displayGain);
+//				images[i] = fanImage.getBufferedImage();
+//			}
 		}
 		repaint();
 	}
@@ -351,20 +358,37 @@ public class SonarsPanel extends PamPanel {
 			images[sonarIndex] = null;
 			return;
 		}
-		long t1 = System.nanoTime();
-		int nBearing = imageRecord.getnBeam();
-		int nXPix = imageRectangles[sonarIndex].getImageRectangle().width;
-		int usePix = getImagePixels(nBearing, nXPix);
-		imageFanData[sonarIndex] = fanMakers[sonarIndex].createFanData(imageRecord, usePix);
-		FanDataImage fanImage = new FanDataImage(imageFanData[sonarIndex], colourArray, false, sonarsPanelParams.displayGain);
-		images[sonarIndex] = fanImage.getBufferedImage();
-		long t2 = System.nanoTime();
-		imageTime[sonarIndex] = t2-t1;
+		/*
+		 * set the image data to null which will force the paint function to recreate
+		 * it.
+		 */
+		imageFanData[sonarIndex] = null;
+		images[sonarIndex] = null;
+		/*
+		 * really we need to move this to the top of the paint function or possibly
+		 * rethread it so it's not always called in RT mode since it can slow down the
+		 * main processing thread. worry is that in the AWT thread it may really clobber
+		 * it and make the GUI sluggish. If in a separate thread we'd need a very
+		 * complicated way of interrupting the thread to provide the next image. //
+		 */
+//		long t1 = System.nanoTime();
+//		int nBearing = imageRecord.getnBeam();
+//		int nXPix = imageRectangles[sonarIndex].getImageRectangle().width;
+//		int usePix = getImagePixels(nBearing, nXPix);
+//		imageFanData[sonarIndex] = fanMakers[sonarIndex].createFanData(imageRecord, usePix);
+//		FanDataImage fanImage = new FanDataImage(imageFanData[sonarIndex], colourArray, false, sonarsPanelParams.displayGain);
+//		images[sonarIndex] = fanImage.getBufferedImage();
+//		long t2 = System.nanoTime();
+//		imageTime[sonarIndex] = t2-t1;
+
 		repaint(10);
 	}
 
 	/**
-	 * Get the number of image pixels based on the number of bearings in the image and the size on screen. 
+	 * Get the number of image pixels based on the number of bearings in the image
+	 * and the size on screen and the low, medium or high resolutions options for
+	 * the display.
+	 * 
 	 * @param nBearing
 	 * @param nXPix
 	 * @return pixels width of image
@@ -374,7 +398,7 @@ public class SonarsPanel extends PamPanel {
 		case SonarsPanelParams.RESOLUTION_DEFAULT:
 			return nBearing;
 		case SonarsPanelParams.RESOLUTION_HIGH:
-			return Math.max(nBearing, nXPix/2);
+			return Math.max(nBearing, nXPix / 2);
 		case SonarsPanelParams.RESOLUTION_BEST:
 			return Math.max(nBearing, nXPix);
 		}
@@ -391,30 +415,57 @@ public class SonarsPanel extends PamPanel {
 		sortRectangles();
 
 		Graphics2D g2d = (Graphics2D) g;
-		g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
-				RenderingHints.VALUE_ANTIALIAS_ON); 
-		g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,
-				RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+		g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+		g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
 
 		synchronized (this) {
 
 		}
 		for (int i = 0; i < numImages; i++) {
+			if (images[i] == null) {
+				buildFinalImage(i);
+			}
 			paintSonarImage(g, i, imageRectangles[i], currentImageRecords[i], images[i]);
 		}
 	}
 
+	/**
+	 * Make the final image here, converting the rectangular frame of the image
+	 * record to fan data, then to a buffered image. This was called in
+	 * prepareSonarImage, but is now being called from within the paint function to
+	 * try to leave the processing thread less work to do.
+	 * 
+	 * @param imageIndex
+	 */
+	private void buildFinalImage(int sonarIndex) {
+		GeminiImageRecordI imageRecord = currentImageRecords[sonarIndex];
+		if (imageRecord == null) {
+			return;
+		}
+		long t1 = System.nanoTime();
+		int nBearing = imageRecord.getnBeam();
+		int nXPix = imageRectangles[sonarIndex].getImageRectangle().width;
+		int usePix = getImagePixels(nBearing, nXPix);
+		imageFanData[sonarIndex] = fanMakers[sonarIndex].createFanData(imageRecord, usePix);
+		FanDataImage fanImage = new FanDataImage(imageFanData[sonarIndex], colourArray, false,
+				sonarsPanelParams.displayGain);
+		images[sonarIndex] = fanImage.getBufferedImage();
+		long t2 = System.nanoTime();
+		imageTime[sonarIndex] = t2 - t1;
+
+	}
+
 	@Override
 	public String getToolTipText(MouseEvent event) {
-		// find where the mouse is in an image and show range-bearing data. 
+		// find where the mouse is in an image and show range-bearing data.
 		SonarCoordinate sonarCoord = findSonarCoordinate(event.getX(), event.getY());
 		if (sonarCoord == null) {
 			return null;
 		}
 
-		// first see if we're on an overlay. 
+		// first see if we're on an overlay.
 		String overlayText = null;
-		//		Coordinate3d c3d = new Coordinate3d(event.getX(), event.getY());
+		// Coordinate3d c3d = new Coordinate3d(event.getX(), event.getY());
 		if (xyProjectors != null) {
 			for (int i = 0; i < xyProjectors.length; i++) {
 				overlayText = xyProjectors[i].getHoverText(event.getPoint());
@@ -428,12 +479,11 @@ public class SonarsPanel extends PamPanel {
 
 		if (overlayText != null) {
 			str = overlayText;
-		}
-		else {
+		} else {
 			str = "<html>";
 		}
 
-		str += String.format("<b>Mouse ...</b><br>Range %3.1fm, Angle %3.1f%s<br>xy (%3.1f, %3.1f)m", 
+		str += String.format("<b>Mouse ...</b><br>Range %3.1fm, Angle %3.1f%s<br>xy (%3.1f, %3.1f)m",
 				sonarCoord.getRange(), sonarCoord.getAngleDegrees(), LatLong.deg, sonarCoord.getX(), sonarCoord.getY());
 		FanImageData fanData = imageFanData[sonarCoord.getSonarIndex()];
 		// get the amplitude for the nearest xy pixel.
@@ -445,12 +495,11 @@ public class SonarsPanel extends PamPanel {
 			if (sonarsPanelParams.flipLeftRight) {
 				xPix = -xPix;
 			}
-			xPix += imValues.length/2;
-			//			yPix = imValues[0].length-yPix;
+			xPix += imValues.length / 2;
+			// yPix = imValues[0].length-yPix;
 			int val = imValues[xPix][yPix];
 			str += String.format("<br>Level %d", val);
-		}
-		catch (Exception e) {
+		} catch (Exception e) {
 			str += String.format("<p>Invalid pixel (%d,%d)", xPix, yPix);
 		}
 		str += "</html>";
@@ -459,12 +508,14 @@ public class SonarsPanel extends PamPanel {
 	}
 
 	/**
-	 * find the coordinates within a sonar image for the given display coordinates. 
+	 * find the coordinates within a sonar image for the given display coordinates.
+	 * 
 	 * @param x x on display panel
 	 * @param y y on display panel
-	 * @return Sonar coordinate or null if x,y are not within an image. 
+	 * @return Sonar coordinate or null if x,y are not within an image.
 	 */
-	public SonarCoordinate findSonarCoordinate(double x, double y) {// find where the mouse is in an image and show range-bearing data. 
+	public SonarCoordinate findSonarCoordinate(double x, double y) {// find where the mouse is in an image and show
+																	// range-bearing data.
 //		if (imageRectangles == null) {
 //			return null;
 //		}
@@ -518,23 +569,23 @@ public class SonarsPanel extends PamPanel {
 			}
 			return new SonarCoordinate(i, sonarZoomTransforms[i].getImageRecord().getDeviceId(), metres.x, metres.y);
 		}
-		return null;		
+		return null;
 	}
 
-	private void paintSonarImage(Graphics g, int imageIndex, LayoutInfo layoutInfo, GeminiImageRecordI geminiImageRecord,
-			BufferedImage sonarImage) {
+	private void paintSonarImage(Graphics g, int imageIndex, LayoutInfo layoutInfo,
+			GeminiImageRecordI geminiImageRecord, BufferedImage sonarImage) {
 		if (layoutInfo == null || sonarImage == null) {
 			return;
 		}
-		Rectangle trueAsp = layoutInfo.getImageRectangle();//.checkAspect(layoutInfo, Math.toRadians(60));
+		Rectangle trueAsp = layoutInfo.getImageRectangle();// .checkAspect(layoutInfo, Math.toRadians(60));
 
-		sonarZoomTransforms[imageIndex] = new SonarZoomTransform(geminiImageRecord, trueAsp, sonarImage, 
-				zoomFactor, zoomCentre, sonarsPanelParams.flipLeftRight);
+		sonarZoomTransforms[imageIndex] = new SonarZoomTransform(geminiImageRecord, trueAsp, sonarImage, zoomFactor,
+				zoomCentre, sonarsPanelParams.flipLeftRight);
 
 		xyProjectors[imageIndex].clearHoverList();
 		xyProjectors[imageIndex].setLayout(sonarZoomTransforms[imageIndex]);
 		xyProjectors[imageIndex].setFlipImage(sonarsPanelParams.flipLeftRight);
-		
+
 		BufferedImage bufferedImage = sonarImage;
 //		if (zoomFactor <= 1) {
 //			bufferedImage = sonarImage;
@@ -545,12 +596,11 @@ public class SonarsPanel extends PamPanel {
 //		}
 		Rectangle imageClip = sonarZoomTransforms[imageIndex].getImageClipRect();
 		if (sonarsPanelParams.flipLeftRight) {
-			g.drawImage(bufferedImage, trueAsp.x+trueAsp.width, trueAsp.height+trueAsp.y, trueAsp.x, trueAsp.y, 
-					imageClip.x, imageClip.y, imageClip.x+imageClip.width, imageClip.y+imageClip.height, null);
-		}
-		else {
-			g.drawImage(bufferedImage, trueAsp.x, trueAsp.height+trueAsp.y, trueAsp.x+trueAsp.width, trueAsp.y, 
-					imageClip.x, imageClip.y, imageClip.x+imageClip.width, imageClip.y+imageClip.height, null);
+			g.drawImage(bufferedImage, trueAsp.x + trueAsp.width, trueAsp.height + trueAsp.y, trueAsp.x, trueAsp.y,
+					imageClip.x, imageClip.y, imageClip.x + imageClip.width, imageClip.y + imageClip.height, null);
+		} else {
+			g.drawImage(bufferedImage, trueAsp.x, trueAsp.height + trueAsp.y, trueAsp.x + trueAsp.width, trueAsp.y,
+					imageClip.x, imageClip.y, imageClip.x + imageClip.width, imageClip.y + imageClip.height, null);
 		}
 		/*
 		 * And the range ...
@@ -561,39 +611,40 @@ public class SonarsPanel extends PamPanel {
 		}
 		double maxAng = Math.abs(geminiImageRecord.getBearingTable()[0]);
 		pamAxis.setMaxVal(range);
-		double y2 = trueAsp.y+trueAsp.height-trueAsp.height*Math.cos(maxAng);
+		double y2 = trueAsp.y + trueAsp.height - trueAsp.height * Math.cos(maxAng);
 		if (zoomFactor == 1) {
-			pamAxis.drawAxis(g, trueAsp.x+trueAsp.width/2, trueAsp.y+trueAsp.height, trueAsp.x+trueAsp.width, (int) y2);
+			pamAxis.drawAxis(g, trueAsp.x + trueAsp.width / 2, trueAsp.y + trueAsp.height, trueAsp.x + trueAsp.width,
+					(int) y2);
 		}
 		/*
-		 * And grid, taking range coordinates from the axis. 
+		 * And grid, taking range coordinates from the axis.
 		 */
 		Color col = colourArray.getContrastingColour();
 		col = new Color(col.getRed(), col.getGreen(), col.getBlue(), 90);
 		g.setColor(col);
 		if (sonarsPanelParams.showGrid && zoomFactor == 1) {
 			ArrayList<Double> rangeVals = pamAxis.getAxisValues();
-			int a1 = (int) Math.round(Math.toDegrees(Math.PI/2-maxAng));
-			int a2 = (int) Math.round(Math.toDegrees(Math.PI/2+maxAng));
-			int x0 = trueAsp.x + trueAsp.width/2;
-			int y0 = trueAsp.y+trueAsp.height;
+			int a1 = (int) Math.round(Math.toDegrees(Math.PI / 2 - maxAng));
+			int a2 = (int) Math.round(Math.toDegrees(Math.PI / 2 + maxAng));
+			int x0 = trueAsp.x + trueAsp.width / 2;
+			int y0 = trueAsp.y + trueAsp.height;
 			for (int i = 0; i < rangeVals.size(); i++) {
 				double r = trueAsp.getHeight() * rangeVals.get(i) / range;
-				//				r = trueAsp.getHeight();
-				double sr = r;//Math.sin(maxAng)*r;
-				double cr = r;//Math.cos(maxAng)*r;
-				int x1a = (int) Math.round(x0-sr);
-				int x2a = (int) Math.round(x0+sr);
-				int y1a = (int) Math.round(y0-cr);
-				int y2a = (int) Math.round(y0+cr);
-				g.drawArc(x1a, y1a, x2a-x1a, y2a-y1a, a1, a2-a1);
+				// r = trueAsp.getHeight();
+				double sr = r;// Math.sin(maxAng)*r;
+				double cr = r;// Math.cos(maxAng)*r;
+				int x1a = (int) Math.round(x0 - sr);
+				int x2a = (int) Math.round(x0 + sr);
+				int y1a = (int) Math.round(y0 - cr);
+				int y2a = (int) Math.round(y0 + cr);
+				g.drawArc(x1a, y1a, x2a - x1a, y2a - y1a, a1, a2 - a1);
 			}
 			// and the angle lines grid.
 			for (int i = 0; i < 5; i++) {
-				double ang = maxAng-(i*maxAng/2);
-				int x = (int) (x0 + Math.round(trueAsp.height*Math.sin(ang)));
-				int y = (int) (y0 - Math.round(trueAsp.height*Math.cos(ang)));
-				g.drawLine(x0,  y0, x, y);
+				double ang = maxAng - (i * maxAng / 2);
+				int x = (int) (x0 + Math.round(trueAsp.height * Math.sin(ang)));
+				int y = (int) (y0 - Math.round(trueAsp.height * Math.cos(ang)));
+				g.drawLine(x0, y0, x, y);
 			}
 		}
 
@@ -606,17 +657,18 @@ public class SonarsPanel extends PamPanel {
 	}
 
 	/**
-	 * Create a zoomed image which is a subset of the original sonarImage based
-	 * on the zoom factor , zoom centre and desired image size. 
-	 * @param imageIndex image index (can be used to recycle returned images
-	 * @param geminiImageRecord 
-	 * @param imagesize size of output image
-	 * @param sonarImage original sonar image
-	 * @param imageScale scale on original image in pixels per metre.  
-	 * @return new buffered image to display in place of original. 
+	 * Create a zoomed image which is a subset of the original sonarImage based on
+	 * the zoom factor , zoom centre and desired image size.
+	 * 
+	 * @param imageIndex        image index (can be used to recycle returned images
+	 * @param geminiImageRecord
+	 * @param imagesize         size of output image
+	 * @param sonarImage        original sonar image
+	 * @param imageScale        scale on original image in pixels per metre.
+	 * @return new buffered image to display in place of original.
 	 */
-	private BufferedImage getZoomedImage(int imageIndex, Rectangle imageSize, 
-			GeminiImageRecordI geminiImageRecord, BufferedImage sonarImage, double imageScale) {
+	private BufferedImage getZoomedImage(int imageIndex, Rectangle imageSize, GeminiImageRecordI geminiImageRecord,
+			BufferedImage sonarImage, double imageScale) {
 //		if (zoomedImages[imageIndex] == null || zoomedImages[imageIndex] = )
 		BufferedImage zoomedImage = new BufferedImage(imageSize.width, imageSize.height, BufferedImage.TYPE_4BYTE_ABGR);
 		double secondScale = (double) zoomedImage.getWidth() / (double) sonarImage.getWidth();
@@ -626,57 +678,56 @@ public class SonarsPanel extends PamPanel {
 		int hd = zoomedImage.getHeight();
 		zoomCentre.x = 1;
 		zoomCentre.y = 10;
-		
+
 		/**
-		 * initial zooming only uses hs and ws, the sonar image sizes. 
-		 * this can then be projected onto the larger image. 
+		 * initial zooming only uses hs and ws, the sonar image sizes. this can then be
+		 * projected onto the larger image.
 		 */
-		double x1 = ws/2*(1.-1./zoomFactor) + zoomCentre.x*imageScale;
-		double x2 = ws/zoomFactor+x1;
-		double y2 = hs-zoomCentre.y*imageScale;
-		double y1 = y2-hs/zoomFactor;
-		
+		double x1 = ws / 2 * (1. - 1. / zoomFactor) + zoomCentre.x * imageScale;
+		double x2 = ws / zoomFactor + x1;
+		double y2 = hs - zoomCentre.y * imageScale;
+		double y1 = y2 - hs / zoomFactor;
+
 //		x1 *= secondScale;
 //		x2 *= secondScale;
 //		y1 *= secondScale;
 //		y2 *= secondScale;
-		
-		System.out.printf("Z %3.1f, ws %d, hs %d, x1 %3.1f, x2 %3.1f, y1 %3.1f, y2 %3.1f\n", 
-				zoomFactor, ws, hs, x1,x2,y1,y2);
+
+		System.out.printf("Z %3.1f, ws %d, hs %d, x1 %3.1f, x2 %3.1f, y1 %3.1f, y2 %3.1f\n", zoomFactor, ws, hs, x1, x2,
+				y1, y2);
 		if (x1 < 0) {
 			x2 -= x1;
 			x1 = 0;
 			zoomCentre.x = x1;
 		}
 		if (x2 > ws) {
-			double wid = x2-x1;
-			x2 = ws-1;
-			x1 = x2-wid;		
-			zoomCentre.x = x1;	
+			double wid = x2 - x1;
+			x2 = ws - 1;
+			x1 = x2 - wid;
+			zoomCentre.x = x1;
 		}
 		if (y1 < 0) {
 			y2 -= y1;
 			y1 = 0;
 		}
 		if (y2 > hs) {
-			double h = y2-y1;
-			y2 = hs-1;
-			y1 = y2-h;
+			double h = y2 - y1;
+			y2 = hs - 1;
+			y1 = y2 - h;
 		}
 		Graphics g = zoomedImage.getGraphics();
-		g.drawImage(sonarImage, 0, 0, wd, hd, (int) x1, (int) (hs-y2), (int) x2, (int) (hs-y1), null);
-		// need to draw the axis onto this image or we'll never work out where they go. 
+		g.drawImage(sonarImage, 0, 0, wd, hd, (int) x1, (int) (hs - y2), (int) x2, (int) (hs - y1), null);
+		// need to draw the axis onto this image or we'll never work out where they go.
 		if (sonarsPanelParams.showGrid && zoomFactor == 1) {
 			Color col = colourArray.getContrastingColour();
 			col = new Color(col.getRed(), col.getGreen(), col.getBlue(), 200);
 			g.setColor(col);
-			
-			int x0 = (int) (wd/2 -zoomCentre.x * imageScale * secondScale);
-			int y0 = (int) (hd + (hs-y2) * secondScale);
+
+			int x0 = (int) (wd / 2 - zoomCentre.x * imageScale * secondScale);
+			int y0 = (int) (hd + (hs - y2) * secondScale);
 			double maxAng = Math.abs(geminiImageRecord.getBearingTable()[0]);
-			double len = hd*zoomFactor;
-			
-			
+			double len = hd * zoomFactor;
+
 //				ArrayList<Double> rangeVals = pamAxis.getAxisValues();
 //				int a1 = (int) Math.round(Math.toDegrees(Math.PI/2-maxAng));
 //				int a2 = (int) Math.round(Math.toDegrees(Math.PI/2+maxAng));
@@ -693,25 +744,24 @@ public class SonarsPanel extends PamPanel {
 //					int y2a = (int) Math.round(y0+cr);
 //					g.drawArc(x1a, y1a, x2a-x1a, y2a-y1a, a1, a2-a1);
 //				}
-				// and the angle lines grid.
-				for (int i = 0; i < 5; i++) {
-					double ang = maxAng-(i*maxAng/2);
-					int x = (int) (x0 + Math.round(len*Math.sin(ang)));
-					int y = (int) (y0 - Math.round(len*Math.cos(ang)));
-					g.drawLine(x0,  hd-y0, x, hd-y);
-					System.out.printf("Line %d x0 %d, y0 %d, x %d, y %d\n", i, x0,  y0, x, y);
-				}
+			// and the angle lines grid.
+			for (int i = 0; i < 5; i++) {
+				double ang = maxAng - (i * maxAng / 2);
+				int x = (int) (x0 + Math.round(len * Math.sin(ang)));
+				int y = (int) (y0 - Math.round(len * Math.cos(ang)));
+				g.drawLine(x0, hd - y0, x, hd - y);
+				System.out.printf("Line %d x0 %d, y0 %d, x %d, y %d\n", i, x0, y0, x, y);
+			}
 		}
-		
-		
+
 //		g.setColor(Color.green);
 //		g.drawLine(-1, -1, 1000, 1000);
-		
+
 		return zoomedImage;
 	}
 
 	private void paintMouseDragLine(Graphics g, int imageIndex) {
-		// txt will be null if line is outside the image. 
+		// txt will be null if line is outside the image.
 		String txt = getDragText(imageIndex);
 		if (txt == null) {
 			return;
@@ -719,17 +769,17 @@ public class SonarsPanel extends PamPanel {
 		g.setColor(colourArray.getContrastingColour());
 		Graphics2D g2d = (Graphics2D) g;
 		g2d.setStroke(new BasicStroke(2));
-		g.drawLine(mousePressPoint.getX(), mousePressPoint.getY(),  
-				mouseDragPoint.getX(), mouseDragPoint.getY());
+		g.drawLine(mousePressPoint.getX(), mousePressPoint.getY(), mouseDragPoint.getX(), mouseDragPoint.getY());
 		if (txt != null) {
 			g.drawString(txt, mouseDragPoint.getX(), mouseDragPoint.getY());
 		}
 	}
-	
+
 	/**
-	 * Get text to show when the mouse is being dragged over an image. 
-	 * @param imageIndex 
-	 * @return drag text or null if not dragging or mouse out of image. 
+	 * Get text to show when the mouse is being dragged over an image.
+	 * 
+	 * @param imageIndex
+	 * @return drag text or null if not dragging or mouse out of image.
 	 */
 	private String getDragText(int imageIndex) {
 		if (mousePressPoint == null || mouseDragPoint == null) {
@@ -740,24 +790,29 @@ public class SonarsPanel extends PamPanel {
 		if (downCoord == null || dragCoord == null) {
 			return null;
 		}
-		// the && means it will still show lne and text when crossing between images, with the value
-		// being the difference between the position on each image - so can measure between what may
-		// be the same target on different sonars. 
+		// the && means it will still show lne and text when crossing between images,
+		// with the value
+		// being the difference between the position on each image - so can measure
+		// between what may
+		// be the same target on different sonars.
 		if (downCoord.getSonarIndex() != imageIndex && dragCoord.getSonarIndex() != imageIndex) {
 			return null;
 		}
-		double angle = Math.toDegrees(Math.atan2(dragCoord.getY()-downCoord.getY(), dragCoord.getX()-downCoord.getX()));
-		double bearing = 90.-angle;
+		double angle = Math
+				.toDegrees(Math.atan2(dragCoord.getY() - downCoord.getY(), dragCoord.getX() - downCoord.getX()));
+		double bearing = 90. - angle;
 		bearing = PamUtils.constrainedAngle(bearing);
-		double range = Math.sqrt(Math.pow(dragCoord.getY()-downCoord.getY(), 2) + Math.pow(dragCoord.getX()-downCoord.getX(),  2));
+		double range = Math.sqrt(
+				Math.pow(dragCoord.getY() - downCoord.getY(), 2) + Math.pow(dragCoord.getX() - downCoord.getX(), 2));
 		String txt = String.format("Bearing %3.1f%s, Distance %3.1fm", bearing, LatLong.deg, range);
 		return txt;
 	}
 
-	private void paintTextinformation(Graphics g, int imageIndex, LayoutInfo layoutInfo, GeminiImageRecordI geminiImageRecord) {
+	private void paintTextinformation(Graphics g, int imageIndex, LayoutInfo layoutInfo,
+			GeminiImageRecordI geminiImageRecord) {
 		/*
-		 *  and draw text into the corner of the image. Will eventually mess with font sizes, but for
-		 *  now, we're in get it going mode. 
+		 * and draw text into the corner of the image. Will eventually mess with font
+		 * sizes, but for now, we're in get it going mode.
 		 */
 		Graphics2D g2d = (Graphics2D) g;
 		g2d.setColor(PamColors.getInstance().getColor(PamColor.AXIS));
@@ -770,30 +825,57 @@ public class SonarsPanel extends PamPanel {
 		// clear a rectangle (deals with the text being on top of the axis)
 		Color currCol = g.getColor();
 		g.setColor(this.getBackground());
-		g.fillRect(xt, yt, maxCharWidth*2, lineHeight*4);
+//		g.fillRect(xt, yt, maxCharWidth * 2, lineHeight * 4);
 		g.setColor(currCol);
 		yt += lineHeight;
 		xt += fm.charWidth(' ');
 		String str;
 		str = PamCalendar.formatDBDateTime(geminiImageRecord.getRecordTime(), true);
-		g2d.drawString(str, xt, yt);	
+		paintTextLine(g2d, str, xt, yt);
 		yt += lineHeight;
-		str = String.format("Sonar %d, record %d", geminiImageRecord.getDeviceId(), geminiImageRecord.getRecordNumber());
-		g2d.drawString(str, xt, yt);	
+		str = String.format("Sonar %d, record %d", geminiImageRecord.getDeviceId(),
+				geminiImageRecord.getRecordNumber());
+		paintTextLine(g2d, str, xt, yt);
 		yt += lineHeight;
 		str = String.format("nRange %d, nAngle %d", geminiImageRecord.getnRange(), geminiImageRecord.getnBeam());
-		g2d.drawString(str, xt, yt);	
+		paintTextLine(g2d, str, xt, yt);
 		yt += lineHeight;
-		str = String.format("Load %3.2fms; Image %3.2fms", geminiImageRecord.getLoadTime()/1000000., imageTime[imageIndex]/1000000.);
-		g2d.drawString(str, xt, yt);	
+		str = String.format("Load %3.2fms; Image %3.2fms", geminiImageRecord.getLoadTime() / 1000000.,
+				imageTime[imageIndex] / 1000000.);
+		paintTextLine(g2d, str, xt, yt);
 		yt += lineHeight;
 		str = String.format("SoS %3.2fm/s", geminiImageRecord.getSoS());
-		g2d.drawString(str, xt, yt);	
+		paintTextLine(g2d, str, xt, yt);
 		str = getDragText(imageIndex);
 		if (str != null) {
 			yt += lineHeight;
-			g2d.drawString(str, xt, yt);	
+			paintTextLine(g2d, str, xt, yt);
 		}
+	}
+	
+	/**
+	 * Paint a line of text, which may overlap the image, so 
+	 * repaint it's background in semi-transparent. 
+	 * @param g2d
+	 * @param str
+	 * @param xt
+	 * @param yt
+	 */
+	private void paintTextLine(Graphics2D g2d, String str, int xt, int yt) {
+		FontMetrics fm = g2d.getFontMetrics();
+		Rectangle2D bounds = fm.getStringBounds(str, g2d);
+		Color cc = g2d.getColor();
+		Color bg = getBackground();
+//		Rectangle r = new Rectangle(xt, yt, xt + (int) bounds.getWidth(), yt + (int) bounds.getHeight());
+		if (bg != null) {
+			bg = new Color(bg.getRed(), bg.getBlue(), bg.getGreen(), 192);
+			g2d.setColor(bg);
+		}
+		g2d.fillRect(xt, yt-(int) bounds.getHeight()+1, (int) bounds.getWidth(), (int) bounds.getHeight()+1);
+		if (cc != null) {
+			g2d.setColor(cc);
+		}
+		g2d.drawString(str, xt, yt);
 	}
 
 	private void paintDetectorData(Graphics g, SonarXYProjector sonarXYProjector,
@@ -806,14 +888,14 @@ public class SonarsPanel extends PamPanel {
 
 	private void paintDetectorData(Graphics g, SonarOverlayData selBlock, SonarXYProjector sonarXYProjector,
 			GeminiImageRecordI geminiImageRecord) {
-		PamDataBlock dataBlock =  PamController.getInstance().getDataBlockByLongName(selBlock.dataName);
+		PamDataBlock dataBlock = PamController.getInstance().getDataBlockByLongName(selBlock.dataName);
 		if (dataBlock == null) {
 			return;
 		}
 		if (dataBlock.getPamSymbolManager() != null) {
-			sonarXYProjector.setPamSymbolChooser(dataBlock.getPamSymbolManager().getSymbolChooser(getDataSelectorName(), sonarXYProjector));
-		}
-		else {
+			sonarXYProjector.setPamSymbolChooser(
+					dataBlock.getPamSymbolManager().getSymbolChooser(getDataSelectorName(), sonarXYProjector));
+		} else {
 			sonarXYProjector.setPamSymbolChooser(null);
 		}
 		PanelOverlayDraw overlayDraw = dataBlock.getOverlayDraw();
@@ -851,12 +933,13 @@ public class SonarsPanel extends PamPanel {
 		}
 
 	}
-	
+
 	/**
-	 * work out a vaguely sensible range step. 
+	 * work out a vaguely sensible range step.
+	 * 
 	 * @param range
 	 * @param height
-	 * @return range step in range units. 
+	 * @return range step in range units.
 	 */
 	private double getRangeStep(double range, int height) {
 		double llr = Math.ceil(Math.log10(range));
@@ -903,10 +986,6 @@ public class SonarsPanel extends PamPanel {
 
 	private void mousePopup(MouseEvent e) {
 		JPopupMenu popMenu = new JPopupMenu();
-		int nOverlay = sonarOverlayManager.addSelectionMenuItems(popMenu, null, true, false, true);
-		if (nOverlay == 0) {
-			return;
-		}
 		JMenuItem menuItem = new JMenuItem("Overlay options");
 		menuItem.addActionListener(new ActionListener() {
 			@Override
@@ -915,28 +994,54 @@ public class SonarsPanel extends PamPanel {
 			}
 		});
 		popMenu.add(menuItem, 0);
+		// add the tail options as menu items since they are so useful. 
+		int[] tailOpts = SonarsPanelParams.getOverlayOptValues();
+		for (int i = 0; i < tailOpts.length; i++) {
+			JCheckBoxMenuItem cbi = new JCheckBoxMenuItem(SonarsPanelParams.getOverlayOptName(tailOpts[i]));
+			cbi.setSelected(sonarsPanelParams.tailOption == tailOpts[i]);
+			int opt = tailOpts[i];
+			cbi.addActionListener(new ActionListener() {
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					setTailOption(opt);
+				}
+			});
+			popMenu.add(cbi);
+		}
+
+		int nOverlay = sonarOverlayManager.addSelectionMenuItems(popMenu, null, true, false, true);
+		if (nOverlay == 0) {
+			return;
+		}
 		
 		popMenu.show(e.getComponent(), e.getX(), e.getY());
 	}
 
+	protected void setTailOption(int tailOpt) {
+		sonarsPanelParams.tailOption = tailOpt;
+		repaint();
+	}
+
 	protected void overlayOptions(ActionEvent e) {
-		boolean ans = GenericSwingDialog.showDialog(getFrame(1), "Overlay tail options", new OverlayTailDialogPanel(this));
+		Point mouse = MouseInfo.getPointerInfo().getLocation();
+		boolean ans = GenericSwingDialog.showDialog(getFrame(1), "Overlay tail options",
+				mouse,
+				new OverlayTailDialogPanel(this));
 		if (ans) {
 			repaint();
 		}
 	}
 
 	public void zoomDisplay(MouseWheelEvent e) {
-		// get the zoom factor and current zoom coordinate, only zoom if on an image. 
+		// get the zoom factor and current zoom coordinate, only zoom if on an image.
 		double zoom = Math.pow(1.05, -e.getPreciseWheelRotation());
 		SonarCoordinate sonarPos = findSonarCoordinate(e.getX(), e.getY());
 		if (sonarPos == null) {
 			return;
 		}
-			
-		
+
 		zoomDisplay(sonarPos, zoom);
-				
+
 	}
 
 	private void zoomDisplay(SonarCoordinate sonarPos, double zoom) {
@@ -947,19 +1052,19 @@ public class SonarsPanel extends PamPanel {
 			zoomCentre = new Coordinate3d(0, 0);
 		}
 		double flip = sonarsPanelParams.flipLeftRight ? -1 : 1;
-		double mouseX = sonarPos.getX()*flip;
+		double mouseX = sonarPos.getX() * flip;
 		double mouseY = sonarPos.getY();
 		double dx = mouseX - zoomCentre.x;
 		double dy = mouseY - zoomCentre.y;
 		dx /= zoom;
 		dy /= zoom;
-		double newX = mouseX-dx;
-		double newY = mouseY-dy;
-		
+		double newX = mouseX - dx;
+		double newY = mouseY - dy;
+
 		zoomCentre = new Coordinate3d(newX, newY);
-		
+
 		zoomFactor *= zoom;
-		zoomFactor = Math.max(1.0,  zoomFactor);
+		zoomFactor = Math.max(1.0, zoomFactor);
 		if (zoomFactor == 1.) {
 			zoomCentre = new Coordinate3d(0, 0);
 		}
@@ -968,7 +1073,7 @@ public class SonarsPanel extends PamPanel {
 //		
 
 //		System.out.println("Zoom by " + zoom);
-		// get the mouse point. only zoom if it's on an image. 
+		// get the mouse point. only zoom if it's on an image.
 		repaint();
 	}
 
@@ -978,8 +1083,7 @@ public class SonarsPanel extends PamPanel {
 		public String getUnitName() {
 			if (nameProvider != null) {
 				return nameProvider.getUnitName();
-			}
-			else {
+			} else {
 				return getUnitType();
 			}
 		}

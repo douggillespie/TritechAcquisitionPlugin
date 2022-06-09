@@ -262,6 +262,7 @@ public class SonarsOuterPanel implements ConfigurationObserver {
 		for (int i = 0; i < sonarIDs.length; i++) {
 			GeminiImageRecordI imageRec = geminiCatalog.findRecordForTime(sonarIDs[i], valueMillis);
 			sonarsPanel.setImageRecord(i, imageRec);
+			geminiCatalog.freeImageData(valueMillis, 10000);
 		}
 
 	}
