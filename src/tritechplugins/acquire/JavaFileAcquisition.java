@@ -148,7 +148,13 @@ public class JavaFileAcquisition extends TritechDaqSystem  implements CatalogStr
 					synchronized (synchObject) {
 						currentCatalog = GeminiFileCatalog.getFileCatalog(fileList[currentFile], false);
 					}
-					currentCatalog.streamCatalog(JavaFileAcquisition.this);
+					try {
+						currentCatalog.streamCatalog(JavaFileAcquisition.this);
+					}
+					catch (Exception e) {
+						System.out.println("Error streaming file " + fileList[currentFile]);
+						System.out.println(e.getMessage());
+					}
 				}
 				catch (CatalogException e) {
 					System.out.println("Catalog error " + e.getMessage());
