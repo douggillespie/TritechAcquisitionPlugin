@@ -191,7 +191,7 @@ public class SonarsOuterPanel implements ConfigurationObserver {
 	private class GemCatalogObserver implements CatalogObserver {
 
 		@Override
-		public void catalogChanged() {
+		public void catalogChanged(int state, int nFiles, String fileName) {
 			checkCatalog();
 		}
 	}
