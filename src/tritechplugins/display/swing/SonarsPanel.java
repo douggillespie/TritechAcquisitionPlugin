@@ -447,9 +447,14 @@ public class SonarsPanel extends PamPanel {
 		int nXPix = imageRectangles[sonarIndex].getImageRectangle().width;
 		int usePix = getImagePixels(nBearing, nXPix);
 		imageFanData[sonarIndex] = fanMakers[sonarIndex].createFanData(imageRecord, usePix);
-		FanDataImage fanImage = new FanDataImage(imageFanData[sonarIndex], colourArray, false,
-				sonarsPanelParams.displayGain);
-		images[sonarIndex] = fanImage.getBufferedImage();
+		if (imageFanData[sonarIndex] == null) {
+			images[sonarIndex] = null;
+		}
+		else {
+			FanDataImage fanImage = new FanDataImage(imageFanData[sonarIndex], colourArray, false,
+					sonarsPanelParams.displayGain);
+			images[sonarIndex] = fanImage.getBufferedImage();
+		}
 		long t2 = System.nanoTime();
 		imageTime[sonarIndex] = t2 - t1;
 

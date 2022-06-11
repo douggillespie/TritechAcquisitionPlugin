@@ -10,7 +10,7 @@ public class TritechDaqPlugin implements PamPluginInterface {
 
 	@Override
 	public String getDefaultName() {
-		return ThresholdDetector.unitType;
+		return TritechAcquisition.unitType;
 	}
 
 	@Override
@@ -41,7 +41,7 @@ public class TritechDaqPlugin implements PamPluginInterface {
 
 	@Override
 	public String getVersion() {
-		return "1.0";
+		return "1.1";
 	}
 
 	@Override
@@ -56,17 +56,17 @@ public class TritechDaqPlugin implements PamPluginInterface {
 
 	@Override
 	public String getAboutText() {
-		return "Detection in Gemini sonar data";
+		return "Acquisition and display of Gemini sonar data";
 	}
 
 	@Override
 	public String getClassName() {
-		return ThresholdDetector.class.getName();
+		return TritechAcquisition.class.getName();
 	}
 
 	@Override
 	public String getDescription() {
-		return "Detection in Gemini sonar data";
+		return TritechAcquisition.unitType;
 	}
 
 	@Override
@@ -76,7 +76,7 @@ public class TritechDaqPlugin implements PamPluginInterface {
 
 	@Override
 	public String getToolTip() {
-		return "Detection in Gemini sonar data";
+		return "Acquisition, offline processing, and display of Gemini sonar data";
 	}
 
 	@Override

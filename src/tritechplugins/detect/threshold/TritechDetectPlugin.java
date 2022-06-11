@@ -2,6 +2,7 @@ package tritechplugins.detect.threshold;
 
 import PamModel.PamDependency;
 import PamModel.PamPluginInterface;
+import tritechplugins.acquire.ImageDataUnit;
 import tritechplugins.acquire.TritechAcquisition;
 
 public class TritechDetectPlugin implements PamPluginInterface {
@@ -10,7 +11,7 @@ public class TritechDetectPlugin implements PamPluginInterface {
 
 	@Override
 	public String getDefaultName() {
-		return TritechAcquisition.unitType;
+		return ThresholdDetector.unitType;
 	}
 
 	@Override
@@ -41,7 +42,7 @@ public class TritechDetectPlugin implements PamPluginInterface {
 
 	@Override
 	public String getVersion() {
-		return "1.0";
+		return "1.1";
 	}
 
 	@Override
@@ -56,17 +57,17 @@ public class TritechDetectPlugin implements PamPluginInterface {
 
 	@Override
 	public String getAboutText() {
-		return "Acquisition and display of Gemini sonar data";
+		return "Detection in Gemini sonar data using a simple threshold detector and tracker";
 	}
 
 	@Override
 	public String getClassName() {
-		return TritechAcquisition.class.getName();
+		return ThresholdDetector.class.getName();
 	}
 
 	@Override
 	public String getDescription() {
-		return "Acquisition and display of Gemini sonar data";
+		return ThresholdDetector.unitType;
 	}
 
 	@Override
@@ -76,12 +77,12 @@ public class TritechDetectPlugin implements PamPluginInterface {
 
 	@Override
 	public String getToolTip() {
-		return "Acquisition and display of Gemini sonar data";
+		return "Automatic detection of object tracks in Gemini sonar data";
 	}
 
 	@Override
 	public PamDependency getDependency() {
-		return null;
+		return new PamDependency(ImageDataUnit.class, TritechAcquisition.class.getName());
 	}
 
 	@Override
@@ -96,7 +97,6 @@ public class TritechDetectPlugin implements PamPluginInterface {
 
 	@Override
 	public int getNInstances() {
-		// TODO Auto-generated method stub
 		return 0;
 	}
 
