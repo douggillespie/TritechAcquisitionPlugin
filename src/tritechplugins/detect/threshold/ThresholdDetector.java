@@ -14,6 +14,9 @@ import PamController.PamControlledUnitSettings;
 import PamController.PamController;
 import PamController.PamSettingManager;
 import PamController.PamSettings;
+import annotation.handler.AnnotationHandler;
+import annotation.handler.ManualAnnotationHandler;
+import annotation.tasks.AnnotationManager;
 import offlineProcessing.OLProcessDialog;
 import offlineProcessing.OfflineTaskGroup;
 import tritechplugins.detect.swing.DetectorHistogramProvider;
@@ -38,6 +41,7 @@ public class ThresholdDetector extends PamControlledUnit implements PamSettings 
 	private ArrayList<ThresholdObserver> thresholdObservers = new ArrayList();
 
 	private TrackLinkProcess trackLinkProcess;
+	
 
 	/**
 	 * @return the trackLinkProcess
@@ -67,6 +71,8 @@ public class ThresholdDetector extends PamControlledUnit implements PamSettings 
 		switch (changeType) {
 		case PamController.INITIALIZATION_COMPLETE:
 			thresholdProcess.prepareProcess();
+			trackLinkProcess.prepareProcess();
+			sortLoggingAddons();
 			break;
 		}
 	}
@@ -95,6 +101,11 @@ public class ThresholdDetector extends PamControlledUnit implements PamSettings 
 				showSettingsDialog(parentFrame);
 			}
 		});
+		ManualAnnotationHandler annotationHandler = trackLinkProcess.getAnnotationHandler();
+		menuItem = annotationHandler.getDialogMenuItem(parentFrame);
+		if (menuItem != null) {
+			menu.add(menuItem);
+		}
 		if (isViewer()) {
 			 menuItem = new JMenuItem("Run offline ...");
 			menu.add(menuItem);
@@ -114,7 +125,13 @@ public class ThresholdDetector extends PamControlledUnit implements PamSettings 
 		if (newParams != null) {
 			this.thresholdParams = newParams;
 			thresholdProcess.prepareProcess();
+			trackLinkProcess.prepareProcess();
+			sortLoggingAddons();
 		}
+	}
+	
+	private void sortLoggingAddons() {
+		trackLinkProcess.sortSQLLogging();
 	}
 
 	/**

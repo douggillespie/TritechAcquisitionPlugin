@@ -21,6 +21,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JMenuItem;
@@ -39,6 +40,7 @@ import PamUtils.PamCalendar;
 import PamUtils.PamUtils;
 import PamView.ColourArray;
 import PamView.ColourArray.ColourArrayType;
+import PamView.HoverData;
 import PamView.PamColors;
 import PamView.PamColors.PamColor;
 import PamView.PanelOverlayDraw;
@@ -49,6 +51,8 @@ import PamView.panel.PamPanel;
 import PamView.symbol.PamSymbolChooser;
 import PamguardMVC.PamDataBlock;
 import PamguardMVC.PamDataUnit;
+import PamguardMVC.datamenus.DataMenuParent;
+import annotation.handler.AnnotationHandler;
 import tritechgemini.imagedata.FanImageData;
 import tritechgemini.imagedata.FanPicksFromData;
 import tritechgemini.imagedata.GeminiImageRecordI;
@@ -67,7 +71,7 @@ import tritechplugins.display.swing.overlays.SonarOverlayManager;
  * The sonar images are drawn directly on this panel. It uses a corner layout so that other panels
  * containing controls for the display can be squished into corners. 
  */
-public class SonarsPanel extends PamPanel {
+public class SonarsPanel extends PamPanel implements DataMenuParent {
 
 	private TritechAcquisition tritechAcquisition;
 
@@ -409,10 +413,12 @@ public class SonarsPanel extends PamPanel {
 	public void paintComponent(Graphics g) {
 		super.paintComponent(g);
 
-		if (currentImageRecords == null || images == null || imageRectangles == null) {
-			return;
-		}
 		sortRectangles();
+		
+//		if (currentImageRecords == null || images == null || imageRectangles == null) {
+//			System.out.printf("records %s, images %s, rectangles %s\n", currentImageRecords, images, imageRectangles);
+//			return;
+//		}
 
 		Graphics2D g2d = (Graphics2D) g;
 		g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
@@ -990,6 +996,50 @@ public class SonarsPanel extends PamPanel {
 	}
 
 	private void mousePopup(MouseEvent e) {
+		// see if we're on a detection ...
+		PamDataUnit dataUnit = findOverlayDataUnit(e.getX(), e.getY());
+		if (showAnottationMenu(e, dataUnit)) {
+			return;
+		}
+		else {
+			showStandardMenu(e);
+		}
+	}
+	private boolean showAnottationMenu(MouseEvent e, PamDataUnit dataUnit) {
+		if (dataUnit == null) {
+			return false;
+		}
+		/**
+		 * Need to see if the data unit we're hovered over or any super 
+		 * detections of that data unit have annotation managers. 
+		 */
+		JPopupMenu annotMenu = new JPopupMenu();
+		PamDataUnit du = dataUnit;
+		int nItems = 0;
+		while (du != null) {
+			PamDataBlock db = du.getParentDataBlock();
+			if (db != null) {
+				AnnotationHandler ah = db.getAnnotationHandler();
+				if (ah != null) {
+					List<JMenuItem> menuItems = ah.getAnnotationMenuItems(this, e.getPoint(), du);
+					if (menuItems != null) {
+						nItems++;
+						for (JMenuItem mi : menuItems) {
+							annotMenu.add(mi);
+						}
+					}
+				}
+			}
+			du = du.getSuperDetection(0);
+		}
+		if (nItems == 0) {
+			return false;
+		}
+		annotMenu.show(e.getComponent(), e.getX(), e.getY());
+		return true;
+	}
+
+	private void showStandardMenu(MouseEvent e) {		
 		JPopupMenu popMenu = new JPopupMenu();
 		JMenuItem menuItem = new JMenuItem("Overlay options");
 		menuItem.addActionListener(new ActionListener() {
@@ -999,6 +1049,7 @@ public class SonarsPanel extends PamPanel {
 			}
 		});
 		popMenu.add(menuItem, 0);
+		popMenu.addSeparator();
 		// add the tail options as menu items since they are so useful. 
 		int[] tailOpts = SonarsPanelParams.getOverlayOptValues();
 		for (int i = 0; i < tailOpts.length; i++) {
@@ -1014,12 +1065,45 @@ public class SonarsPanel extends PamPanel {
 			popMenu.add(cbi);
 		}
 
+		popMenu.addSeparator();
 		int nOverlay = sonarOverlayManager.addSelectionMenuItems(popMenu, null, true, false, true);
 		if (nOverlay == 0) {
 			return;
 		}
 		
 		popMenu.show(e.getComponent(), e.getX(), e.getY());
+	}
+
+	/**
+	 * find the closest overlay data unit to the mouse. 
+	 * @param x mouse x
+	 * @param y mouse y
+	 * @return data unit or null
+	 */
+	private PamDataUnit findOverlayDataUnit(int x, int y) {
+		if (xyProjectors == null) {
+			return null;
+		}
+		Coordinate3d xyCoord = new Coordinate3d(x,y);
+		try {
+			for (int i = 0; i < xyProjectors.length; i++) {
+				if (xyProjectors[i] == null) {
+					continue;
+				}
+				int dataUnit = -1;
+				synchronized(xyProjectors[i].getHoverDataSynchroniser()) {
+					dataUnit = xyProjectors[i].findClosestDataUnitIndex(xyCoord, 10, 0);
+					if (dataUnit > 0) {
+						HoverData hovData = (HoverData) xyProjectors[i].getHoverDataList().get(dataUnit);
+						return hovData.getDataUnit();
+					}
+				}
+			}
+		}
+		catch (Exception e) {
+			return null;
+		}
+		return null;
 	}
 
 	protected void setTailOption(int tailOpt) {
@@ -1118,6 +1202,11 @@ public class SonarsPanel extends PamPanel {
 
 	public String getDataSelectorName() {
 		return nameProvider.getUnitName();
+	}
+
+	@Override
+	public String getDisplayName() {
+		return getDataSelectorName();
 	}
 
 }

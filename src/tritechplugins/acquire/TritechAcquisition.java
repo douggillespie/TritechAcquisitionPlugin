@@ -127,9 +127,9 @@ public class TritechAcquisition extends PamControlledUnit implements PamSettings
 
 	@Override
 	public void createOfflineDataMap(Window parentFrame) {
-		if (tritechOffline != null) {
-			tritechOffline.createOfflineDataMap(parentFrame);
-		}		
+//		if (tritechOffline != null) {
+//			tritechOffline.createOfflineDataMap(parentFrame);
+//		}		
 	}
 	
 	/**

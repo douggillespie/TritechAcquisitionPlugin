@@ -6,6 +6,8 @@ import java.util.List;
 import PamguardMVC.PamDataUnit;
 import PamguardMVC.PamObservable;
 import PamguardMVC.PamProcess;
+import annotation.handler.AnnotationHandler;
+import annotation.handler.ManualAnnotationHandler;
 import tritechgemini.detect.DetectedRegion;
 import tritechplugins.detect.threshold.RegionDataBlock;
 import tritechplugins.detect.threshold.RegionDataUnit;
@@ -53,13 +55,19 @@ public class TrackLinkProcess extends PamProcess {
 	 */
 	private TrackLinker singleLinker;
 
+	private ManualAnnotationHandler annotationHandler;
+
+	private TrackLogging trackLogging;
+
 	public TrackLinkProcess(ThresholdDetector thresholdDetector, ThresholdProcess thresholdProcess) {
 		super(thresholdDetector, null);
 		this.thresholdDetector = thresholdDetector;
 		trackLinkDataBlock = new TrackLinkDataBlock("Gemini Tracks", this);
-		TrackLogging trackLogging = new TrackLogging(thresholdDetector, trackLinkDataBlock, true);
+		trackLogging = new TrackLogging(thresholdDetector, trackLinkDataBlock, true);
 		trackLogging.setSubLogging(thresholdProcess.getRegionLogging());
 		trackLinkDataBlock.SetLogging(trackLogging);
+		annotationHandler = new ManualAnnotationHandler(thresholdDetector, trackLinkDataBlock);
+		trackLinkDataBlock.setAnnotationHandler(annotationHandler);
 		addOutputDataBlock(trackLinkDataBlock);
 	}
 
@@ -113,6 +121,17 @@ public class TrackLinkProcess extends PamProcess {
 			}
 			return singleLinker;
 		}
+	}
+
+	/**
+	 * @return the annotationHandler
+	 */
+	public ManualAnnotationHandler getAnnotationHandler() {
+		return annotationHandler;
+	}
+
+	public void sortSQLLogging() {
+		annotationHandler.addAnnotationSqlAddons(trackLogging);
 	}
 		
 }

@@ -62,6 +62,11 @@ public class TrackLinkDataUnit extends SuperDetection<RegionDataUnit> {
 				trackChain.getsonarIdString(), trackChain.getMeanOccupancy(), getDurationInMilliseconds()/1000., 
 				trackChain.getChainLength());
 		
+		String annotStr = getAnnotationsSummaryString();
+		if (annotStr != null) {
+			str += annotStr;
+		}
+		
 		return str;
 	}
 	

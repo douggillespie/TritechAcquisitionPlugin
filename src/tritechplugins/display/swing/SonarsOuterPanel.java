@@ -18,6 +18,7 @@ import pamScrollSystem.PamScrollObserver;
 import pamScrollSystem.PamScrollSlider;
 import tritechgemini.fileio.CatalogObserver;
 import tritechgemini.fileio.MultiFileCatalog;
+import tritechgemini.fileio.OfflineCatalogProgress;
 import tritechgemini.imagedata.GeminiImageRecordI;
 import tritechplugins.acquire.ConfigurationObserver;
 import tritechplugins.acquire.ImageDataUnit;
@@ -189,9 +190,8 @@ public class SonarsOuterPanel implements ConfigurationObserver {
 	}
 
 	private class GemCatalogObserver implements CatalogObserver {
-
 		@Override
-		public void catalogChanged(int state, int nFiles, String fileName) {
+		public void catalogChanged(OfflineCatalogProgress offlineCatalogProgress) {
 			checkCatalog();
 		}
 	}
@@ -256,14 +256,19 @@ public class SonarsOuterPanel implements ConfigurationObserver {
 		}
 		int[] sonarIDs = geminiCatalog.getSonarIDs();
 		if (sonarIDs == null) {
+//			System.out.println("No sonars");
 			return;
 		}
 //		System.out.printf("Find image records for time %s\n", PamCalendar.formatDateTime(valueMillis));
 		for (int i = 0; i < sonarIDs.length; i++) {
 			GeminiImageRecordI imageRec = geminiCatalog.findRecordForTime(sonarIDs[i], valueMillis);
+//			if (imageRec == null) {
+//				System.out.println("No image for sonar " + sonarIDs[i]);
+//			}
 			sonarsPanel.setImageRecord(i, imageRec);
 			geminiCatalog.freeImageData(valueMillis, 10000);
 		}
+//		sonarsPanel.repaint();
 
 	}
 

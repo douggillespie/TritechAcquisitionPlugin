@@ -52,6 +52,11 @@ public class RegionDataUnit extends PamDataUnit {
 		str += String.format("Level: Mean %d, Max %d<br>", region.getAverageValue(), region.getMaxValue());
 		str += String.format("Angles: %3.1f to %3.1f<br>", Math.toDegrees(region.getMinBearing()), 
 				Math.toDegrees(region.getMaxBearing()));
+		
+		String annotStr = getAnnotationsSummaryString();
+		if (annotStr != null) {
+			str += "<br>" + annotStr;
+		}
 
 		int nSuperDet = getSuperDetectionsCount();
 		if (nSuperDet > 0) {

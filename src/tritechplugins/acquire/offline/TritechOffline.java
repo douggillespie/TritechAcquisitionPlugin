@@ -29,6 +29,7 @@ import pamScrollSystem.ViewLoadObserver;
 import tritechgemini.fileio.CatalogObserver;
 import tritechgemini.fileio.GeminiFileCatalog;
 import tritechgemini.fileio.MultiFileCatalog;
+import tritechgemini.fileio.OfflineCatalogProgress;
 import tritechplugins.acquire.ImageDataBlock;
 import tritechplugins.acquire.TritechAcquisition;
 import tritechplugins.acquire.TritechDaqParams;
@@ -49,6 +50,10 @@ public class TritechOffline implements TritechRunMode, OfflineDataStore {
 	private MultiFileCatalog multiFileCatalog;
 	
 	private OfflineFileList offlineFileList;
+
+	private CatalogWorker catalogWorker;
+	
+	private Object catalogSynchObject = new Object();
 	
 
 	public TritechOffline(TritechAcquisition tritechAcquisition) {
@@ -119,14 +124,32 @@ public class TritechOffline implements TritechRunMode, OfflineDataStore {
 		offlineFileList = new OfflineFileList(params.getOfflineFileFolder(), new TritechFileFilter(), params.isOfflineSubFolders());
 		String[] fileNames = offlineFileList.asStringList();
 		
-		CatalogWorker catalogWorker = new CatalogWorker(fileNames);
+		stopCatalogWorker();
+		
+		clearOfflineDataMap();
+		
+		catalogWorker = new CatalogWorker(fileNames);
 		catalogWorker.execute();
 //		multiFileCatalog.catalogFiles(fileNames);
 //
 //		createOfflineDataMap(tritechAcquisition.getGuiFrame());
 	}
 	
-	private class CatalogWorker extends SwingWorker<Integer, OfflineCatalogProgress> implements CatalogObserver {
+	/**
+	 * It's possible that a catalog worker is already running, in which 
+	 * case it must be stopped. this will happen if the user selects a new
+	 * data directory while a current one is being catalogued. 
+	 */
+	private void stopCatalogWorker() {
+		synchronized (catalogSynchObject) {
+			if (catalogWorker == null) {
+				return;
+			}
+			catalogWorker.stop();
+		}		
+	}
+
+	class CatalogWorker extends SwingWorker<Integer, OfflineCatalogProgress> implements CatalogObserver {
 
 		private String[] fileNames;
 		
@@ -136,6 +159,26 @@ public class TritechOffline implements TritechRunMode, OfflineDataStore {
 			super();
 			this.fileNames = fileNames;
 			multiFileCatalog.addObserver(this);
+		}
+
+		/**
+		 * Called from AWT to stop the worker. 
+		 */
+		public void stop() {
+			multiFileCatalog.stopCataloging();
+			int waitCount = 0;
+			while (catalogWorker != null) {
+				try {
+					Thread.sleep(100);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+				System.out.println("Wait to abandon Gemini file catalog #" + ++waitCount);
+				if (waitCount > 100) {
+					stop();
+					catalogWorker = null;
+				}
+			}
 		}
 
 		@Override
@@ -148,29 +191,107 @@ public class TritechOffline implements TritechRunMode, OfflineDataStore {
 		protected void process(List<OfflineCatalogProgress> chunks) {
 			super.process(chunks);
 			for (OfflineCatalogProgress catProg : chunks) {
-				warning.setWarnignLevel(0);
-				warning.setWarningMessage(String.format("File %d: %s added", catProg.nFiles, catProg.lastFile));
-				WarningSystem.getWarningSystem().addWarning(warning);
+				if (catProg.getLastFileName() != null) {
+					warning.setWarnignLevel(0);
+					warning.setWarningMessage(String.format("Scanning file %d of %d: %s", catProg.getCurrentFile(), catProg.getTotalFiles(), catProg.getLastFileName()));
+					WarningSystem.getWarningSystem().addWarning(warning);
+				}
+				// add that point immediately to the catalog. 
+				addOfflineCatalogMapPoint(catProg.getNewCatalog());
 			}
 		}
 
 		@Override
-		public void catalogChanged(int state, int nFiles, String lastFile) {
-			OfflineCatalogProgress cp = new OfflineCatalogProgress(state, nFiles, lastFile);
-			publish(cp);			
+		public void catalogChanged(OfflineCatalogProgress offlineCatalogProgress) {
+			/*
+			 *  called back in worker thread. Publishes message which
+			 *  will cleverly appear in AWT thread in the above process(chunks)
+			 *  function 
+			 */
+			publish(offlineCatalogProgress);			
 		}
 
 		@Override
 		protected void done() {
 			multiFileCatalog.removeObserver(this);
-			createOfflineDataMap(tritechAcquisition.getGuiFrame());
+//			createOfflineDataMap(tritechAcquisition.getGuiFrame());
+			finaliseOfflineCatalog();
 			WarningSystem.getWarningSystem().removeWarning(warning);
+			catalogWorker = null;
 		}
-		
+
 	}
 
 	/**
-	 * Implementation of OfflineDataStore
+	 * Clear the offline datamap, if it exists. It will then hopefully
+	 * get rebuilt from the CatalogWorker. 
+	 */
+	private void clearOfflineDataMap() {
+		ImageDataBlock imageDataBlock = tritechAcquisition.getTritechDaqProcess().getImageDataBlock();
+		OfflineDataMap<ImageMapPoint> imageDataMap = imageDataBlock.getOfflineDataMap(tritechAcquisition);
+		if (imageDataMap != null) {
+			imageDataMap.clear();
+		}
+	}
+	
+	/**
+	 * Called from callback from Swing worker to add another map point. 
+	 * @param singleFileCatalog
+	 */
+	private void addOfflineCatalogMapPoint(GeminiFileCatalog singleFileCatalog) {
+		if (singleFileCatalog == null) {
+			return; // might happen on final notification
+		}
+		ImageDataBlock imageDataBlock = tritechAcquisition.getTritechDaqProcess().getImageDataBlock();
+		OfflineDataMap<ImageMapPoint> imageDataMap = imageDataBlock.getOfflineDataMap(tritechAcquisition);
+		if (imageDataMap == null) {
+			imageDataMap = new ImageDataMap(tritechAcquisition, imageDataBlock);
+			imageDataBlock.addOfflineDataMap(imageDataMap);
+		}
+		imageDataMap.addDataPoint(new ImageMapPoint(singleFileCatalog));
+		
+		repaintDataMap(imageDataMap);
+	}
+	
+	private void repaintDataMap(OfflineDataMap<ImageMapPoint> imageDataMap) {
+		// try to find the datamap panel and repaint it. 
+		DataMapControl dataMap = DataMapControl.getDataMapControl();
+		if (dataMap == null) {
+			return;
+		}
+		// this will cause a repaint, but possibly not a change of limits ? 
+		dataMap.notifyModelChanged(PamControllerInterface.OFFLINE_DATA_LOADED);
+		dataMap.updateSingleDataMap(imageDataMap);
+	}
+
+	
+	/**
+	 * Called once, from swing worker, when all the datamap points are added. 
+	 */
+	private void finaliseOfflineCatalog() {
+		ImageDataBlock imageDataBlock = tritechAcquisition.getTritechDaqProcess().getImageDataBlock();
+		OfflineDataMap<ImageMapPoint> imageDataMap = imageDataBlock.getOfflineDataMap(tritechAcquisition);
+		if (imageDataMap == null) {
+			return;
+		}
+		
+		imageDataMap.sortMapPoints();
+		imageDataMap.sortRanges();
+
+		SwingUtilities.invokeLater(new Runnable() {
+			@Override
+			public void run() {
+				DataMapControl mapControl = DataMapControl.getDataMapControl();
+				if (mapControl != null) {
+					mapControl.notifyModelChanged(PamControllerInterface.EXTERNAL_DATA_IMPORTED);
+				}
+			}
+		});
+	}
+	
+	/**
+	 * Implementation of OfflineDataStore. Not surrently used since we're doing 
+	 * a fancy rethreading thing with a swing worker to avoid blocking AWT.
 	 */
 	@Override
 	public void createOfflineDataMap(Window parentFrame) {
@@ -187,16 +308,16 @@ public class TritechOffline implements TritechRunMode, OfflineDataStore {
 		}
 		imageDataMap.sortMapPoints();
 		imageDataMap.sortRanges();
-		
-			SwingUtilities.invokeLater(new Runnable() {
-				@Override
-				public void run() {
-					DataMapControl mapControl = DataMapControl.getDataMapControl();
-					if (mapControl != null) {
-						mapControl.notifyModelChanged(PamControllerInterface.EXTERNAL_DATA_IMPORTED);
-					}
+
+		SwingUtilities.invokeLater(new Runnable() {
+			@Override
+			public void run() {
+				DataMapControl mapControl = DataMapControl.getDataMapControl();
+				if (mapControl != null) {
+					mapControl.notifyModelChanged(PamControllerInterface.EXTERNAL_DATA_IMPORTED);
 				}
-			});
+			}
+		});
 	}
 
 	public MultiFileCatalog getMultiFileCatalog() {
