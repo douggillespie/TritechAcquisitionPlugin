@@ -17,6 +17,7 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
+import java.io.File;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -51,6 +52,7 @@ import PamView.panel.PamPanel;
 import PamView.symbol.PamSymbolChooser;
 import PamguardMVC.PamDataBlock;
 import PamguardMVC.PamDataUnit;
+import PamguardMVC.dataSelector.DataSelector;
 import PamguardMVC.datamenus.DataMenuParent;
 import annotation.handler.AnnotationHandler;
 import tritechgemini.imagedata.FanImageData;
@@ -841,6 +843,13 @@ public class SonarsPanel extends PamPanel implements DataMenuParent {
 		yt += lineHeight;
 		xt += fm.charWidth(' ');
 		String str;
+		String filePath = geminiImageRecord.getFilePath();
+		if (filePath != null) {
+			File f = new File(filePath);
+			str = f.getName();
+			paintTextLine(g2d, str, xt, yt);
+			yt += lineHeight;
+		}
 		str = PamCalendar.formatDBDateTime(geminiImageRecord.getRecordTime(), true);
 		paintTextLine(g2d, str, xt, yt);
 		yt += lineHeight;
@@ -903,6 +912,9 @@ public class SonarsPanel extends PamPanel implements DataMenuParent {
 		if (dataBlock == null) {
 			return;
 		}
+		
+		DataSelector dataSelector = dataBlock.getDataSelector(getDataSelectorName(), false);
+		
 		if (dataBlock.getPamSymbolManager() != null) {
 			sonarXYProjector.setPamSymbolChooser(
 					dataBlock.getPamSymbolManager().getSymbolChooser(getDataSelectorName(), sonarXYProjector));

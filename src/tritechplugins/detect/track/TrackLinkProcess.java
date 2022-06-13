@@ -13,6 +13,7 @@ import tritechplugins.detect.threshold.RegionDataBlock;
 import tritechplugins.detect.threshold.RegionDataUnit;
 import tritechplugins.detect.threshold.ThresholdDetector;
 import tritechplugins.detect.threshold.ThresholdProcess;
+import tritechplugins.display.swing.overlays.TrackSymbolManager;
 
 /**
  * Process that works with the threshold detector to join detections into tracks. 
@@ -68,6 +69,7 @@ public class TrackLinkProcess extends PamProcess {
 		trackLinkDataBlock.SetLogging(trackLogging);
 		annotationHandler = new ManualAnnotationHandler(thresholdDetector, trackLinkDataBlock);
 		trackLinkDataBlock.setAnnotationHandler(annotationHandler);
+		trackLinkDataBlock.setPamSymbolManager(new TrackSymbolManager(trackLinkDataBlock));
 		addOutputDataBlock(trackLinkDataBlock);
 	}
 

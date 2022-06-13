@@ -88,6 +88,9 @@ public class TrackChain {
 	 */
 	public double getEnd2EndMetres() {
 		double[] vec = getEndsVector();
+		if (vec == null) {
+			return 0;
+		}
 		return Math.sqrt(Math.pow(vec[0], 2) + Math.pow(vec[1], 2));
 	}
 	

@@ -17,9 +17,12 @@ import PamView.PamKeyItem;
 import PamView.PamSymbol;
 import PamView.PamSymbolType;
 import PamView.PanelOverlayDraw;
+import PamView.symbol.PamSymbolChooser;
 import PamguardMVC.PamDataUnit;
 import tritechgemini.detect.DetectedRegion;
 import tritechplugins.detect.threshold.RegionDataUnit;
+import tritechplugins.display.swing.overlays.SonarSymbolChooser;
+import tritechplugins.display.swing.overlays.SonarSymbolOptions;
 
 /**
  * Uses simple x,y projector to draw outlines of regions for given frame. 
@@ -41,6 +44,49 @@ public class RegionOverlayDraw extends PanelOverlayDraw {
 		if (region == null) {
 			return null;
 		}
+		PamSymbolChooser symbolChooser = generalProjector.getPamSymbolChooser();
+		SonarSymbolOptions symbolOptions;
+		if (symbolChooser instanceof SonarSymbolChooser) {
+			SonarSymbolChooser sonarSymbolChooser = (SonarSymbolChooser) symbolChooser;
+			symbolOptions = sonarSymbolChooser.getSymbolOptions();
+		}
+		else {
+			symbolOptions = new SonarSymbolOptions();
+		}
+		if (symbolOptions.symbolType == SonarSymbolOptions.DRAW_BOX) {
+			return drawBox(g, regionDataUnit, generalProjector);
+		}
+		else {
+			return drawSymbol(g, regionDataUnit, generalProjector);
+		}
+	}
+	public Rectangle drawSymbol(Graphics g, RegionDataUnit regionDataUnit, GeneralProjector generalProjector) {
+		DetectedRegion region = regionDataUnit.getRegion();
+//		double ang = region.getPeakBearing();
+//		double range = region.getPeakRange();
+		// above not yest stored in database 
+		double ang = (region.getMaxBearing()+region.getMinBearing())/2.;
+		double range = (region.getMinRange()+region.getMaxRange())/2.;
+				
+		double x = range*Math.sin(ang);
+		double y = range*Math.cos(ang);
+		
+		Coordinate3d pos = generalProjector.getCoord3d(x,  y,  0);
+		if (pos == null) {
+			return null;
+		}
+
+		PamSymbol symbol = getPamSymbol(regionDataUnit, generalProjector);
+		
+		generalProjector.addHoverData(pos, regionDataUnit);
+		
+		return symbol.draw(g, pos.getXYPoint());
+	}
+	
+	public Rectangle drawBox(Graphics g, RegionDataUnit regionDataUnit, GeneralProjector generalProjector) {
+
+		DetectedRegion region = regionDataUnit.getRegion();
+		
 		double maxAng = region.getMaxBearing();
 		double minAng = region.getMinBearing();
 		double minR = region.getMinRange();
@@ -75,7 +121,7 @@ public class RegionOverlayDraw extends PanelOverlayDraw {
 			maxy = Math.max(maxy, yp[i]);
 		}
 		
-		PamSymbol symbol = getPamSymbol(pamDataUnit, generalProjector);
+		PamSymbol symbol = getPamSymbol(regionDataUnit, generalProjector);
 		Graphics2D g2d = (Graphics2D) g;
 		g2d.setStroke(new BasicStroke(2));
 		
@@ -95,7 +141,7 @@ public class RegionOverlayDraw extends PanelOverlayDraw {
 		
 		Shape shape = new Polygon(xp, yp, 4);
 		
-		generalProjector.addHoverData(shape, pamDataUnit);
+		generalProjector.addHoverData(shape, regionDataUnit);
 		
 		return null;
 	}
