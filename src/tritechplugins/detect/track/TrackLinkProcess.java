@@ -56,7 +56,7 @@ public class TrackLinkProcess extends PamProcess {
 	 */
 	private TrackLinker singleLinker;
 
-	private ManualAnnotationHandler annotationHandler;
+//	private ManualAnnotationHandler annotationHandler;
 
 	private TrackLogging trackLogging;
 
@@ -67,8 +67,8 @@ public class TrackLinkProcess extends PamProcess {
 		trackLogging = new TrackLogging(thresholdDetector, trackLinkDataBlock, true);
 		trackLogging.setSubLogging(thresholdProcess.getRegionLogging());
 		trackLinkDataBlock.SetLogging(trackLogging);
-		annotationHandler = new ManualAnnotationHandler(thresholdDetector, trackLinkDataBlock);
-		trackLinkDataBlock.setAnnotationHandler(annotationHandler);
+//		annotationHandler = new ManualAnnotationHandler(thresholdDetector, trackLinkDataBlock);
+//		trackLinkDataBlock.setAnnotationHandler(annotationHandler);
 		trackLinkDataBlock.setPamSymbolManager(new TrackSymbolManager(trackLinkDataBlock));
 		addOutputDataBlock(trackLinkDataBlock);
 	}
@@ -125,15 +125,15 @@ public class TrackLinkProcess extends PamProcess {
 		}
 	}
 
-	/**
-	 * @return the annotationHandler
-	 */
-	public ManualAnnotationHandler getAnnotationHandler() {
-		return annotationHandler;
-	}
-
-	public void sortSQLLogging() {
-		annotationHandler.addAnnotationSqlAddons(trackLogging);
-	}
+//	/**
+//	 * @return the annotationHandler
+//	 */
+//	public ManualAnnotationHandler getAnnotationHandler() {
+//		return annotationHandler;
+//	}
+//
+//	public void sortSQLLogging() {
+//		annotationHandler.addAnnotationSqlAddons(trackLogging);
+//	}
 		
 }

@@ -6,6 +6,7 @@ import java.awt.Rectangle;
 import PamUtils.Coordinate3d;
 import PamUtils.PamCoordinate;
 import PamView.GeneralProjector;
+import PamView.GeneralProjector.ParameterType;
 import tritechgemini.imagedata.GeminiImageRecordI;
 
 public class SonarXYProjector extends GeneralProjector {
@@ -18,6 +19,8 @@ public class SonarXYProjector extends GeneralProjector {
 	private boolean flipImage = false;
 	private SonarZoomTransform sonarZoomTransform;
 
+	public static final ParameterType[] requiredParams = {ParameterType.X, ParameterType.Y};
+	
 	public SonarXYProjector(SonarsPanel sonarsPanel, int imageIndex, int sonarID) {
 		this.sonarsPanel = sonarsPanel;
 		this.imageIndex = imageIndex;
@@ -68,8 +71,12 @@ public class SonarXYProjector extends GeneralProjector {
 
 	@Override
 	public PamCoordinate getDataPosition(PamCoordinate screenPosition) {
-		// TODO Auto-generated method stub
-		return null;
+		if (sonarZoomTransform == null) {
+			return null;
+		}
+		Coordinate3d pos = sonarZoomTransform.screenToImageMetres(screenPosition.getCoordinate(0), 
+				screenPosition.getCoordinate(1));
+		return pos;
 	}
 
 	/**
@@ -88,6 +95,11 @@ public class SonarXYProjector extends GeneralProjector {
 
 	public void setLayout(SonarZoomTransform sonarZoomTransform) {
 		this.sonarZoomTransform = sonarZoomTransform;
+	}
+
+	@Override
+	public ParameterType[] getParameterTypes() {
+		return requiredParams;
 	}
 
 }

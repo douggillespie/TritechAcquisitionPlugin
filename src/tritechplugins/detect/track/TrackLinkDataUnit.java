@@ -66,6 +66,26 @@ public class TrackLinkDataUnit extends SuperDetection<RegionDataUnit> {
 		if (annotStr != null) {
 			str += annotStr;
 		}
+
+		int nSuperDet = getSuperDetectionsCount();
+		if (nSuperDet > 0) {
+			for (int i = 0; i < nSuperDet; i++) {
+				PamDataUnit sd = getSuperDetection(i);
+				String sdString = sd.getSummaryString();
+				if (sdString == null) {
+					continue;
+				}
+				if (sdString.startsWith("<html>")) {
+					sdString = sdString.substring(6);
+				}
+				sdString = "<b>Super detection</b> " + sdString;
+				Object sdBlock = sd.getParentDataBlock();
+				if (sdBlock != null) {
+					str += "Grouped in " + sd.getParentDataBlock().getDataName() + "<br>";
+				}
+				str += sdString;
+			}
+		}
 		
 		return str;
 	}

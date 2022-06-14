@@ -14,6 +14,7 @@ public class RegionLogging extends SQLLogging {
 	
 	private PamTableItem sonarId, minBearing, maxBearing, minRange, maxRange, objectSize;
 	private PamTableItem meanValue, totalValue, maxValue, occupancy;
+	private PamTableItem peakRange, peakBearing;
 	private ThresholdDetector thresholdDetector;
 
 	public RegionLogging(ThresholdDetector thresholdDetector, RegionDataBlock regionDataBlock) {
@@ -30,6 +31,8 @@ public class RegionLogging extends SQLLogging {
 		tableDef.addTableItem(maxBearing = new PamTableItem("MaxBearing", Types.REAL));
 		tableDef.addTableItem(minRange = new PamTableItem("MinRange", Types.REAL));
 		tableDef.addTableItem(maxRange = new PamTableItem("MaxRange", Types.REAL));
+		tableDef.addTableItem(peakRange = new PamTableItem("PeakRange", Types.REAL));
+		tableDef.addTableItem(peakBearing = new PamTableItem("PeakAngle", Types.REAL));
 		tableDef.addTableItem(objectSize = new PamTableItem("ObjectSize", Types.REAL));
 		tableDef.addTableItem(meanValue = new PamTableItem("MeanValue", Types.INTEGER));
 		tableDef.addTableItem(totalValue = new PamTableItem("TotalValue", Types.INTEGER));
@@ -47,8 +50,10 @@ public class RegionLogging extends SQLLogging {
 		double b2 = region.getMaxBearing();
 		minBearing.setValue((float) Math.min(b1, b2));
 		maxBearing.setValue((float) Math.max(b1, b2));
+		peakBearing.setValue((float) region.getPeakBearing());
 		minRange.setValue((float) region.getMinRange());
 		maxRange.setValue((float) region.getMaxRange());
+		peakRange.setValue((float) region.getPeakRange());
 		objectSize.setValue((float) region.getObjectSize());
 		meanValue.setValue(region.getAverageValue());
 		totalValue.setValue(region.getTotalValue());
@@ -61,15 +66,17 @@ public class RegionLogging extends SQLLogging {
 		int sonarId = this.sonarId.getIntegerValue();
 		double minB = minBearing.getFloatValue();
 		double maxB = maxBearing.getFloatValue();
+		double peakB = peakBearing.getFloatValue();
 		double minR = minRange.getFloatValue();
 		double maxR = maxRange.getFloatValue();
+		double peakR = peakRange.getFloatValue();
 		double size = objectSize.getFloatValue();
 		int meanV = meanValue.getIntegerValue();
 		int totV = totalValue.getIntegerValue();
 		int maxV = maxValue.getIntegerValue();
 		double occ = occupancy.getFloatValue();
 		
-		DetectedRegion region = new DetectedRegion(timeMilliseconds, sonarId, minB, maxB, minR, maxR, size, meanV, totV, maxV, occ);
+		DetectedRegion region = new DetectedRegion(timeMilliseconds, sonarId, minB, maxB, peakB, minR, maxR, peakR, size, meanV, totV, maxV, occ);
 		RegionDataUnit rdu = new RegionDataUnit(timeMilliseconds, sonarId, region);
 		return rdu;
 	}

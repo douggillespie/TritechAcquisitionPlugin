@@ -72,7 +72,7 @@ public class ThresholdDetector extends PamControlledUnit implements PamSettings 
 		case PamController.INITIALIZATION_COMPLETE:
 			thresholdProcess.prepareProcess();
 			trackLinkProcess.prepareProcess();
-			sortLoggingAddons();
+//			sortLoggingAddons();
 			break;
 		}
 	}
@@ -101,11 +101,11 @@ public class ThresholdDetector extends PamControlledUnit implements PamSettings 
 				showSettingsDialog(parentFrame);
 			}
 		});
-		ManualAnnotationHandler annotationHandler = trackLinkProcess.getAnnotationHandler();
-		menuItem = annotationHandler.getDialogMenuItem(parentFrame);
-		if (menuItem != null) {
-			menu.add(menuItem);
-		}
+//		ManualAnnotationHandler annotationHandler = trackLinkProcess.getAnnotationHandler();
+//		menuItem = annotationHandler.getDialogMenuItem(parentFrame);
+//		if (menuItem != null) {
+//			menu.add(menuItem);
+//		}
 		if (isViewer()) {
 			 menuItem = new JMenuItem("Run offline ...");
 			menu.add(menuItem);
@@ -126,13 +126,13 @@ public class ThresholdDetector extends PamControlledUnit implements PamSettings 
 			this.thresholdParams = newParams;
 			thresholdProcess.prepareProcess();
 			trackLinkProcess.prepareProcess();
-			sortLoggingAddons();
+//			sortLoggingAddons();
 		}
 	}
 	
-	private void sortLoggingAddons() {
-		trackLinkProcess.sortSQLLogging();
-	}
+//	private void sortLoggingAddons() {
+//		trackLinkProcess.sortSQLLogging();
+//	}
 
 	/**
 	 * Run offline processes in viewer mode. 

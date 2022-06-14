@@ -6,6 +6,7 @@ import PamView.symbol.StandardSymbolChooser;
 import PamView.symbol.SwingSymbolOptionsPanel;
 import PamView.symbol.SymbolData;
 import PamguardMVC.PamDataBlock;
+import PamguardMVC.PamDataUnit;
 
 public class SonarSymbolChooser extends StandardSymbolChooser{
 	
@@ -35,6 +36,12 @@ public class SonarSymbolChooser extends StandardSymbolChooser{
 	@Override
 	public SwingSymbolOptionsPanel getSwingOptionsPanel(GeneralProjector projector) {
 		return new SonarSymbolPanel(getSymbolManager(), this);
+	}
+
+	@Override
+	public SymbolData getSymbolChoice(GeneralProjector projector, PamDataUnit dataUnit) {
+		// TODO Auto-generated method stub
+		return super.getSymbolChoice(projector, dataUnit);
 	}
 
 }
