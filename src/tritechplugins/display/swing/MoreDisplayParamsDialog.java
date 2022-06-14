@@ -47,6 +47,7 @@ public class MoreDisplayParamsDialog extends PamDialog{
 			singleInstance = new MoreDisplayParamsDialog(parent);
 		}
 		singleInstance.setParams(params);
+		singleInstance.moveToMouseLocation();
 		singleInstance.setVisible(true);
 		return singleInstance.sonarParams;
 	}
