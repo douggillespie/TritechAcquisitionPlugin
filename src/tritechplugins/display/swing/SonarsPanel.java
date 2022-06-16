@@ -106,6 +106,8 @@ public class SonarsPanel extends PamPanel implements DataMenuParent {
 	private LayoutInfo[] imageRectangles;
 
 	private SonarXYProjector[] xyProjectors;
+	
+//	private CombinedXYProjector combinedXYProjector;
 
 	private HashMap<Integer, BackgroundRemoval> backgroundSubtractors = new HashMap<>();
 
@@ -163,6 +165,8 @@ public class SonarsPanel extends PamPanel implements DataMenuParent {
 		updateColourMap(sonarsPanelParams.colourMap);
 		setToolTipText("Sonar display panel");
 
+//		combinedXYProjector = new CombinedXYProjector(this);
+		
 		externalMouseHandler = new ExtMapMouseHandler(PamController.getMainFrame(), false);
 //		externalMouseHandler.
 
@@ -213,6 +217,15 @@ public class SonarsPanel extends PamPanel implements DataMenuParent {
 		if (numImages == 0) {
 			return;
 		}
+//		if (sonarsPanelMarkers.length == 0) {
+//			sonarsPanelMarkers = Arrays.copyOf(sonarsPanelMarkers, 1);
+//			markOverlayDraws = Arrays.copyOf(markOverlayDraws, 1);
+//			sonarsPanelMarkers[0] = new SonarsPanelMarker(this, combinedXYProjector, 0);
+//			OverlayMarkProviders.singleInstance().addProvider(sonarsPanelMarkers[0]);
+//			externalMouseHandler.addMouseHandler(sonarsPanelMarkers[0]);
+//			sonarsPanelMarkers[0].addObserver(new SonarsMarkObserver(0));
+//			markOverlayDraws[0] = new MarkOverlayDraw(sonarsPanelMarkers[0]);
+//		}
 		if (numImages > sonarsPanelMarkers.length) {
 			sonarsPanelMarkers = Arrays.copyOf(sonarsPanelMarkers, numImages);
 			markOverlayDraws = Arrays.copyOf(markOverlayDraws, numImages);
@@ -649,6 +662,10 @@ public class SonarsPanel extends PamPanel implements DataMenuParent {
 		xyProjectors[imageIndex].clearHoverList();
 		xyProjectors[imageIndex].setLayout(sonarZoomTransforms[imageIndex]);
 		xyProjectors[imageIndex].setFlipImage(sonarsPanelParams.flipLeftRight);
+		// also need to check we've the right projector in the overlay markers. 
+		if (sonarsPanelMarkers[imageIndex] != null) {
+			sonarsPanelMarkers[imageIndex].setProjector(xyProjectors[imageIndex]);
+		}
 
 		BufferedImage bufferedImage = sonarImage;
 		//		if (zoomFactor <= 1) {
@@ -1022,6 +1039,14 @@ public class SonarsPanel extends PamPanel implements DataMenuParent {
 		return 0;
 	}
 
+	/**
+	 * Get the projectors
+	 * @return
+	 */
+	public SonarXYProjector[] getXyProjectors() {
+		return xyProjectors;
+	}
+
 	public void updateColourMap(ColourArrayType colourMap) {
 		colourArray = ColourArray.createStandardColourArray(NCOLOURS, colourMap);
 		remakeImages();
@@ -1306,20 +1331,32 @@ public class SonarsPanel extends PamPanel implements DataMenuParent {
 		
 		public SonarsMarkObserver(int imageIndex) {
 			this.imageIndex = imageIndex;
-			OverlayMarkObservers.singleInstance().addObserver(this);
+//			OverlayMarkObservers.singleInstance().addObserver(this);
 		}
 
 		@Override
 		public boolean markUpdate(int markStatus, javafx.scene.input.MouseEvent mouseEvent, 
 				OverlayMarker overlayMarker,
 				OverlayMark overlayMark) {
+			
+			if (markStatus == OverlayMarkObserver.MARK_START) {
+				killOtherMark(overlayMarker);
+			}
+			
 			repaint();
-//			if (overlayMarker.isMarkComplete()) {
-//				System.out.println("Mark complete");
-////				overlayMarker.destroyCurrentMark(null);
-//				overlayMark.
-//			}
+			
 			return true;
+		}
+
+		private void killOtherMark(OverlayMarker overlayMarker) {
+			for (int i = 0; i < sonarsPanelMarkers.length; i++) {
+				if (sonarsPanelMarkers[i] == null || sonarsPanelMarkers[i] == overlayMarker) {
+					continue;
+				}
+				else {
+					sonarsPanelMarkers[i].destroyCurrentMark(null);
+				}
+			}
 		}
 
 		@Override
@@ -1335,7 +1372,7 @@ public class SonarsPanel extends PamPanel implements DataMenuParent {
 
 		@Override
 		public String getObserverName() {
-			return getDataSelectorName();
+			return getMarkName();
 		}
 
 		@Override
@@ -1346,7 +1383,7 @@ public class SonarsPanel extends PamPanel implements DataMenuParent {
 
 		@Override
 		public String getMarkName() {
-			return getDataSelectorName() + "Image " + imageIndex;
+			return getDataSelectorName() + " Panel " + imageIndex;
 		}
 	}
 

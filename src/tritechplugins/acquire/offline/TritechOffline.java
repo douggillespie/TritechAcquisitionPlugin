@@ -173,10 +173,11 @@ public class TritechOffline implements TritechRunMode, OfflineDataStore {
 				} catch (InterruptedException e) {
 					e.printStackTrace();
 				}
-				System.out.println("Wait to abandon Gemini file catalog #" + ++waitCount);
 				if (waitCount > 100) {
-					stop();
+					System.out.println("Wait to abandon Gemini file catalog #" + ++waitCount);
 					catalogWorker = null;
+					stop();
+					break;
 				}
 			}
 		}

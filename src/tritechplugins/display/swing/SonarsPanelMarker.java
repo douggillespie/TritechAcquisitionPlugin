@@ -27,7 +27,7 @@ public class SonarsPanelMarker extends OverlayMarker {
 
 	@Override
 	public String getMarkerName() {
-		return sonarsPanel.getDataSelectorName();
+		return sonarsPanel.getDataSelectorName() + " Panel " + imageIndex;
 	}
 
 	@Override
