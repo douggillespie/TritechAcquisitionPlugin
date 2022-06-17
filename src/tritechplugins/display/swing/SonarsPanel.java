@@ -3,6 +3,7 @@ package tritechplugins.display.swing;
 import java.awt.BasicStroke;
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
@@ -67,12 +68,14 @@ import PamguardMVC.dataSelector.DataSelector;
 import PamguardMVC.datamenus.DataMenuParent;
 import annotation.handler.AnnotationHandler;
 import detectiongrouplocaliser.DetectionGroupSummary;
+import tritechgemini.fileio.MultiFileCatalog;
 import tritechgemini.imagedata.FanImageData;
 import tritechgemini.imagedata.FanPicksFromData;
 import tritechgemini.imagedata.GeminiImageRecordI;
 import tritechgemini.imagedata.ImageFanMaker;
 import tritechplugins.acquire.ImageDataBlock;
 import tritechplugins.acquire.TritechAcquisition;
+import tritechplugins.acquire.offline.TritechOffline;
 import tritechplugins.detect.threshold.BackgroundRemoval;
 import tritechplugins.detect.threshold.RegionDataUnit;
 import tritechplugins.display.swing.overlays.OverlayTailDialogPanel;
@@ -153,6 +156,8 @@ public class SonarsPanel extends PamPanel implements DataMenuParent {
 	private ExtMapMouseHandler externalMouseHandler;
 	
 	private MarkOverlayDraw[] markOverlayDraws = new MarkOverlayDraw[0];
+
+	private long currentScrollTime;
 
 	public SonarsPanel(TritechAcquisition tritechAcquisition, SettingsNameProvider nameProvider) {
 		super();
@@ -403,6 +408,34 @@ public class SonarsPanel extends PamPanel implements DataMenuParent {
 		}
 		return bs;
 	}
+	
+	/**
+	 * Scroll to this time. 
+	 * @param timeMilliseconds
+	 */
+	public void setScrollTime(long valueMillis) {
+		this.currentScrollTime = valueMillis;
+		
+		TritechOffline tritechOffline = tritechAcquisition.getTritechOffline();
+		if (tritechOffline == null) {
+			return;
+		}
+		MultiFileCatalog geminiCatalog = tritechOffline.getMultiFileCatalog();
+		int[] sonarIDs = geminiCatalog.getSonarIDs();
+		if (sonarIDs == null) {
+//			System.out.println("No sonars");
+			return;
+		}
+//		System.out.printf("Find image records for time %s\n", PamCalendar.formatDateTime(valueMillis));
+		for (int i = 0; i < sonarIDs.length; i++) {
+			GeminiImageRecordI imageRec = geminiCatalog.findRecordForTime(sonarIDs[i], valueMillis);
+//			if (imageRec == null) {
+//				System.out.println("No image for sonar " + sonarIDs[i]);
+//			}
+			setImageRecord(i, imageRec);
+		}
+		geminiCatalog.freeImageData(valueMillis, 10000);
+	}
 
 	/**
 	 * remake the images from fan data, e.g. after a colour map change.
@@ -498,6 +531,23 @@ public class SonarsPanel extends PamPanel implements DataMenuParent {
 			paintSonarImage(g, i, imageRectangles[i], currentImageRecords[i], images[i]);
 		}
 		
+		if (currentScrollTime != 0) {
+			Font font = g2d.getFont();
+			String timeString = PamCalendar.formatDBDateTime(currentScrollTime, true);
+			int sz = font.getSize();
+			FontMetrics fm = g2d.getFontMetrics();
+			Rectangle2D stringRect = fm.getStringBounds(timeString, g2d);
+			if (stringRect.getWidth() < getWidth() / 8) {
+				sz *=2;
+			}
+			if (stringRect.getWidth() < getWidth() / 4) {
+				sz = sz*3/2;
+			}
+			
+			font = new Font(font.getName(), Font.BOLD, sz);
+			g2d.setFont(font);
+			g2d.drawString(timeString, 3, getHeight()-3);
+		}
 		
 	}
 

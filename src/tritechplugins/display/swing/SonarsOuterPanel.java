@@ -251,25 +251,26 @@ public class SonarsOuterPanel implements ConfigurationObserver {
 	 * @param valueMillis milliseconds.
 	 */
 	public void newScrollValue(long valueMillis) {
-		if (tritechOffline == null) {
-			return;
-		}
-		int[] sonarIDs = geminiCatalog.getSonarIDs();
-		if (sonarIDs == null) {
-//			System.out.println("No sonars");
-			return;
-		}
-//		System.out.printf("Find image records for time %s\n", PamCalendar.formatDateTime(valueMillis));
-		for (int i = 0; i < sonarIDs.length; i++) {
-			GeminiImageRecordI imageRec = geminiCatalog.findRecordForTime(sonarIDs[i], valueMillis);
-//			if (imageRec == null) {
-//				System.out.println("No image for sonar " + sonarIDs[i]);
-//			}
-			sonarsPanel.setImageRecord(i, imageRec);
-			geminiCatalog.freeImageData(valueMillis, 10000);
-		}
+//		if (tritechOffline == null) {
+//			return;
+//		}
+//		int[] sonarIDs = geminiCatalog.getSonarIDs();
+//		if (sonarIDs == null) {
+////			System.out.println("No sonars");
+//			return;
+//		}
+////		System.out.printf("Find image records for time %s\n", PamCalendar.formatDateTime(valueMillis));
+//		for (int i = 0; i < sonarIDs.length; i++) {
+//			GeminiImageRecordI imageRec = geminiCatalog.findRecordForTime(sonarIDs[i], valueMillis);
+////			if (imageRec == null) {
+////				System.out.println("No image for sonar " + sonarIDs[i]);
+////			}
+//			sonarsPanel.setImageRecord(i, imageRec);
+//			geminiCatalog.freeImageData(valueMillis, 10000);
+//		}
 //		sonarsPanel.repaint();
-
+		
+		sonarsPanel.setScrollTime(valueMillis);
 	}
 
 	private class ImageObserver extends PamObserverAdapter {
