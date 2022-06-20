@@ -1230,6 +1230,18 @@ public class SonarsPanel extends PamPanel implements DataMenuParent {
 			});
 			popMenu.add(cbi);
 		}
+		
+		if (zoomFactor > 1) {
+			menuItem = new JMenuItem("Reset zoom");
+			menuItem.addActionListener(new ActionListener() {
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					resetZoom();
+				}
+			});
+			popMenu.addSeparator();
+			popMenu.add(menuItem);
+		}
 
 		popMenu.addSeparator();
 		int nOverlay = sonarOverlayManager.addSelectionMenuItems(popMenu, null, true, false, true);
@@ -1238,6 +1250,12 @@ public class SonarsPanel extends PamPanel implements DataMenuParent {
 		}
 
 		popMenu.show(e.getComponent(), e.getX(), e.getY());
+	}
+
+	protected void resetZoom() {
+		zoomFactor = 1.;
+		zoomCentre = new Coordinate3d(0, 0);
+		repaint();
 	}
 
 	/**
