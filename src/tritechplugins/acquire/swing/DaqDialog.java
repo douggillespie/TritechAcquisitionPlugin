@@ -35,7 +35,7 @@ public class DaqDialog extends PamDialog {
 	private DaqDialog(Window parentFrame, String title) {
 		super(parentFrame, title, true);
 		
-		outputFolder = new SelectFolder("Output folder", 40, false);
+		outputFolder = new SelectFolder("Output folder", 40, true);
 		chirpMode = new JComboBox<String>();
 		rangeFreq = new JComboBox<String>();
 		int[] rModes = TritechDaqParams.getRunModes();
@@ -100,6 +100,7 @@ public class DaqDialog extends PamDialog {
 	private void setParams(TritechDaqParams daqParams) {
 		this.daqParams = daqParams.clone();
 		outputFolder.setFolderName(daqParams.getOfflineFileFolder());
+		outputFolder.setIncludeSubFolders(daqParams.isOfflineSubFolders());
 		int[] rModes = TritechDaqParams.getRunModes();
 		for (int i = 0; i < runModes.length; i++) {
 			runModes[i].setSelected(daqParams.getRunMode() == rModes[i]);
@@ -118,6 +119,7 @@ public class DaqDialog extends PamDialog {
 			}
 		}
 		daqParams.setOfflineFileFolder(outputFolder.getFolderName(daqParams.getRunMode() == TritechDaqParams.RUN_ACQUIRE));
+		daqParams.setOfflineSubFolders(outputFolder.isIncludeSubFolders());
 		daqParams.setChirpMode(chirpMode.getSelectedIndex());
 		daqParams.setRangeConfig(rangeFreq.getSelectedIndex());
 		return true;

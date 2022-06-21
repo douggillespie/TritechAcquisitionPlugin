@@ -986,6 +986,11 @@ public class SonarsPanel extends PamPanel implements DataMenuParent {
 		yt += lineHeight;
 		str = String.format("SoS %3.2fm/s", geminiImageRecord.getSoS());
 		paintTextLine(g2d, str, xt, yt);
+		yt += lineHeight;
+		str = String.format("Gain %d%%", geminiImageRecord.getGain());
+		paintTextLine(g2d, str, xt, yt);
+		
+		
 		str = getDragText(imageIndex);
 		if (str != null) {
 			yt += lineHeight;
