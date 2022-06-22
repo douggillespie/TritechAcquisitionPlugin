@@ -1,6 +1,7 @@
 package tritechplugins.display.swing;
 
 import java.io.Serializable;
+import java.util.Arrays;
 import java.util.HashMap;
 
 import PamView.ColourArray.ColourArrayType;
@@ -54,6 +55,12 @@ public class SonarsPanelParams implements Serializable, Cloneable {
 	private HashMap<String, SonarOverlayData> overlayDatas = new HashMap<>();
 	
 	/**
+	 * Last used range for display. Will get used when no image is loaded so we can still use the 
+	 * display for detections. 
+	 */
+	private double[] lastKnownRange = new double[2];
+	
+	/**
 	 * @return the overlayDatas
 	 */
 	public HashMap<String, SonarOverlayData> getOverlayDatas() {
@@ -96,6 +103,40 @@ public class SonarsPanelParams implements Serializable, Cloneable {
 			return "Show Everything";
 		}
 		return "Unknown";
+	}
+	
+	/**
+	 * Get the last known range used for a particular sonar image. 
+	 * @param imageIndex
+	 * @return
+	 */
+	public double getLastKnownRange(int imageIndex) {
+		checkLastRangeData(imageIndex);
+		return lastKnownRange[imageIndex];
+	}
+	
+	/**
+	 * Set the last known range for a particular sonar image. 
+	 * @param imageIndex 
+	 * @param range
+	 */
+	public void setLastKnownRange(int imageIndex, double range) {
+		checkLastRangeData(imageIndex);
+		lastKnownRange[imageIndex] = range;
+	}
+
+	/**
+	 * Check array is big enough
+	 * @param imageIndex
+	 */
+	private void checkLastRangeData(int imageIndex) {
+		if (lastKnownRange == null) {
+			lastKnownRange = new double[imageIndex+1];
+		}
+		else if (lastKnownRange.length <= imageIndex) {
+			lastKnownRange = Arrays.copyOf(lastKnownRange, imageIndex+1);
+		}
+		
 	}
 
 }

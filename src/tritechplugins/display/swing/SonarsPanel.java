@@ -691,7 +691,8 @@ public class SonarsPanel extends PamPanel implements DataMenuParent {
 				continue;
 			}
 			double r = Math.sqrt(Math.pow(metres.x, 2) + Math.pow(metres.y, 2));
-			if (r > sonarZoomTransforms[i].getImageRecord().getMaxRange()) {
+			double maxRange = getImageRange(i, sonarZoomTransforms[i].getImageRecord());
+			if (r > maxRange) {
 				continue;
 			}
 			return new SonarCoordinate(i, sonarZoomTransforms[i].getImageRecord().getDeviceId(), metres.x, metres.y);
@@ -908,6 +909,24 @@ public class SonarsPanel extends PamPanel implements DataMenuParent {
 		}
 	}
 
+	/**
+	 * Get the range for the given image based on image index or a image record. 
+	 * Ideally, record is used and will set the range for any data not having an image 
+	 * to hand. 
+	 * @param imageIndex
+	 * @param imageRecord
+	 * @return max range. 
+	 */
+	public double getImageRange(int imageIndex, GeminiImageRecordI imageRecord) {
+		if (imageRecord != null) {
+			double r = imageRecord.getMaxRange();
+			sonarsPanelParams.setLastKnownRange(imageIndex, r);
+			return r;
+		}
+		else {
+			return sonarsPanelParams.getLastKnownRange(imageIndex);
+		}
+	}
 	/**
 	 * Get text to show when the mouse is being dragged over an image.
 	 * 
