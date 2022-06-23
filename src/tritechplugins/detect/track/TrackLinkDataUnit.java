@@ -1,5 +1,7 @@
 package tritechplugins.detect.track;
 
+import PamUtils.PamCalendar;
+import PamguardMVC.DataUnitBaseData;
 import PamguardMVC.PamDataUnit;
 import PamguardMVC.superdet.SuperDetection;
 import tritechplugins.detect.threshold.RegionDataUnit;
@@ -58,6 +60,13 @@ public class TrackLinkDataUnit extends SuperDetection<RegionDataUnit> {
 	@Override
 	public String getSummaryString() {
 		String str = "<html>Gemini Track UID " + getUID();
+
+		DataUnitBaseData basicData = getBasicData();
+		str += String.format("<br><b>%s %s - %s</b> %s", PamCalendar.formatDate(basicData.getTimeMilliseconds(), false),
+				PamCalendar.formatTime(basicData.getTimeMilliseconds(), 3, false),
+				PamCalendar.formatTime(trackChain.getLastTime(), 3, false),
+				"UTC");
+		
 		str += String.format("<br>Sonars %s, Mean Occupancy %3.1f%%<br>Duration %3.1fs, points %d<br>", 
 				trackChain.getsonarIdString(), trackChain.getMeanOccupancy(), getDurationInMilliseconds()/1000., 
 				trackChain.getChainLength());

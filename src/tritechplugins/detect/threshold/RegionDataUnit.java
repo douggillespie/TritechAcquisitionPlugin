@@ -40,7 +40,7 @@ public class RegionDataUnit extends PamDataUnit {
 		}
 		DataUnitBaseData basicData = getBasicData();
 //		str += PamCalendar.formatDateTime(timeMilliseconds) + "<p>";
-		str += String.format("%s %s %s<p>", PamCalendar.formatDate(basicData.getTimeMilliseconds(), true),
+		str += String.format("<b>%s %s</b> %s<p>", PamCalendar.formatDate(basicData.getTimeMilliseconds(), true),
 				PamCalendar.formatTime(basicData.getTimeMilliseconds(), 3, true),
 				CalendarControl.getInstance().getTZCode(true));
 		if (CalendarControl.getInstance().isUTC() == false) {

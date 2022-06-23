@@ -206,6 +206,7 @@ public class SonarsOuterPanel implements ConfigurationObserver {
 		@Override
 		public void scrollRangeChanged(AbstractPamScroller pamScroller) {
 			// won't ever get used for a slider which only has a value.
+			newScrollValue(viewerSlider.getValueMillis());
 		}
 
 	}
