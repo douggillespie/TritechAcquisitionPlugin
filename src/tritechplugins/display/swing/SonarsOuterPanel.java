@@ -90,7 +90,7 @@ public class SonarsOuterPanel implements ConfigurationObserver {
 //		}
 
 		if (tritechAcquisition.isViewer()) {
-			viewerSlider = new PamScrollSlider("Gemini display", PamScrollSlider.HORIZONTAL, 5, 600000, true);
+			viewerSlider = new PamScrollSlider(nameProvider.getUnitName(), PamScrollSlider.HORIZONTAL, 5, 600000, true);
 			outerPanel.add(viewerSlider.getComponent(), BorderLayout.SOUTH);
 			viewerSlider.addDataBlock(tritechAcquisition.getImageDataBlock());
 			viewerSlider.addObserver(new ScrollObserver());
