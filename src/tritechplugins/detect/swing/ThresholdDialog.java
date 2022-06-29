@@ -7,6 +7,7 @@ import java.awt.Window;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
 import javax.swing.border.TitledBorder;
 
@@ -19,15 +20,19 @@ import tritechplugins.acquire.ImageDataUnit;
 import tritechplugins.detect.threshold.RegionDataUnit;
 import tritechplugins.detect.threshold.ThresholdDetector;
 import tritechplugins.detect.threshold.ThresholdParams;
+import tritechplugins.detect.track.TrackLinkParameters;
+import tritechplugins.detect.track.TrackLinkProcess;
 
 public class ThresholdDialog extends PamDialog {
 
 	private static ThresholdDialog singleInstance;
 
 	private ThresholdParams thresholdParams;
+	
+	private TrackLinkParameters trackLinkParameters;
 
 	private ThresholdDetector thresholdDetector;
-
+	
 	private SourcePanel sourcePanel;
 
 	private JTextField thresholdOn, thresholdOff;
@@ -37,6 +42,17 @@ public class ThresholdDialog extends PamDialog {
 	private JTextField minObjectSize, maxObjectSize;
 
 	private JComboBox<String> connectionType;
+	
+	// fields for tracker
+	private JTextField maxTimeStepS;
+	
+	private JTextField maxSpeed;
+	
+	private JTextField minTrackPoints;
+	
+	private JTextField maxSizeRatio;
+	
+	private JTextField minLength, minStraightLength;
 
 
 	private ThresholdDialog(Window parentFrame, ThresholdDetector thresholdDetector) {
@@ -52,68 +68,68 @@ public class ThresholdDialog extends PamDialog {
 		maxObjectSize = new JTextField(3);
 		connectionType = new JComboBox<String>();
 
-		JPanel mainPanel = new JPanel(new GridBagLayout());
-		mainPanel.setBorder(new TitledBorder("Threshold detector"));
+		JPanel thresholdPanel = new JPanel(new GridBagLayout());
+		thresholdPanel.setBorder(new TitledBorder("Threshold detector"));
 		GridBagConstraints c = new PamGridBagContraints();
 		c.gridwidth = 5;
-		mainPanel.add(new JLabel("Data source", JLabel.LEFT), c);
+		thresholdPanel.add(new JLabel("Data source", JLabel.LEFT), c);
 		c.gridy++;
 		c.gridx = 0;
-		mainPanel.add(sourcePanel.getPanel(), c);
+		thresholdPanel.add(sourcePanel.getPanel(), c);
 		c.gridwidth = 1;
 		
 		c.gridy++;
 		c.gridx = 0;
 		c.gridwidth = 1;
-		mainPanel.add(new JLabel("Background time scale ", JLabel.RIGHT), c);
+		thresholdPanel.add(new JLabel("Background time scale ", JLabel.RIGHT), c);
 		c.gridx++;
 		c.gridwidth = 2;
-		mainPanel.add(backgroundTime, c);
+		thresholdPanel.add(backgroundTime, c);
 		c.gridx+=c.gridwidth;
 //		c.gridwidth = 1;
-		mainPanel.add(new JLabel(" frames ", JLabel.LEFT), c);
+		thresholdPanel.add(new JLabel(" frames ", JLabel.LEFT), c);
 
 		c.gridy++;
 		c.gridx = 0;
 		c.gridwidth = 1;
-		mainPanel.add(new JLabel("Background removal scale ", JLabel.RIGHT), c);
+		thresholdPanel.add(new JLabel("Background removal scale ", JLabel.RIGHT), c);
 		c.gridx++;
 		c.gridwidth = 2;
-		mainPanel.add(backgroundScale, c);
+		thresholdPanel.add(backgroundScale, c);
 		c.gridx+=c.gridwidth;
 //		c.gridwidth = 1;
-		mainPanel.add(new JLabel(" multiplier ", JLabel.LEFT), c);
+		thresholdPanel.add(new JLabel(" multiplier ", JLabel.LEFT), c);
 
 		c.gridy++;
 		c.gridx = 0;
 		c.gridwidth = 1;
-		mainPanel.add(new JLabel(" Detection on threshold ", JLabel.RIGHT), c);
+		thresholdPanel.add(new JLabel(" Detection on threshold ", JLabel.RIGHT), c);
 		c.gridx++;
 		c.gridwidth = 2;
-		mainPanel.add(thresholdOn, c);
+		thresholdPanel.add(thresholdOn, c);
 		c.gridx+=c.gridwidth;
 //		c.gridwidth = 1;
-		mainPanel.add(new JLabel(" counts ", JLabel.LEFT), c);
+		thresholdPanel.add(new JLabel(" counts ", JLabel.LEFT), c);
 
 		c.gridy++;
 		c.gridx = 0;
 		c.gridwidth = 1;
-		mainPanel.add(new JLabel(" Detection off threshold ", JLabel.RIGHT), c);
+		thresholdPanel.add(new JLabel(" Detection off threshold ", JLabel.RIGHT), c);
 		c.gridx++;
 		c.gridwidth = 2;
-		mainPanel.add(thresholdOff, c);
+		thresholdPanel.add(thresholdOff, c);
 		c.gridx+=c.gridwidth;
 //		c.gridwidth = 1;
-		mainPanel.add(new JLabel(" counts ", JLabel.LEFT), c);
+		thresholdPanel.add(new JLabel(" counts ", JLabel.LEFT), c);
 
 
 		c.gridx = 0;
 		c.gridy++;
 		c.gridwidth = 1;
-		mainPanel.add(new JLabel(" Connection type ", JLabel.RIGHT), c);
+		thresholdPanel.add(new JLabel(" Connection type ", JLabel.RIGHT), c);
 		c.gridx+=c.gridwidth;
 		c.gridwidth = 3;
-		mainPanel.add(connectionType, c);
+		thresholdPanel.add(connectionType, c);
 		
 		int[] conTypes = RegionDetector.getConnectionTypes();
 		for (int i = 0; i < conTypes.length; i++) {
@@ -124,17 +140,66 @@ public class ThresholdDialog extends PamDialog {
 		c.gridy++;
 		c.gridx = 0;
 		c.gridwidth = 1;
-		mainPanel.add(new JLabel("Size range ", JLabel.RIGHT), c);
+		thresholdPanel.add(new JLabel("Size range ", JLabel.RIGHT), c);
 		c.gridx++;
-		mainPanel.add(minObjectSize, c);
+		thresholdPanel.add(minObjectSize, c);
 		c.gridx++;
-		mainPanel.add(new JLabel(" to ", JLabel.CENTER), c);
+		thresholdPanel.add(new JLabel(" to ", JLabel.CENTER), c);
 		c.gridx++;
-		mainPanel.add(maxObjectSize, c);
+		thresholdPanel.add(maxObjectSize, c);
 		c.gridx++;
-		mainPanel.add(new JLabel(" m ", JLabel.LEFT), c);
+		thresholdPanel.add(new JLabel(" m ", JLabel.LEFT), c);
+		
+		JPanel trackPanel = new JPanel(new GridBagLayout());
+		trackPanel.setBorder(new TitledBorder("Tracking"));
+		c = new PamGridBagContraints();
+		trackPanel.add(new JLabel("Max time step ", JLabel.RIGHT), c);
+		c.gridx++;
+		trackPanel.add(maxTimeStepS = new JTextField(4), c);
+		c.gridx++;
+		trackPanel.add(new JLabel(" s", JLabel.LEFT), c);
+		c.gridx = 0;
+		c.gridy++;
+		trackPanel.add(new JLabel("Max speed ", JLabel.RIGHT), c);
+		c.gridx++;
+		trackPanel.add(maxSpeed = new JTextField(4), c);
+		c.gridx++;
+		trackPanel.add(new JLabel(" m/s", JLabel.LEFT), c);
+		c.gridx = 0;
+		c.gridy++;
+		trackPanel.add(new JLabel("Max size ratio ", JLabel.RIGHT), c);
+		c.gridx++;
+		trackPanel.add(maxSizeRatio = new JTextField(4), c);
+		c.gridx++;
+		trackPanel.add(new JLabel(" ", JLabel.LEFT), c);
+		c.gridx = 0;
+		c.gridy++;
+		trackPanel.add(new JLabel("Min num points ", JLabel.RIGHT), c);
+		c.gridx++;
+		trackPanel.add(minTrackPoints = new JTextField(4), c);
+		c.gridx++;
+		trackPanel.add(new JLabel(" ", JLabel.LEFT), c);
+		c.gridx = 0;
+		c.gridy++;
+		trackPanel.add(new JLabel("Min total length ", JLabel.RIGHT), c);
+		c.gridx++;
+		trackPanel.add(minLength = new JTextField(4), c);
+		c.gridx++;
+		trackPanel.add(new JLabel(" m", JLabel.LEFT), c);
+		c.gridx = 0;
+		c.gridy++;
+		trackPanel.add(new JLabel("Min straight length ", JLabel.RIGHT), c);
+		c.gridx++;
+		trackPanel.add(minStraightLength = new JTextField(4), c);
+		c.gridx++;
+		trackPanel.add(new JLabel(" m", JLabel.LEFT), c);
+		
+		
 
-		setDialogComponent(mainPanel);
+		JTabbedPane tabbedPanel = new JTabbedPane();
+		tabbedPanel.add(thresholdPanel, "Threshold Detector");
+		tabbedPanel.add(trackPanel, "Tracking");
+		setDialogComponent(tabbedPanel);
 	}
 
 	public static ThresholdParams showDialog(Window parentFrame, ThresholdDetector thresholdDetector) {
@@ -162,6 +227,14 @@ public class ThresholdDialog extends PamDialog {
 				connectionType.setSelectedIndex(i);
 			}
 		}
+		
+		TrackLinkParameters trackParams = thresholdDetector.getTrackLinkProcess().getTrackLinkParams();
+		maxTimeStepS.setText(String.format("%3.2f", trackParams.maxTimeSeparation/1000.));
+		maxSpeed.setText(String.format("%3.2f", trackParams.maxSpeed));
+		maxSizeRatio.setText(String.format("%3.2f", trackParams.maxSizeRatio));
+		minTrackPoints.setText(String.format("%d", trackParams.minTrackPoints));
+		minLength.setText(String.format("%3.2f", trackParams.minWobblyLength));
+		minStraightLength.setText(String.format("%3.2f", trackParams.minStraightLength));
 	}
 
 	@Override
@@ -193,6 +266,26 @@ public class ThresholdDialog extends PamDialog {
 			return showWarning("Invalid size value");
 		}
 
+		TrackLinkParameters trackParams = thresholdDetector.getTrackLinkProcess().getTrackLinkParams().clone();
+		try {
+			trackParams.maxTimeSeparation = (long) (Double.valueOf(maxTimeStepS.getText()) * 1000.);
+			trackParams.maxSpeed = Double.valueOf(maxSpeed.getText());
+			trackParams.maxSizeRatio = Double.valueOf(maxSizeRatio.getText());
+			trackParams.minTrackPoints = Integer.valueOf(minTrackPoints.getText());
+			trackParams.minWobblyLength = Double.valueOf(minLength.getText());
+			trackParams.minStraightLength = Double.valueOf(minStraightLength.getText());
+		}
+		catch (NumberFormatException exc) {
+			return showWarning("Invalid tracking parameter");
+		}
+		thresholdDetector.getTrackLinkProcess().setTrackLinkParams(trackParams);
+//		maxTimeStepS.setText(String.format("%3.2f", trackParams.maxSpeed/1000.));
+//		maxSpeed.setText(String.format("%3.2f", trackParams.maxSpeed));
+//		maxSizeRatio.setText(String.format("%3.2f", trackParams.maxSizeRatio));
+//		minTrackPoints.setText(String.format("%e", trackParams.minTrackPoints));
+//		minLength.setText(String.format("%3.2f", trackParams.minWobblyLength));
+//		minStraightLength.setText(String.format("%3.2f", trackParams.minStraightLength));
+		
 		return true;
 	}
 

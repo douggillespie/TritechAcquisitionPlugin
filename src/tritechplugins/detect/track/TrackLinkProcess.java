@@ -1,8 +1,12 @@
 package tritechplugins.detect.track;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.List;
 
+import PamController.PamControlledUnitSettings;
+import PamController.PamSettingManager;
+import PamController.PamSettings;
 import PamguardMVC.PamDataUnit;
 import PamguardMVC.PamObservable;
 import PamguardMVC.PamProcess;
@@ -23,7 +27,7 @@ import tritechplugins.display.swing.overlays.TrackSymbolManager;
  * @author dg50
  *
  */
-public class TrackLinkProcess extends PamProcess {
+public class TrackLinkProcess extends PamProcess implements PamSettings {
 
 	private ThresholdDetector thresholdDetector;
 	/**
@@ -46,6 +50,14 @@ public class TrackLinkProcess extends PamProcess {
 
 	protected TrackLinkParameters trackLinkParams = new TrackLinkParameters();
 	
+	public TrackLinkParameters getTrackLinkParams() {
+		return trackLinkParams;
+	}
+
+	public void setTrackLinkParams(TrackLinkParameters trackLinkParams) {
+		this.trackLinkParams = trackLinkParams;
+	}
+
 	/**
 	 * Hash map for when sonars being processed separately
 	 */
@@ -71,6 +83,8 @@ public class TrackLinkProcess extends PamProcess {
 //		trackLinkDataBlock.setAnnotationHandler(annotationHandler);
 		trackLinkDataBlock.setPamSymbolManager(new TrackSymbolManager(trackLinkDataBlock));
 		addOutputDataBlock(trackLinkDataBlock);
+		
+		PamSettingManager.getInstance().registerSettings(this);
 	}
 
 	@Override
@@ -123,6 +137,32 @@ public class TrackLinkProcess extends PamProcess {
 			}
 			return singleLinker;
 		}
+	}
+
+	@Override
+	public String getUnitName() {
+		return thresholdDetector.getUnitName();
+	}
+
+	@Override
+	public String getUnitType() {
+		return "Gemini Track Link Process";
+	}
+
+	@Override
+	public Serializable getSettingsReference() {
+		return trackLinkParams;
+	}
+
+	@Override
+	public long getSettingsVersion() {
+		return TrackLinkParameters.serialVersionUID;
+	}
+
+	@Override
+	public boolean restoreSettings(PamControlledUnitSettings pamControlledUnitSettings) {
+		trackLinkParams = (TrackLinkParameters) pamControlledUnitSettings.getSettings();
+		return true;
 	}
 
 //	/**

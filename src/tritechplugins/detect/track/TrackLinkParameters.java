@@ -33,8 +33,17 @@ public class TrackLinkParameters implements Serializable, Cloneable {
 	 */
 	public double maxSizeRatio = 3;
 
+	/**
+	 * Min number of points in a track. 
+	 */
+	public int minTrackPoints = 10;
+	
+	public double minWobblyLength = 2;
+	
+	public double minStraightLength = 2;
+
 	@Override
-	protected TrackLinkParameters clone() {
+	public TrackLinkParameters clone() {
 		try {
 			return (TrackLinkParameters) super.clone();
 		} catch (CloneNotSupportedException e) {

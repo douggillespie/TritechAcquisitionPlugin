@@ -3,6 +3,7 @@ package tritechplugins.display.swing;
 import java.awt.BasicStroke;
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Desktop;
 import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
@@ -19,6 +20,7 @@ import java.awt.event.MouseWheelEvent;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -1269,9 +1271,38 @@ public class SonarsPanel extends PamPanel implements DataMenuParent {
 
 		popMenu.addSeparator();
 		int nOverlay = sonarOverlayManager.addSelectionMenuItems(popMenu, null, true, false, true);
-		if (nOverlay == 0) {
-			return;
+//		if (nOverlay == 0) {
+//			return;
+		//		}
+		try {
+			SonarCoordinate sonarCoord = findSonarCoordinate(e.getX(), e.getY());
+			if (sonarCoord != null) {
+				String filePath = currentImageRecords[sonarCoord.getSonarIndex()].getFilePath();
+				File imFile = new File(filePath);
+				if (imFile.exists()) {
+					menuItem = new JMenuItem("Open file in Tritech software");
+					menuItem.setToolTipText("Requires Tritech Genesis to be installed");
+					menuItem.addActionListener(new ActionListener() {
+						@Override
+						public void actionPerformed(ActionEvent e) {
+							if (Desktop.isDesktopSupported()) {
+								try {
+									Desktop.getDesktop().open(imFile);
+								} catch (IOException e1) {
+								}
+							}
+						}
+					});
+					popMenu.addSeparator();
+					popMenu.add(menuItem);
+				}
+			}
 		}
+		catch (Exception exc) {
+			
+		}
+		
+		
 
 		popMenu.show(e.getComponent(), e.getX(), e.getY());
 	}

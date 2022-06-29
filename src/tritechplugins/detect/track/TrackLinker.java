@@ -163,7 +163,10 @@ public class TrackLinker {
 	 * @return
 	 */
 	private boolean wantChain(TrackChain chain) {
-		return chain.getChainLength() >= 10 && chain.getEnd2EndMetres() > 2.;
+		TrackLinkParameters trackParams = trackLinkProcess.trackLinkParams;
+		return (chain.getChainLength() >= trackParams.minTrackPoints && 
+				chain.getEnd2EndMetres() >= trackParams.minStraightLength &&
+				chain.getWobblyLength() >= trackParams.minWobblyLength);
 	}
 
 	/**

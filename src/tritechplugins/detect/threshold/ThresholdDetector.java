@@ -49,6 +49,7 @@ public class ThresholdDetector extends PamControlledUnit implements PamSettings 
 	public TrackLinkProcess getTrackLinkProcess() {
 		return trackLinkProcess;
 	}
+	
 	public static final String unitType = "Gemini Threshold Detector";
 	public ThresholdDetector(String unitName) {
 		super(unitType, unitName);
