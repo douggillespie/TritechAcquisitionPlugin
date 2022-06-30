@@ -428,6 +428,7 @@ public class SonarsPanel extends PamPanel implements DataMenuParent {
 //			System.out.println("No sonars");
 			return;
 		}
+		
 //		System.out.printf("Find image records for time %s\n", PamCalendar.formatDateTime(valueMillis));
 		for (int i = 0; i < sonarIDs.length; i++) {
 			GeminiImageRecordI imageRec = geminiCatalog.findRecordForTime(sonarIDs[i], valueMillis);
@@ -441,6 +442,8 @@ public class SonarsPanel extends PamPanel implements DataMenuParent {
 
 	/**
 	 * remake the images from fan data, e.g. after a colour map change.
+	 * All this really does is set the images to null and they will get
+	 * rebuilt in the paint thread when it runs. 
 	 */
 	public void remakeImages() {
 		for (int i = 0; i < imageFanData.length; i++) {
@@ -454,6 +457,16 @@ public class SonarsPanel extends PamPanel implements DataMenuParent {
 		repaint();
 	}
 
+	/**
+	 * Called to prepare sonar images from the rectangular data. For 'normal' mode, this 
+	 * won't actually make the images, but set them to null and they will be rebuilt in the
+	 * paint thread. This speeds up real time processing, since not all images will get made
+	 * and if they are, it's not happening in the processing thread. For Viewer mode, the 
+	 * images are made immediately so that paint has less work to do and the AWT thread 
+	 * will be slowed down during scrolling if data can't be prepared fast enough. 
+	 * @param sonarIndex
+	 * @param imageRecord
+	 */
 	private void prepareSonarImage(int sonarIndex, GeminiImageRecordI imageRecord) {
 		currentImageRecords[sonarIndex] = imageRecord;
 		if (imageRecord == null) {
@@ -467,6 +480,9 @@ public class SonarsPanel extends PamPanel implements DataMenuParent {
 		 */
 		imageFanData[sonarIndex] = null;
 		images[sonarIndex] = null;
+		if (PamController.getInstance().getRunMode() == PamController.RUN_PAMVIEW) {
+			buildFinalImage(sonarIndex);
+		}
 		/*
 		 * really we need to move this to the top of the paint function or possibly
 		 * rethread it so it's not always called in RT mode since it can slow down the
@@ -485,6 +501,37 @@ public class SonarsPanel extends PamPanel implements DataMenuParent {
 		//		imageTime[sonarIndex] = t2-t1;
 
 		repaint(10);
+	}
+
+	/**
+	 * Make the final image here, converting the rectangular frame of the image
+	 * record to fan data, then to a buffered image. This was called in
+	 * prepareSonarImage, but is now being called from within the paint function to
+	 * try to leave the processing thread less work to do.
+	 * 
+	 * @param imageIndex
+	 */
+	private void buildFinalImage(int sonarIndex) {
+		GeminiImageRecordI imageRecord = currentImageRecords[sonarIndex];
+		if (imageRecord == null) {
+			return;
+		}
+		long t1 = System.nanoTime();
+		int nBearing = imageRecord.getnBeam();
+		int nXPix = imageRectangles[sonarIndex].getImageRectangle().width;
+		int usePix = getImagePixels(nBearing, nXPix);
+		imageFanData[sonarIndex] = fanMakers[sonarIndex].createFanData(imageRecord, usePix);
+		if (imageFanData[sonarIndex] == null) {
+			images[sonarIndex] = null;
+		}
+		else {
+			FanDataImage fanImage = new FanDataImage(imageFanData[sonarIndex], colourArray, false,
+					sonarsPanelParams.displayGain);
+			images[sonarIndex] = fanImage.getBufferedImage();
+		}
+		long t2 = System.nanoTime();
+		imageTime[sonarIndex] = t2 - t1;
+	
 	}
 
 	/**
@@ -551,37 +598,6 @@ public class SonarsPanel extends PamPanel implements DataMenuParent {
 			g2d.drawString(timeString, 3, getHeight()-3);
 		}
 		
-	}
-
-	/**
-	 * Make the final image here, converting the rectangular frame of the image
-	 * record to fan data, then to a buffered image. This was called in
-	 * prepareSonarImage, but is now being called from within the paint function to
-	 * try to leave the processing thread less work to do.
-	 * 
-	 * @param imageIndex
-	 */
-	private void buildFinalImage(int sonarIndex) {
-		GeminiImageRecordI imageRecord = currentImageRecords[sonarIndex];
-		if (imageRecord == null) {
-			return;
-		}
-		long t1 = System.nanoTime();
-		int nBearing = imageRecord.getnBeam();
-		int nXPix = imageRectangles[sonarIndex].getImageRectangle().width;
-		int usePix = getImagePixels(nBearing, nXPix);
-		imageFanData[sonarIndex] = fanMakers[sonarIndex].createFanData(imageRecord, usePix);
-		if (imageFanData[sonarIndex] == null) {
-			images[sonarIndex] = null;
-		}
-		else {
-			FanDataImage fanImage = new FanDataImage(imageFanData[sonarIndex], colourArray, false,
-					sonarsPanelParams.displayGain);
-			images[sonarIndex] = fanImage.getBufferedImage();
-		}
-		long t2 = System.nanoTime();
-		imageTime[sonarIndex] = t2 - t1;
-
 	}
 
 	@Override

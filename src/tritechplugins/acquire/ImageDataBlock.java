@@ -1,5 +1,7 @@
 package tritechplugins.acquire;
 
+import java.util.ListIterator;
+
 import PamguardMVC.PamDataBlock;
 import PamguardMVC.PamProcess;
 import PamguardMVC.dataOffline.OfflineDataLoadInfo;
@@ -16,7 +18,7 @@ import tritechplugins.acquire.offline.TritechOffline;
  * @author dg50
  *
  */
-public class ImageDataBlock extends PamDataBlock {
+public class ImageDataBlock extends PamDataBlock<ImageDataUnit> {
 
 	private TritechDaqProcess tritechDaqProcess;
 	
@@ -73,6 +75,16 @@ public class ImageDataBlock extends PamDataBlock {
 		MultiFileCatalog fileCatalog = tritechOffline.getMultiFileCatalog();
 		return fileCatalog;		
 	}
+	
+//	/**
+//	 * Find a data unit in the loaded data. 
+//	 */
+//	public ImageDataUnit findDataUnit(long timeMillis, int sonarId) {
+//		synchronized(this.getSynchLock()) {
+//			ListIterator<ImageDataUnit> iterator = pamDataUnits.listIterator();
+//			for 
+//		}
+//	}
 
 
 }

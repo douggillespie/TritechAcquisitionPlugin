@@ -21,7 +21,7 @@ import tritechplugins.display.swing.overlays.SonarSymbolManager;
 public class ThresholdProcess extends PamProcess {
 
 	private ThresholdDetector thresholdDetector;
-	private ImageDataBlock sourceDataBlock;
+	private ImageDataBlock imageDataBlock;
 	private HashMap<Integer, ChannelDetector> channelDetectors = new HashMap<>();
 	
 	private RegionDataBlock regionDataBlock;
@@ -68,14 +68,14 @@ public class ThresholdProcess extends PamProcess {
 	public void prepareProcess() {
 		super.prepareProcess();
 		ThresholdParams params = thresholdDetector.getThresholdParams();
-		sourceDataBlock = (ImageDataBlock) PamController.getInstance().getDataBlockByLongName(processName);
-		if (sourceDataBlock == null) {
-			sourceDataBlock = findAnySource();
-			if (sourceDataBlock != null) {
-				params.imageDataSource = sourceDataBlock.getLongDataName();
+		imageDataBlock = (ImageDataBlock) PamController.getInstance().getDataBlockByLongName(processName);
+		if (imageDataBlock == null) {
+			imageDataBlock = findAnySource();
+			if (imageDataBlock != null) {
+				params.imageDataSource = imageDataBlock.getLongDataName();
 			}
 		}
-		setParentDataBlock(sourceDataBlock);
+		setParentDataBlock(imageDataBlock);
 	}
 
 
@@ -127,8 +127,8 @@ public class ThresholdProcess extends PamProcess {
 	/**
 	 * @return the sourceDataBlock
 	 */
-	public ImageDataBlock getSourceDataBlock() {
-		return sourceDataBlock;
+	public ImageDataBlock getImageDataBlock() {
+		return imageDataBlock;
 	}
 
 

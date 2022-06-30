@@ -140,7 +140,7 @@ public class ThresholdDetector extends PamControlledUnit implements PamSettings 
 	 * @param parentFrame
 	 */
 	protected void runOffline(Frame parentFrame) {
-		ThresholdOfflineTask thresholdOfflineTask = new ThresholdOfflineTask(this, thresholdProcess, thresholdProcess.getSourceDataBlock());
+		ThresholdOfflineTask thresholdOfflineTask = new ThresholdOfflineTask(this, thresholdProcess, thresholdProcess.getImageDataBlock());
 		OfflineTaskGroup taskGroup = new OfflineTaskGroup(this, getUnitName());
 		taskGroup.addTask(thresholdOfflineTask);
 		OLProcessDialog processDialog = new OLProcessDialog(parentFrame, taskGroup, getUnitType());
