@@ -78,7 +78,7 @@ public class TrackLinkProcess extends PamProcess implements PamSettings {
 		trackLinkDataBlock = new TrackLinkDataBlock("Gemini Tracks", this);
 		trackLogging = new TrackLogging(thresholdDetector, trackLinkDataBlock, true);
 		trackLogging.setSubLogging(thresholdProcess.getRegionLogging());
-//		trackLinkDataBlock.SetLogging(trackLogging);
+		trackLinkDataBlock.SetLogging(trackLogging);
 		trackLinkDataBlock.setBinaryDataSource(new TrackBinarySource(this, trackLinkDataBlock));
 //		annotationHandler = new ManualAnnotationHandler(thresholdDetector, trackLinkDataBlock);
 //		trackLinkDataBlock.setAnnotationHandler(annotationHandler);
@@ -93,6 +93,14 @@ public class TrackLinkProcess extends PamProcess implements PamSettings {
 		super.prepareProcess();
 		regionDataBlock = thresholdDetector.getThresholdProcess().getRegionDataBlock();
 		setParentDataBlock(regionDataBlock, true); // consider rethreading ?
+	}
+	
+	/**
+	 * Get the region data block that feed the linker. 
+	 * @return
+	 */
+	public RegionDataBlock findRegionDataBlock() {
+		return thresholdDetector.getThresholdProcess().getRegionDataBlock();
 	}
 
 	@Override
