@@ -1,5 +1,6 @@
 package tritechplugins.acquire;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -67,7 +68,51 @@ public class JavaFileAcquisition extends TritechDaqSystem  implements CatalogStr
 		TritechDaqParams params = tritechAcquisition.getDaqParams();
 		OfflineFileList fileList = new OfflineFileList(params.getOfflineFileFolder(), new TritechFileFilter(), params.isOfflineSubFolders() | true);
 		allFiles = fileList.asStringList();
+		/*
+		 * Need to get the time from the first file and set the calendar time from it. Will also need to do this from every stream !
+		 * this first one needs to be done right at start, before binary stores are created or all goes wrong. 
+		 */
+		for (int i = 0; i < allFiles.length; i++) {
+			/*
+			 * Chance that very first file may be corrupt for some reason, so be 
+			 * pragmatic and keep going until a file has a time. 
+			 */
+			if (extractStartTime(allFiles[i])) {
+				return true;
+			};
+		}
 		return allFiles.length>0;
+	}
+
+	/**
+	 * Get the time of the first record from a file and set it as the session start time. 
+	 * @param filePath
+	 * @return true if record found and time set. 
+	 */
+	private boolean extractStartTime(String filePath) {
+		/**
+		 * If PAmCalendar.setSoundFile is true, then all calls to PAMCalendat.getTime
+		 * will get sessionStartTime + soundFileTimeInMillis. No plans to set soundFileTimeMillis
+		 * so can do all timing by continually setting sessionStartTime here at the start and for 
+		 * every subsequent record. 
+		 */
+		File glfFile = new File(filePath);
+		if (glfFile.exists() == false) {
+			return false;
+		}
+		try {
+			GeminiFileCatalog<GeminiImageRecordI> fileCatalog = GeminiFileCatalog.getFileCatalog(filePath, true);
+			long recordTime = fileCatalog.getFirstRecordTime();
+			if (recordTime != Long.MIN_VALUE) {
+				PamCalendar.setSessionStartTime(recordTime);
+				PamCalendar.setSoundFile(true);
+				return true;
+			}
+			
+		} catch (CatalogException e) {
+			e.printStackTrace();
+		}
+		return false;
 	}
 
 	@Override
@@ -187,6 +232,7 @@ public class JavaFileAcquisition extends TritechDaqSystem  implements CatalogStr
 		ImageDataBlock datablock = tritechProcess.getImageDataBlock();
 		ImageDataUnit imageDataUnit = new ImageDataUnit(glfImage.getRecordTime(), 0, glfImage);
 		
+		PamCalendar.setSessionStartTime(glfImage.getRecordTime());
 		delayPlayback(glfImage.getRecordTime());
 		
 		datablock.addPamData(imageDataUnit);

@@ -78,7 +78,8 @@ public class TrackLinkProcess extends PamProcess implements PamSettings {
 		trackLinkDataBlock = new TrackLinkDataBlock("Gemini Tracks", this);
 		trackLogging = new TrackLogging(thresholdDetector, trackLinkDataBlock, true);
 		trackLogging.setSubLogging(thresholdProcess.getRegionLogging());
-		trackLinkDataBlock.SetLogging(trackLogging);
+//		trackLinkDataBlock.SetLogging(trackLogging);
+		trackLinkDataBlock.setBinaryDataSource(new TrackBinarySource(this, trackLinkDataBlock));
 //		annotationHandler = new ManualAnnotationHandler(thresholdDetector, trackLinkDataBlock);
 //		trackLinkDataBlock.setAnnotationHandler(annotationHandler);
 		trackLinkDataBlock.setPamSymbolManager(new TrackSymbolManager(trackLinkDataBlock));
