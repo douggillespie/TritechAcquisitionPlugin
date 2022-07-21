@@ -89,6 +89,7 @@ public class TrackBinarySource extends BinaryDataSource {
 			for (int i = 0; i < nPoint; i++) {
 				RegionDataUnit regionDataUnit = trackUnit.getSubDetection(i);
 				DetectedRegion region = regionDataUnit.getRegion();
+				dos.writeLong(regionDataUnit.getTimeMilliseconds());
 				dos.writeShort(region.getSonarId());
 				dos.writeFloat((float) region.getMinBearing());
 				dos.writeFloat((float) region.getMaxBearing());
