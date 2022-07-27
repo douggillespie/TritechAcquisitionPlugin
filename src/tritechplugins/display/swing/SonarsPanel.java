@@ -114,6 +114,8 @@ public class SonarsPanel extends PamPanel implements DataMenuParent {
 
 	private SonarXYProjector[] xyProjectors;
 	
+	private SonarXYProjector[] overlayProjectors;
+	
 //	private CombinedXYProjector combinedXYProjector;
 
 	private HashMap<Integer, BackgroundRemoval> backgroundSubtractors = new HashMap<>();
@@ -163,6 +165,8 @@ public class SonarsPanel extends PamPanel implements DataMenuParent {
 	private MarkOverlayDraw[] markOverlayDraws = new MarkOverlayDraw[0];
 
 	private long currentScrollTime;
+
+	private boolean showingOverlays;
 
 	public SonarsPanel(TritechAcquisition tritechAcquisition, SettingsNameProvider nameProvider) {
 		super(true);
@@ -322,8 +326,10 @@ public class SonarsPanel extends PamPanel implements DataMenuParent {
 		}
 		if (xyProjectors == null || xyProjectors.length != numImages) {
 			xyProjectors = new SonarXYProjector[numImages];
+			overlayProjectors = new SonarXYProjector[numImages];
 			for (int i = 0; i < numImages; i++) {
 				xyProjectors[i] = new SonarXYProjector(this, i, i);
+				overlayProjectors[i] = new SonarXYProjector(this, i, i);
 			}
 			sortMarkers();
 		}
@@ -476,7 +482,7 @@ public class SonarsPanel extends PamPanel implements DataMenuParent {
 	 * @return
 	 */
 	private boolean needNewOverlays() {
-		if (2>1) return true;
+//		if (2>1) return true;
 		if (imageRectangles == null) {
 			return false;
 		}
@@ -500,6 +506,10 @@ public class SonarsPanel extends PamPanel implements DataMenuParent {
 			}
 		}
 		return false;
+	}
+
+	private void clearDataOverlays() {
+		overlayImages = null;
 	}
 
 	/**
@@ -541,14 +551,14 @@ public class SonarsPanel extends PamPanel implements DataMenuParent {
 			Graphics g = overlayImages[i].getGraphics();
 			Rectangle destRect = new Rectangle(0, 0, rect.width, rect.height);
 
-			sonarZoomTransforms[i] = new SonarZoomTransform(record.getMaxRange(), destRect, destRect, zoomFactor,
+			SonarZoomTransform zoomTransform = new SonarZoomTransform(record.getMaxRange(), destRect, destRect, zoomFactor,
 					zoomCentre, sonarsPanelParams.flipLeftRight);
 
-			xyProjectors[i].clearHoverList();
-			xyProjectors[i].setLayout(sonarZoomTransforms[i]);
-			xyProjectors[i].setFlipImage(sonarsPanelParams.flipLeftRight);
+			overlayProjectors[i].clearHoverList();
+			overlayProjectors[i].setLayout(zoomTransform);
+			overlayProjectors[i].setFlipImage(sonarsPanelParams.flipLeftRight);
 			
-			paintDetectorData(g, xyProjectors[i], 0, currentImageRecords[i].getDeviceId());
+			paintDetectorData(g, overlayProjectors[i], 0, currentImageRecords[i].getDeviceId());
 //			// also need to check we've the right projector in the overlay markers. 
 //			if (sonarsPanelMarkers[imageIndex] != null) {
 //				sonarsPanelMarkers[imageIndex].setProjector(xyProjectors[imageIndex]);
@@ -571,8 +581,10 @@ public class SonarsPanel extends PamPanel implements DataMenuParent {
 			//				images[i] = fanImage.getBufferedImage();
 			//			}
 		}
+		clearDataOverlays();
 		repaint();
 	}
+
 
 	/**
 	 * Called to prepare sonar images from the rectangular data. For 'normal' mode, this 
@@ -676,6 +688,8 @@ public class SonarsPanel extends PamPanel implements DataMenuParent {
 	public void paintComponent(Graphics g) {
 		long paintStart = System.currentTimeMillis();
 		super.paintComponent(g);
+		
+		Font basicFont = g.getFont();
 
 		sortRectangles();
 
@@ -700,6 +714,7 @@ public class SonarsPanel extends PamPanel implements DataMenuParent {
 		
 		if (currentScrollTime != 0) {
 			Font font = g2d.getFont();
+			g2d.setColor(getForeground());
 			String timeString = PamCalendar.formatDBDateTime(currentScrollTime, true);
 			int sz = font.getSize();
 			FontMetrics fm = g2d.getFontMetrics();
@@ -716,7 +731,8 @@ public class SonarsPanel extends PamPanel implements DataMenuParent {
 			g2d.drawString(timeString, 3, getHeight()-3);
 		}
 		long paintEnd = System.currentTimeMillis();
-		String str = String.format(" Paint time = %sms", paintEnd-paintStart);
+		g2d.setFont(basicFont);
+		String str = String.format(" Paint %sms", paintEnd-paintStart);
 		FontMetrics fm = g2d.getFontMetrics();
 		g2d.drawString(str, 0, fm.getAscent());
 	}
@@ -732,7 +748,17 @@ public class SonarsPanel extends PamPanel implements DataMenuParent {
 		// first see if we're on an overlay.
 		String overlayText = null;
 		// Coordinate3d c3d = new Coordinate3d(event.getX(), event.getY());
-		if (xyProjectors != null) {
+		if (showingOverlays && overlayProjectors != null) {
+			for (int i = 0; i < xyProjectors.length; i++) {
+				Rectangle imageRect = imageRectangles[i].getImageRectangle();
+				Point transPoint = new Point(event.getX() - imageRect.x, event.getY()-imageRect.y);
+				overlayText = overlayProjectors[i].getHoverText(transPoint);
+				if (overlayText != null) {
+					break;
+				}
+			}
+		}
+		else if (xyProjectors != null) {
 			for (int i = 0; i < xyProjectors.length; i++) {
 				overlayText = xyProjectors[i].getHoverText(event.getPoint());
 				if (overlayText != null) {
@@ -817,7 +843,7 @@ public class SonarsPanel extends PamPanel implements DataMenuParent {
 			return null;
 		}
 		for (int i = 0; i < sonarZoomTransforms.length; i++) {
-			if (sonarZoomTransforms[i] == null) {
+			if (sonarZoomTransforms[i] == null || currentImageRecords[i] == null) {
 				continue;
 			}
 			Coordinate3d metres = sonarZoomTransforms[i].screenToImageMetres(x, y);
@@ -835,7 +861,7 @@ public class SonarsPanel extends PamPanel implements DataMenuParent {
 			if (r > maxRange) {
 				continue;
 			}
-//			return new SonarCoordinate(i, i, /*sonarZoomTransforms[i].getImageRecord().getDeviceId(),*/ metres.x, metres.y);
+			return new SonarCoordinate(i, currentImageRecords[i].getDeviceId(), metres.x, metres.y);
 		}
 		return null;
 	}
@@ -919,12 +945,16 @@ public class SonarsPanel extends PamPanel implements DataMenuParent {
 				g.drawLine(x0, y0, x, y);
 			}
 		}
-
+		showingOverlays = false;
 		if (sonarsPanelParams.tailOption == SonarsPanelParams.OVERLAY_TAIL_ALL) {
-//			checkDataOverlays();
-			if (overlayImages != null && overlayImages[imageIndex] != null) {
-				BufferedImage img = overlayImages[imageIndex];
-				g.drawImage(overlayImages[imageIndex], trueAsp.x, trueAsp.y, trueAsp.x + trueAsp.width, trueAsp.y+trueAsp.height, 0, 0, img.getWidth(), img.getHeight(), null);
+			Collection<SonarOverlayData> selBlocks = sonarOverlayManager.getSelectedDataBlocks();
+			if (selBlocks != null && selBlocks.size() > 0) {
+				checkDataOverlays();
+				if (overlayImages != null && overlayImages[imageIndex] != null) {
+					showingOverlays = true;
+					BufferedImage img = overlayImages[imageIndex];
+					g.drawImage(overlayImages[imageIndex], trueAsp.x, trueAsp.y, trueAsp.x + trueAsp.width, trueAsp.y+trueAsp.height, 0, 0, img.getWidth(), img.getHeight(), null);
+				}
 			}
 		}
 		else {
@@ -1459,12 +1489,6 @@ public class SonarsPanel extends PamPanel implements DataMenuParent {
 		popMenu.show(e.getComponent(), e.getX(), e.getY());
 	}
 
-	protected void resetZoom() {
-		zoomFactor = 1.;
-		zoomCentre = new Coordinate3d(0, 0);
-		repaint();
-	}
-
 	/**
 	 * find the closest overlay data unit to the mouse. 
 	 * @param x mouse x
@@ -1512,6 +1536,13 @@ public class SonarsPanel extends PamPanel implements DataMenuParent {
 		}
 	}
 
+	protected void resetZoom() {
+		zoomFactor = 1.;
+		zoomCentre = new Coordinate3d(0, 0);
+		clearDataOverlays();
+		repaint();
+	}
+
 	public void zoomDisplay(MouseWheelEvent e) {
 		// get the zoom factor and current zoom coordinate, only zoom if on an image.
 		double zoom = Math.pow(1.05, -e.getPreciseWheelRotation());
@@ -1554,6 +1585,7 @@ public class SonarsPanel extends PamPanel implements DataMenuParent {
 
 		//		System.out.println("Zoom by " + zoom);
 		// get the mouse point. only zoom if it's on an image.
+		clearDataOverlays();
 		repaint();
 	}
 
