@@ -76,18 +76,6 @@ public class SonarsOuterPanel implements ConfigurationObserver {
 		sonarsPanel.add(hideDisplay, new CornerLayoutContraint(CornerLayoutContraint.LAST_LINE_END));
 		
 		tritechAcquisition.addConfigurationObserver(this);
-//		if (tritechAcquisition.isViewer() == false) {
-//			daqControlPanel = new DaqControlPanel(tritechAcquisition);
-//			HidingPanel hidingPanel = new HidingPanel(sonarsPanel, daqControlPanel.getMainPanel(),
-//					HidingPanel.HORIZONTAL, false, "Online controls", nameProvider.getUnitName() + " Controls");
-//			sonarsPanel.add(hidingPanel, new CornerLayoutContraint(CornerLayoutContraint.LAST_LINE_START));
-//
-//			sonarsStatusPanel = new SonarsStatusPanel(tritechAcquisition);
-//			HidingPanel hidingStatus = new HidingPanel(sonarsPanel, sonarsStatusPanel.getMainPanel(),
-//					HidingPanel.HORIZONTAL, false, "Sonar Online Status", nameProvider.getUnitName() + " Status");
-////			hidingStatus.setOpaque(false);
-//			sonarsPanel.add(hidingStatus, new CornerLayoutContraint(CornerLayoutContraint.FIRST_LINE_START));
-//		}
 
 		if (tritechAcquisition.isViewer()) {
 			viewerSlider = new PamScrollSlider(nameProvider.getUnitName(), PamScrollSlider.HORIZONTAL, 5, 600000, true);
@@ -119,6 +107,7 @@ public class SonarsOuterPanel implements ConfigurationObserver {
 		
 		sortCornerDecorations();
 //		sortTaskBar();
+		sonarsPanel.checkMainZPosition();
 	}
 	
 	/*
@@ -178,6 +167,7 @@ public class SonarsOuterPanel implements ConfigurationObserver {
 		}
 		if (newDecoration != null) {
 			sonarsPanel.add(newDecoration.getComponent(), cornerLayoutContraint);
+			sonarsPanel.checkMainZPosition();
 		}
 		return newDecoration;
 	}
