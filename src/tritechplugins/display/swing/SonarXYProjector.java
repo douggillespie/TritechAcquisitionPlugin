@@ -9,6 +9,12 @@ import PamView.GeneralProjector;
 import PamView.GeneralProjector.ParameterType;
 import tritechgemini.imagedata.GeminiImageRecordI;
 
+/**
+ * Projector for sonar data. Most of the work however is done in 
+ * the SonarZoomTransform
+ * @author dg50
+ *
+ */
 public class SonarXYProjector extends GeneralProjector {
 
 	private int imageIndex;
@@ -16,7 +22,7 @@ public class SonarXYProjector extends GeneralProjector {
 	private SonarsPanel sonarsPanel;
 //	private Rectangle rectangle;
 	private GeminiImageRecordI imageRecord;
-	private boolean flipImage = false;
+//	private boolean flipImage = false;
 	private SonarZoomTransform sonarZoomTransform;
 
 	public static final ParameterType[] requiredParams = {ParameterType.X, ParameterType.Y};
@@ -79,19 +85,19 @@ public class SonarXYProjector extends GeneralProjector {
 		return pos;
 	}
 
-	/**
-	 * @return the flipImage
-	 */
-	public boolean isFlipImage() {
-		return flipImage;
-	}
-
-	/**
-	 * @param flipImage the flipImage to set
-	 */
-	public void setFlipImage(boolean flipImage) {
-		this.flipImage = flipImage;
-	}
+//	/**
+//	 * @return the flipImage
+//	 */
+//	public boolean isFlipImage() {
+//		return flipImage;
+//	}
+//
+//	/**
+//	 * @param flipImage the flipImage to set
+//	 */
+//	public void setFlipImage(boolean flipImage) {
+//		this.flipImage = flipImage;
+//	}
 
 	public void setLayout(SonarZoomTransform sonarZoomTransform) {
 		this.sonarZoomTransform = sonarZoomTransform;

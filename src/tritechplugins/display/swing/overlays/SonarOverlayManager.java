@@ -67,9 +67,9 @@ public class SonarOverlayManager extends OverlayDataManager<SonarOverlayData> {
 		return selected;
 	}
 
-	@Override
-	protected GeneralProjector getProjector() {
-		return sonarsPanel.getFirstXYProjector();
-	}
+//	@Override
+//	protected GeneralProjector getProjector() {
+//		return sonarsPanel.getFirstXYProjector();
+//	}
 
 }

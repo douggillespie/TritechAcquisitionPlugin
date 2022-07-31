@@ -3,6 +3,7 @@ package tritechplugins.display.swing;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Desktop;
+import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Point;
@@ -13,6 +14,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
+import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -28,13 +30,23 @@ import javax.swing.JPopupMenu;
 import PamController.PamController;
 import PamUtils.Coordinate3d;
 import PamUtils.LatLong;
+import PamUtils.PamCalendar;
 import PamUtils.PamUtils;
+import PamView.GeneralProjector.ParameterType;
+import PamView.PamColors.PamColor;
+import PamView.PamColors;
 import PamView.PanelOverlayDraw;
 import PamView.paneloverlay.overlaymark.ExtMapMouseHandler;
+import PamView.paneloverlay.overlaymark.MarkDataSelector;
+import PamView.paneloverlay.overlaymark.MarkOverlayDraw;
+import PamView.paneloverlay.overlaymark.OverlayMark;
+import PamView.paneloverlay.overlaymark.OverlayMarkProviders;
+import PamView.paneloverlay.overlaymark.OverlayMarker;
 import PamguardMVC.PamDataBlock;
 import PamguardMVC.PamDataUnit;
 import PamguardMVC.dataSelector.DataSelector;
 import annotation.handler.AnnotationHandler;
+import detectiongrouplocaliser.DetectionGroupSummary;
 import tritechgemini.imagedata.FanImageData;
 import tritechgemini.imagedata.FanPicksFromData;
 import tritechgemini.imagedata.GeminiImageRecordI;
@@ -72,20 +84,38 @@ public class SonarImagePanel extends JPanel {
 	private ExtMapMouseHandler externalMouseHandler;
 
 	private SonarPanelMouse sonarsPanelMouse;
+	
+	private SonarsPanelMarker sonarPanelMarker;
+	
+	private MarkOverlayDraw markOverlayDraw;
 
 	public MouseEvent mousePressPoint;
 
 	public MouseEvent mouseDragPoint;
+
+	private int panelIndex;
+
+	private long imageTime;
+
+	private long paintStart;
 	
-	public SonarImagePanel(SonarsPanel sonarsPanel, int sonarId) {
+	private ArrayList<TextTip> textTips = new ArrayList();
+	
+	public SonarImagePanel(SonarsPanel sonarsPanel, int panelIndex) {
+		this.panelIndex = panelIndex;
 		this.sonarsPanel = sonarsPanel;
-		this.setSonarId(sonarId);
+//		this.setSonarId(sonarId);
 		setBackground(new Color(0.f,0.f,0.f,0.f)); // make it transparent. 
 		setOpaque(false);
 		isViewer = (PamController.getInstance().getRunMode() == PamController.RUN_PAMVIEW);
 		imageFanMaker = new FanPicksFromData(4);
 		xyProjector = new SonarXYProjector(sonarsPanel, sonarId, sonarId);
 		externalMouseHandler = new ExtMapMouseHandler(PamController.getMainFrame(), false);
+		sonarPanelMarker = new SonarsPanelMarker(sonarsPanel, xyProjector, panelIndex);
+		OverlayMarkProviders.singleInstance().addProvider(sonarPanelMarker);
+		externalMouseHandler.addMouseHandler(sonarPanelMarker);
+		sonarPanelMarker.addObserver(new OverlayMarkObserver());
+		markOverlayDraw = new MarkOverlayDraw(sonarPanelMarker);
 
 		sonarsPanelMouse = new SonarPanelMouse();
 		this.addMouseListener(sonarsPanelMouse);
@@ -97,7 +127,13 @@ public class SonarImagePanel extends JPanel {
 	@Override
 	public void paintComponent(Graphics g) {
 		super.paintComponent(g);
+		paintEverything(g);
+	}
 
+	public void paintEverything(Graphics g) {
+
+		paintStart = System.nanoTime();
+		
 		Graphics2D g2d = (Graphics2D) g;
 		g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 		g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
@@ -121,9 +157,7 @@ public class SonarImagePanel extends JPanel {
 				sonarsPanelParams.flipLeftRight);
 		xyProjector.clearHoverList();
 		xyProjector.setLayout(sonarZoomTransform);
-		xyProjector.setFlipImage(sonarsPanelParams.flipLeftRight);
-		
-		
+//		xyProjector.setFlipImage(sonarsPanelParams.flipLeftRight);
 		
 		paintSonarImage(g);
 		
@@ -131,6 +165,10 @@ public class SonarImagePanel extends JPanel {
 		
 		paintMouseDragLine(g);
 		
+		markOverlayDraw.drawDataUnit(g2d, null, xyProjector);
+		
+		Point textPoint = new Point(g.getFontMetrics().charWidth(' '),0);
+		paintTextinformation(g, textPoint, imageRecord);
 	}
 	
 	/**
@@ -219,6 +257,7 @@ public class SonarImagePanel extends JPanel {
 	}
 	private void paintMouseDragLine(Graphics g) {
 		// txt will be null if line is outside the image.
+		Color baseCol = g.getColor();
 		String txt = getDragText();
 		if (txt == null) {
 			return;
@@ -228,7 +267,124 @@ public class SonarImagePanel extends JPanel {
 		g2d.setStroke(new BasicStroke(2));
 		g.drawLine(mousePressPoint.getX(), mousePressPoint.getY(), mouseDragPoint.getX(), mouseDragPoint.getY());
 		if (txt != null) {
-			g.drawString(txt, mouseDragPoint.getX(), mouseDragPoint.getY());
+			txt = " " + txt + " ";
+			g.setColor(PamColors.getInstance().getColor(PamColor.AXIS));
+//			g.drawString(txt, mouseDragPoint.getX(), mouseDragPoint.getY());
+			paintTextLine(g2d, txt, mouseDragPoint.getX(), mouseDragPoint.getY());
+		}
+	}
+
+	public void paintTextinformation(Graphics g,
+			GeminiImageRecordI geminiImageRecord) {
+		LayoutInfo layoutInfo = sonarsPanel.sonarImageLayout.getLayoutInfo(this.panelIndex);
+		paintTextinformation(g, layoutInfo.getTextPoint(), geminiImageRecord);
+		
+	}
+	public void paintTextinformation(Graphics g, LayoutInfo layoutInfo,
+			GeminiImageRecordI geminiImageRecord) {
+		paintTextinformation(g, layoutInfo.getTextPoint(), geminiImageRecord);
+	}
+	
+	public void paintTextinformation(Graphics g, Point txtPoint,
+			GeminiImageRecordI geminiImageRecord) {
+		
+		textTips.clear();
+		
+		if (geminiImageRecord == null) {
+			return;
+		}
+		/*
+		 * and draw text into the corner of the image. Will eventually mess with font
+		 * sizes, but for now, we're in get it going mode.
+		 */
+		Graphics2D g2d = (Graphics2D) g;
+		g2d.setColor(PamColors.getInstance().getColor(PamColor.AXIS));
+		int xt = txtPoint.x;
+		int yt = txtPoint.y;
+		FontMetrics fm = g2d.getFontMetrics();
+		int lineHeight = fm.getHeight();
+		int maxCharWidth = fm.getMaxAdvance();
+		// clear a rectangle (deals with the text being on top of the axis)
+		Color currCol = g.getColor();
+		g.setColor(this.getBackground());
+		//		g.fillRect(xt, yt, maxCharWidth * 2, lineHeight * 4);
+		g.setColor(currCol);
+		yt += lineHeight;
+		xt += fm.charWidth(' ');
+		String str;
+		String filePath = geminiImageRecord.getFilePath();
+		if (filePath != null) {
+			File f = new File(filePath);
+			str = f.getName();
+			paintTextLine(g2d, str, xt, yt);
+			yt += lineHeight;
+		}
+		str = PamCalendar.formatDBDateTime(geminiImageRecord.getRecordTime(), true);
+		paintTextLine(g2d, str, xt, yt);
+		yt += lineHeight;
+		str = String.format("Sonar %d, record %d", geminiImageRecord.getDeviceId(),
+				geminiImageRecord.getRecordNumber());
+		paintTextLine(g2d, str, xt, yt);
+		yt += lineHeight;
+		str = String.format("nRange %d, nAngle %d", geminiImageRecord.getnRange(), geminiImageRecord.getnBeam());
+		paintTextLine(g2d, str, xt, yt);
+		yt += lineHeight;
+		long paintTime = System.nanoTime()-paintStart;
+		str = String.format("L=%3.1fms; I=%3.1fms; P=%3.1fms", geminiImageRecord.getLoadTime() / 1000000.,
+				imageTime / 1000000., paintTime / 1000000.);
+		paintTextLine(g2d, str, xt, yt, "L=load, I=image conversion, P=paint time");
+		yt += lineHeight;
+		str = String.format("SoS %3.2fm/s", geminiImageRecord.getSoS());
+		paintTextLine(g2d, str, xt, yt);
+		yt += lineHeight;
+		str = String.format("Gain %d%%", geminiImageRecord.getGain());
+		paintTextLine(g2d, str, xt, yt);
+		
+		str = getDragText();
+		if (str != null) {
+			yt += lineHeight;
+			paintTextLine(g2d, str, xt, yt);
+		}
+	}
+	/**
+	 * Paint a line of text, which may overlap the image, so 
+	 * repaint it's background in semi-transparent. 
+	 * @param g2d
+	 * @param str
+	 * @param xt
+	 * @param yt
+	 */
+	private void paintTextLine(Graphics2D g2d, String str, int xt, int yt) {
+		paintTextLine(g2d, str, xt, yt, null);
+	}
+	/**
+	 * Paint a line of text, which may overlap the image, so 
+	 * repaint it's background in semi-transparent. 
+	 * @param g2d
+	 * @param str
+	 * @param xt
+	 * @param yt
+	 * @param tip tooltip to display if mouse hoveres
+	 */
+	private void paintTextLine(Graphics2D g2d, String str, int xt, int yt, String tip) {
+		FontMetrics fm = g2d.getFontMetrics();
+		Rectangle2D bounds = fm.getStringBounds(str, g2d);
+		Color cc = g2d.getColor();
+		Color bg = sonarsPanel.getBackground();
+		//		Rectangle r = new Rectangle(xt, yt, xt + (int) bounds.getWidth(), yt + (int) bounds.getHeight());
+		if (bg != null) {
+			bg = new Color(bg.getRed(), bg.getBlue(), bg.getGreen(), 192);
+			g2d.setColor(bg);
+		}
+		Rectangle rect = new Rectangle(xt, yt-(int) bounds.getHeight()+1, (int) bounds.getWidth(), (int) bounds.getHeight()+1);
+		g2d.fillRect(xt, yt-(int) bounds.getHeight()+1, (int) bounds.getWidth(), (int) bounds.getHeight()+1);
+		int dip = fm.getDescent();
+		if (cc != null) {
+			g2d.setColor(cc);
+		}
+		g2d.drawString(str, xt, yt-1);
+		if (tip != null) {
+			textTips.add(new TextTip(rect, tip));
 		}
 	}
 
@@ -290,16 +446,24 @@ public class SonarImagePanel extends JPanel {
 			fanImage = null;
 		}
 		else {
+			long t1 = System.nanoTime();
 			int nBearing = imageRecord.getnBeam();
 			int nXPix = getWidth();
 			int usePix = sonarsPanel.getImagePixels(nBearing, nXPix);
 			fanImageData = imageFanMaker.createFanData(imageRecord, usePix);
 			fanImage = new FanDataImage(fanImageData, sonarsPanel.getColourMap(), true, sonarsPanel.getSonarsPanelParams().displayGain);
 			fanImage.getBufferedImage(); // created and kept..
+			imageTime = System.nanoTime()-t1;
 		}
 	}
 	@Override
 	public String getToolTipText(MouseEvent event) {
+		
+		String tip = findTextTip(event.getPoint());
+		if (tip != null) {
+			return tip;
+		}
+		
 		// find where the mouse is in an image and show range-bearing data.
 		SonarCoordinate sonarCoord = findSonarCoordinate(event.getX(), event.getY());
 		if (sonarCoord == null) {
@@ -357,6 +521,24 @@ public class SonarImagePanel extends JPanel {
 
 		return str;
 	}
+	
+	/**
+	 * find a tool tip associated with some of the displayed text. 
+	 * @param point
+	 * @return
+	 */
+	private String findTextTip(Point point) {
+		if (textTips == null) {
+			return null;
+		}
+		for (TextTip aTip : textTips) {
+			if (aTip.rectangle.contains(point)) {
+				return aTip.tip;
+			}
+		}
+		return null;
+	}
+
 	/**
 	 * convert a panel x,y to a coordinate, only returning if 
 	 * in the actual image. 
@@ -365,6 +547,9 @@ public class SonarImagePanel extends JPanel {
 	 * @return
 	 */
 	public SonarCoordinate findSonarCoordinate(double x, double y) {
+		if (sonarZoomTransform == null) {
+			return null;
+		}
 		Coordinate3d imagePos = sonarZoomTransform.screenToImageMetres(x, y);
 		if (imagePos == null) {
 			return null;
@@ -481,13 +666,14 @@ public class SonarImagePanel extends JPanel {
 
 	}private void mousePopup(MouseEvent e) {
 		// see if we're on a detection ...
+		PamDataUnit dataUnit = xyProjector.getHoveredDataUnit();
 //		PamDataUnit dataUnit = findOverlayDataUnit(e.getX(), e.getY());
-//		if (showAnottationMenu(e, dataUnit)) {
-//			return;
-//		}
-//		else {
+		if (sonarsPanel.showAnottationMenu(e, dataUnit)) {
+			return;
+		}
+		else {
 			showStandardMenu(e);
-//		}
+		}
 	}
 //	private boolean showAnottationMenu(MouseEvent e, PamDataUnit dataUnit) {
 //		if (dataUnit == null) {
@@ -598,4 +784,41 @@ public class SonarImagePanel extends JPanel {
 		popMenu.show(e.getComponent(), e.getX(), e.getY());
 	}
 
+	private class OverlayMarkObserver implements PamView.paneloverlay.overlaymark.OverlayMarkObserver {
+
+		@Override
+		public boolean markUpdate(int markStatus, javafx.scene.input.MouseEvent mouseEvent, OverlayMarker overlayMarker,
+				OverlayMark overlayMark) {
+			repaint();
+			return true;
+		}
+
+		@Override
+		public JPopupMenu getPopupMenuItems(DetectionGroupSummary markSummaryData) {
+			// TODO Auto-generated method stub
+			return null;
+		}
+
+		@Override
+		public ParameterType[] getRequiredParameterTypes() {
+			return SonarXYProjector.requiredParams;
+		}
+
+		@Override
+		public String getObserverName() {
+			return getMarkName();
+		}
+
+		@Override
+		public MarkDataSelector getMarkDataSelector(OverlayMarker overlayMarker) {
+			// TODO Auto-generated method stub
+			return null;
+		}
+
+		@Override
+		public String getMarkName() {
+			return sonarsPanel.getDataSelectorName() + " Panel " + panelIndex;
+		}
+		
+	}
 }
