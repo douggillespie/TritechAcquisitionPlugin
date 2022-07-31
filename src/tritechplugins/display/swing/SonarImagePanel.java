@@ -101,6 +101,13 @@ public class SonarImagePanel extends JPanel {
 	
 	private ArrayList<TextTip> textTips = new ArrayList();
 	
+	/**
+	 * Overlay image which get's used when all data are displayed 
+	 */
+	private BufferedImage overlayImage;
+	
+	private Object overlaySynch = new Object();
+	
 	public SonarImagePanel(SonarsPanel sonarsPanel, int panelIndex) {
 		this.panelIndex = panelIndex;
 		this.sonarsPanel = sonarsPanel;
@@ -155,13 +162,20 @@ public class SonarImagePanel extends JPanel {
 		sonarZoomTransform = new SonarZoomTransform(maxRange, panelRectangle, imageBounds, 
 				sonarsPanel.getZoomFactor(), sonarsPanel.getZoomCentre(),
 				sonarsPanelParams.flipLeftRight);
-		xyProjector.clearHoverList();
 		xyProjector.setLayout(sonarZoomTransform);
 //		xyProjector.setFlipImage(sonarsPanelParams.flipLeftRight);
 		
 		paintSonarImage(g);
 		
-		paintDetectorData(g, sonarsPanel.getCurrentScrollTime());
+		if (sonarsPanelParams.tailOption == SonarsPanelParams.OVERLAY_TAIL_ALL) {
+			BufferedImage image = getOverlayImage();
+			if (image != null) {
+				g2d.drawImage(image, 0, 0, getWidth(), getHeight(), 0, 0, image.getWidth(), image.getHeight(), null);
+			}
+		}
+		else {
+			paintDetectorData(g, sonarsPanel.getCurrentScrollTime());
+		}
 		
 		paintMouseDragLine(g);
 		
@@ -197,8 +211,16 @@ public class SonarImagePanel extends JPanel {
 		}
 	}
 
+	/**
+	 * Paint all overlay data into the current graphics handle. This 
+	 * may be the main panel (this) but might also be into a buffered
+	 * image to speed drawing of all data.
+	 * @param g
+	 * @param currentTime
+	 */
 	private void paintDetectorData(Graphics g, long currentTime) {
 		Collection<SonarOverlayData> selBlocks = sonarsPanel.sonarOverlayManager.getSelectedDataBlocks();
+		xyProjector.clearHoverList();
 		for (SonarOverlayData selBlock : selBlocks) {
 			paintDetectorData(g, selBlock, currentTime);
 		}
@@ -316,29 +338,29 @@ public class SonarImagePanel extends JPanel {
 		if (filePath != null) {
 			File f = new File(filePath);
 			str = f.getName();
-			paintTextLine(g2d, str, xt, yt);
+			paintTextLine(g2d, str, xt, yt, "Gemini log file");
 			yt += lineHeight;
 		}
 		str = PamCalendar.formatDBDateTime(geminiImageRecord.getRecordTime(), true);
-		paintTextLine(g2d, str, xt, yt);
+		paintTextLine(g2d, str, xt, yt, "Record time (UTC)");
 		yt += lineHeight;
 		str = String.format("Sonar %d, record %d", geminiImageRecord.getDeviceId(),
 				geminiImageRecord.getRecordNumber());
-		paintTextLine(g2d, str, xt, yt);
+		paintTextLine(g2d, str, xt, yt, "Sonar ID and record index");
 		yt += lineHeight;
 		str = String.format("nRange %d, nAngle %d", geminiImageRecord.getnRange(), geminiImageRecord.getnBeam());
-		paintTextLine(g2d, str, xt, yt);
+		paintTextLine(g2d, str, xt, yt, "Number of range and bearing bins");
 		yt += lineHeight;
 		long paintTime = System.nanoTime()-paintStart;
-		str = String.format("L=%3.1fms; I=%3.1fms; P=%3.1fms", geminiImageRecord.getLoadTime() / 1000000.,
+		str = String.format("L=%3.1fms; T=%3.1fms; P=%3.1fms", geminiImageRecord.getLoadTime() / 1000000.,
 				imageTime / 1000000., paintTime / 1000000.);
-		paintTextLine(g2d, str, xt, yt, "L=load, I=image conversion, P=paint time");
+		paintTextLine(g2d, str, xt, yt, "L=load, I=transform, P=paint time");
 		yt += lineHeight;
 		str = String.format("SoS %3.2fm/s", geminiImageRecord.getSoS());
-		paintTextLine(g2d, str, xt, yt);
+		paintTextLine(g2d, str, xt, yt, "Speed of sound");
 		yt += lineHeight;
 		str = String.format("Gain %d%%", geminiImageRecord.getGain());
-		paintTextLine(g2d, str, xt, yt);
+		paintTextLine(g2d, str, xt, yt, "Recording gain");
 		
 		str = getDragText();
 		if (str != null) {
@@ -388,6 +410,42 @@ public class SonarImagePanel extends JPanel {
 		}
 	}
 
+	private boolean needNewOverlay() {
+		if (overlayImage == null) {
+			return true;
+		}
+		if (overlayImage.getWidth() != getWidth() || overlayImage.getHeight() != getHeight()) {
+			return true;
+		}
+		return false;
+	}
+	
+	/**
+	 * Get the overlay image.Create if needed. 
+	 * @return
+	 */
+	private BufferedImage getOverlayImage() {
+		if (needNewOverlay()) {
+			createNewOverlay();
+		}
+		return overlayImage;
+	}
+	/**
+	 * Create a new overlay image. 
+	 */
+	private void createNewOverlay() {
+		synchronized (overlaySynch) {
+			overlayImage = new BufferedImage(getWidth(), getHeight(), BufferedImage.TYPE_4BYTE_ABGR);
+			paintDetectorData(overlayImage.getGraphics(), sonarsPanel.getCurrentScrollTime());
+		}
+	}
+	
+	public void clearOverlayImage() {
+		synchronized (overlaySynch) {
+			overlayImage = null;
+		}
+	}
+	
 	/**
 	 * @return the sonarId
 	 */
@@ -456,6 +514,16 @@ public class SonarImagePanel extends JPanel {
 			imageTime = System.nanoTime()-t1;
 		}
 	}
+	
+	/**
+	 * Called in viewer mode when the outer scroller changes. 
+	 * @param minimumMillis
+	 * @param maximumMillis
+	 */
+	public void newScrollRange(long minimumMillis, long maximumMillis) {
+		clearOverlayImage();
+	}
+
 	@Override
 	public String getToolTipText(MouseEvent event) {
 		
@@ -820,5 +888,11 @@ public class SonarImagePanel extends JPanel {
 			return sonarsPanel.getDataSelectorName() + " Panel " + panelIndex;
 		}
 		
+	}
+	/**
+	 * @return the xyProjector
+	 */
+	public SonarXYProjector getXyProjector() {
+		return xyProjector;
 	}
 }

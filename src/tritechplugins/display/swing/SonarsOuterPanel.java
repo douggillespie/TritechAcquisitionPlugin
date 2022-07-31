@@ -68,7 +68,7 @@ public class SonarsOuterPanel implements ConfigurationObserver {
 		this.tritechAcquisition = tritechAcquisition;
 		sonarsPanel = new SonarsPanel(tritechAcquisition, nameProvider);
 		outerPanel = new PamPanel(new BorderLayout());
-		outerPanel.add(sonarsPanel.getsonarsPanel(), BorderLayout.CENTER);
+		outerPanel.add(sonarsPanel, BorderLayout.CENTER);
 		displayControlPanel = new DisplayControlPanel(this, sonarsPanel);
 		
 		HidingPanel hideDisplay = new HidingPanel(sonarsPanel, displayControlPanel.getMainPanel(),

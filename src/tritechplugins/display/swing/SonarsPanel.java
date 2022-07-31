@@ -29,6 +29,7 @@ import PamUtils.Coordinate3d;
 import PamUtils.PamCalendar;
 import PamView.ColourArray;
 import PamView.ColourArray.ColourArrayType;
+import PamView.GeneralProjector;
 import PamView.PamColors;
 import PamView.PamColors.PamColor;
 import PamView.dialog.GenericSwingDialog;
@@ -117,13 +118,6 @@ public class SonarsPanel extends PamPanel implements DataMenuParent {
 		
 	}
 
-	/**
-	 * @return the mainPanel
-	 */
-	public JPanel getsonarsPanel() {
-		return this;
-	}
-
 	public SonarsPanelParams getSonarsPanelParams() {
 		return sonarsPanelParams;
 	}
@@ -141,6 +135,19 @@ public class SonarsPanel extends PamPanel implements DataMenuParent {
 			imagesPanel.remove(imagesPanel.getComponentCount()-1);
 		}
 		
+	}
+	
+	/**
+	 * Get the number of sonar panels. 
+	 * @return number of sonar panel components
+	 */
+	int getNumImagePanels() {
+		if (imagesPanel == null) {
+			return 0;
+		}
+		else {
+			return imagesPanel.getComponentCount();
+		}
 	}
 
 	/**
@@ -250,6 +257,10 @@ public class SonarsPanel extends PamPanel implements DataMenuParent {
 			 * be redone whenever rectangle sizes change. 
 			 */
 	//		remakeDataOverlays();
+			int n = getNumImagePanels();
+			for (int i = 0; i < n; i++) {
+				getImagePanel(i).newScrollRange(minimumMillis, maximumMillis);
+			}
 		}
 
 	/**
@@ -432,8 +443,19 @@ public class SonarsPanel extends PamPanel implements DataMenuParent {
 	protected void resetZoom() {
 		zoomFactor = 1.;
 		zoomCentre = new Coordinate3d(0, 0);
-//		clearDataOverlays();
+		clearDataOverlays();
 		repaint();
+	}
+
+	/**
+	 * Tell the panels to clear their overlays since they will 
+	 * no longer be valid and need recreating. 
+	 */
+	private void clearDataOverlays() {
+		int n = getNumImagePanels();
+		for (int i = 0; i < n; i++) {
+			getImagePanel(i).clearOverlayImage();
+		}
 	}
 
 	public void zoomDisplay(SonarCoordinate sonarPos, double zoom) {
@@ -461,7 +483,7 @@ public class SonarsPanel extends PamPanel implements DataMenuParent {
 			zoomCentre = new Coordinate3d(0, 0);
 		}
 
-//		clearDataOverlays();
+		clearDataOverlays();
 		repaint();
 	}
 
@@ -546,6 +568,30 @@ public class SonarsPanel extends PamPanel implements DataMenuParent {
 	 */
 	public long getCurrentScrollTime() {
 		return currentScrollTime;
+	}
+
+	/**
+	 * Called back when overlay selection changes. 
+	 */
+	public void overlaySelectionChange() {
+		clearDataOverlays();
+		repaint();
+	}
+
+	/**
+	 * Get a projector. For some reason this is needed for the SonarOverlayManager
+	 * to get sort out the correct data selector and symbol selector for overlays. 
+	 * @return a projector from the first available image. 
+	 */
+	public SonarXYProjector getFirstXYProjector() {
+		int n = getNumImagePanels();
+		for (int i = 0; i < n; i++) {
+			SonarXYProjector proj = getImagePanel(i).getXyProjector();
+			if (proj != null) {
+				return proj;
+			}
+		}
+		return null;
 	}
 
 }
