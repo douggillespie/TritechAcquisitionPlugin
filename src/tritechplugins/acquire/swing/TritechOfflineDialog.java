@@ -40,6 +40,7 @@ public class TritechOfflineDialog extends PamDialog {
 		this.daqParams = tritechDaqParams;
 		selectFolder.setFolderName(daqParams.getOfflineFileFolder());
 		selectFolder.setIncludeSubFolders(daqParams.isOfflineSubFolders());
+		pack();
 	}
 
 	@Override
