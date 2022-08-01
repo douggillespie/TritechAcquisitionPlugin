@@ -205,8 +205,11 @@ public class SonarsOuterPanel implements ConfigurationObserver {
 
 		@Override
 		public void scrollRangeChanged(AbstractPamScroller pamScroller) {
-			// won't ever get used for a slider which only has a value.
-			newScrollValue(viewerSlider.getValueMillis());
+			/*
+			 *  This get's changed when the blue forwards / backwards buttons are 
+			 *  pressed. 
+			 */
+			newScrollRange(pamScroller.getMinimumMillis(), pamScroller.getMaximumMillis());
 		}
 
 	}
@@ -218,6 +221,7 @@ public class SonarsOuterPanel implements ConfigurationObserver {
 		}
 	}
 	
+
 //	private void sortTaskBar() {
 //		TritechDaqParams params = tritechAcquisition.getDaqParams();
 //		int cuurrentRunMode = params.getRunMode();
@@ -253,6 +257,21 @@ public class SonarsOuterPanel implements ConfigurationObserver {
 	 */
 	public void newScrollValue(long valueMillis) {		
 		sonarsPanel.setScrollTime(valueMillis);
+		/*
+		 *  see if the slider has changed it's limits, in which case
+		 *  data have been loaded and we need to do some remedial drawing 
+		 *  of some overlays.  
+		 */
+//		if (viewerSlider.getMinimumMillis())
+	}
+	
+	/**
+	 * Scroll range has changed. 
+	 * @param minimumMillis min data load time
+	 * @param maximumMillis max data load time
+	 */
+	public void newScrollRange(long minimumMillis, long maximumMillis) {
+		sonarsPanel.newScrollRange(minimumMillis, maximumMillis);
 	}
 
 	private class ImageObserver extends PamObserverAdapter {

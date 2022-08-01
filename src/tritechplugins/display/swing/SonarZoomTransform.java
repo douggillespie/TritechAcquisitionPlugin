@@ -22,16 +22,20 @@ public class SonarZoomTransform {
 	 * Gemini image. 
 	 */
 	
-	private GeminiImageRecordI imageRecord;
+//	private GeminiImageRecordI imageRecord;
+	private double maximumRange;
 	
 	/**
 	 * Rectangle projected into on screen. 
 	 */
 	private Rectangle screenRectangle;
-	/**
-	 * Fan image, can be varying sizes depending on selected display resolution
-	 */
-	private BufferedImage fanImage;
+
+	//	/**
+//	 * Fan image, can be varying sizes depending on selected display resolution
+//	 */
+//	private BufferedImage fanImage;
+	private Rectangle fanImageRectangle;
+	
 	/**
 	 * Zoom factor, >= 1
 	 */
@@ -59,7 +63,8 @@ public class SonarZoomTransform {
 	 * @param imageRecord the imageRecord to set
 	 */
 	public void setImageRecord(GeminiImageRecordI imageRecord) {
-		this.imageRecord = imageRecord;
+//		this.imageRecord = imageRecord;
+		this.maximumRange = imageRecord.getMaxRange();
 		calculateTransforms();
 	}
 
@@ -75,7 +80,8 @@ public class SonarZoomTransform {
 	 * @param fanImage the fanImage to set
 	 */
 	public void setFanImage(BufferedImage fanImage) {
-		this.fanImage = fanImage;
+//		this.fanImage = fanImage;
+		this.fanImageRectangle = new Rectangle(0,0,fanImage.getWidth(),fanImage.getHeight());
 		calculateTransforms();
 	}
 
@@ -114,23 +120,36 @@ public class SonarZoomTransform {
 	 */
 	public SonarZoomTransform(GeminiImageRecordI imageRecord, Rectangle screenRectangle, BufferedImage fanImage, 
 			double zoomFactor, Coordinate3d zoomCentre, boolean isFlip) {
-		this.imageRecord = imageRecord;
+		this(imageRecord.getMaxRange(), screenRectangle, new Rectangle(0,0,fanImage.getWidth(), fanImage.getHeight()), 
+				zoomFactor, zoomCentre, isFlip);
+	}
+	/**
+	 * 
+	 * @param imageRecord
+	 * @param screenRectangle
+	 * @param fanImage
+	 * @param zoomFactor
+	 * @param zoomCentre
+	 */
+	public SonarZoomTransform(double maximumRange, Rectangle screenRectangle, Rectangle fanImageRectangle, 
+			double zoomFactor, Coordinate3d zoomCentre, boolean isFlip) {
+		this.maximumRange = maximumRange;
 		this.screenRectangle = screenRectangle;
-		this.fanImage = fanImage;
+		this.fanImageRectangle = fanImageRectangle;
 		this.zoomFactor = zoomFactor;
 		this.zoomCentre = zoomCentre;
 		this.isFlip = isFlip;
 		calculateTransforms();
 	}
+
 	
 	
-	
-	/**
-	 * @return the imageRecord
-	 */
-	public GeminiImageRecordI getImageRecord() {
-		return imageRecord;
-	}
+//	/**
+//	 * @return the imageRecord
+//	 */
+//	public GeminiImageRecordI getImageRecord() {
+//		return imageRecord;
+//	}
 
 	/**
 	 * @return the screenRectangle
@@ -139,12 +158,12 @@ public class SonarZoomTransform {
 		return screenRectangle;
 	}
 
-	/**
-	 * @return the fanImage
-	 */
-	public BufferedImage getFanImage() {
-		return fanImage;
-	}
+//	/**
+//	 * @return the fanImage
+//	 */
+//	public BufferedImage getFanImage() {
+//		return fanImage;
+//	}
 
 	/**
 	 * @return the zoomFactor
@@ -160,6 +179,15 @@ public class SonarZoomTransform {
 		return zoomCentre;
 	}
 
+	
+	/**
+	 * Get the maximum range used in the calcs in metres
+	 * @return
+	 */
+	public double getMaximumRange() {
+		return maximumRange;
+	}
+	
 	/**
 	 * Calculate everything we're likely to want to know. 
 	 */
@@ -167,14 +195,14 @@ public class SonarZoomTransform {
 		/**
 		 * size ratio between original fan image and the screen rectangle
 		 */
-		double secondScale = (double) screenRectangle.getWidth() / (double) fanImage.getWidth();
+		double secondScale = (double) screenRectangle.getWidth() / (double) fanImageRectangle.getWidth();
 		/*
 		 * scale of original fan image in pixels per metre.
 		 */
-		double imageScale = fanImage.getHeight()/imageRecord.getMaxRange();
-		int ws = fanImage.getWidth();
+		double imageScale = fanImageRectangle.getHeight()/maximumRange;
+		int ws = fanImageRectangle.width;
 		int wd = screenRectangle.width;
-		int hs = fanImage.getHeight();
+		int hs = fanImageRectangle.height;
 		int hd = screenRectangle.height;
 		
 		
@@ -265,11 +293,11 @@ public class SonarZoomTransform {
 	 * @return position in metres.
 	 */
 	public Coordinate3d imagePixToImageMetres(double imagePixX, double imagePixY) {
-		double metresPerPix = imageRecord.getMaxRange() / fanImage.getHeight();
+		double metresPerPix = maximumRange / fanImageRectangle.getHeight();
 //		if (isFlip) {
 //			imagePixX = -imagePixX;
 //		}
-		double x = (imagePixX - fanImage.getWidth()/2.)*metresPerPix;
+		double x = (imagePixX - fanImageRectangle.getWidth()/2.)*metresPerPix;
 				if (isFlip) {
 					x = -x;
 				}
@@ -289,11 +317,11 @@ public class SonarZoomTransform {
 //			imageMetresX -= zoomCentre.x;
 //			imageMetresY -= zoomCentre.y;
 //		}
-		double metresPerPix = imageRecord.getMaxRange() / fanImage.getHeight();
+		double metresPerPix = maximumRange / fanImageRectangle.getHeight();
 //		if (!isFlip) {
 //			imageMetresX = -imageMetresX;
 //		}
-		double x = fanImage.getWidth()/2. + imageMetresX / metresPerPix;
+		double x = fanImageRectangle.getWidth()/2. + imageMetresX / metresPerPix;
 //		if (isFlip) {
 //			x = -x;
 //		}
