@@ -238,8 +238,10 @@ public class SonarsPanel extends PamPanel implements DataMenuParent {
 //			if (imageRec == null) {
 //				System.out.println("No image for sonar " + sonarIDs[i]);
 //			}
-			
-			getImagePanel(i).setImageRecord(imageRec);
+			SonarImagePanel imagePanel = getImagePanel(i);
+			if (imagePanel != null) {
+				getImagePanel(i).setImageRecord(imageRec);
+			}
 		}
 		imagesPanel.repaint();
 		geminiCatalog.freeImageData(valueMillis, 10000);
