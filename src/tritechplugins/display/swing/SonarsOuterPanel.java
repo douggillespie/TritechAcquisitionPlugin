@@ -66,7 +66,7 @@ public class SonarsOuterPanel implements ConfigurationObserver {
 
 	public SonarsOuterPanel(TritechAcquisition tritechAcquisition, SettingsNameProvider nameProvider) {
 		this.tritechAcquisition = tritechAcquisition;
-		sonarsPanel = new SonarsPanel(tritechAcquisition, nameProvider);
+		sonarsPanel = new SonarsPanel(tritechAcquisition, this, nameProvider);
 		outerPanel = new PamPanel(new BorderLayout());
 		outerPanel.add(sonarsPanel, BorderLayout.CENTER);
 		displayControlPanel = new DisplayControlPanel(this, sonarsPanel);
@@ -283,5 +283,12 @@ public class SonarsOuterPanel implements ConfigurationObserver {
 	@Override
 	public void configurationChanged() {
 		sortCornerDecorations();
+	}
+
+	/**
+	 * @return the viewerSlider
+	 */
+	public PamScrollSlider getViewerSlider() {
+		return viewerSlider;
 	}
 }

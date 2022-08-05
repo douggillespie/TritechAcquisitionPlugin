@@ -47,7 +47,9 @@ import PamguardMVC.PamObserverAdapter;
 import PamguardMVC.datamenus.DataMenuParent;
 import PamguardMVC.superdet.SuperDetDataBlock;
 import annotation.handler.AnnotationHandler;
+import javafx.scene.control.MenuItem;
 import offlineProcessing.superdet.OfflineSuperDetFilter;
+import pamScrollSystem.PamScrollSlider;
 import tritechgemini.fileio.MultiFileCatalog;
 import tritechgemini.imagedata.GeminiImageRecordI;
 import tritechplugins.acquire.ImageDataBlock;
@@ -103,9 +105,12 @@ public class SonarsPanel extends PamPanel implements DataMenuParent {
 	 */
 	SonarImageLayout sonarImageLayout;
 
-	public SonarsPanel(TritechAcquisition tritechAcquisition, SettingsNameProvider nameProvider) {
+	private SonarsOuterPanel sonarsOuterPanel;
+
+	public SonarsPanel(TritechAcquisition tritechAcquisition, SonarsOuterPanel sonarsOuterPanel, SettingsNameProvider nameProvider) {
 		super(true);
 		this.tritechAcquisition = tritechAcquisition;
+		this.sonarsOuterPanel = sonarsOuterPanel;
 		this.nameProvider = nameProvider;
 		setLayout(new CornerLayout(new CornerLayoutContraint()));
 		
@@ -284,7 +289,7 @@ public class SonarsPanel extends PamPanel implements DataMenuParent {
 	 * @param panelIndex
 	 * @return
 	 */
-	private SonarImagePanel getImagePanel(int panelIndex) {
+	protected SonarImagePanel getImagePanel(int panelIndex) {
 		if (panelIndex >= imagesPanel.getComponentCount()) {
 			return null;
 		}
@@ -645,5 +650,18 @@ public class SonarsPanel extends PamPanel implements DataMenuParent {
 		}
 		return null;
 	}
+
+	/**
+	 * Move teh current scroll. Not the outer one. 
+	 * @param t
+	 */
+	public void scrollTo(long t) {
+		PamScrollSlider slider = sonarsOuterPanel.getViewerSlider();
+		if (slider != null) {
+			slider.setValueMillis(t);
+		}
+		
+	}
+
 
 }

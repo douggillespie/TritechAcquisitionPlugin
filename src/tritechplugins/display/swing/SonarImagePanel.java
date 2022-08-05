@@ -23,6 +23,7 @@ import java.util.Collection;
 import java.util.List;
 
 import javax.swing.JCheckBoxMenuItem;
+import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
@@ -47,6 +48,7 @@ import PamguardMVC.PamDataUnit;
 import PamguardMVC.dataSelector.DataSelector;
 import annotation.handler.AnnotationHandler;
 import detectiongrouplocaliser.DetectionGroupSummary;
+import javafx.scene.control.MenuItem;
 import tritechgemini.imagedata.FanImageData;
 import tritechgemini.imagedata.FanPicksFromData;
 import tritechgemini.imagedata.GeminiImageRecordI;
@@ -777,8 +779,15 @@ public class SonarImagePanel extends JPanel {
 //		return true;
 //	}
 
-	private void showStandardMenu(MouseEvent e) {		
-		JPopupMenu popMenu = new JPopupMenu();
+	private void showStandardMenu(MouseEvent e) {	
+		
+		JPopupMenu popMenu = getImageMenu(e);
+		popMenu.show(e.getComponent(), e.getX(), e.getY());
+	}
+
+	public JPopupMenu getImageMenu(MouseEvent e) {
+		JPopupMenu standardItems = new JPopupMenu();
+
 		JMenuItem menuItem = new JMenuItem("Overlay options");
 		menuItem.addActionListener(new ActionListener() {
 			@Override
@@ -786,8 +795,8 @@ public class SonarImagePanel extends JPanel {
 				sonarsPanel.overlayOptions(e);
 			}
 		});
-		popMenu.add(menuItem, 0);
-		popMenu.addSeparator();
+		standardItems.add(menuItem);
+		standardItems.addSeparator();
 		// add the tail options as menu items since they are so useful. 
 		int[] tailOpts = SonarsPanelParams.getOverlayOptValues();
 		for (int i = 0; i < tailOpts.length; i++) {
@@ -800,7 +809,7 @@ public class SonarImagePanel extends JPanel {
 					sonarsPanel.setTailOption(opt);
 				}
 			});
-			popMenu.add(cbi);
+			standardItems.add(cbi);
 		}
 		
 		if (sonarsPanel.getZoomFactor() > 1) {
@@ -811,12 +820,12 @@ public class SonarImagePanel extends JPanel {
 					sonarsPanel.resetZoom();
 				}
 			});
-			popMenu.addSeparator();
-			popMenu.add(menuItem);
+			standardItems.addSeparator();
+			standardItems.add(menuItem);
 		}
 
-		popMenu.addSeparator();
-		int nOverlay = sonarsPanel.sonarOverlayManager.addSelectionMenuItems(popMenu, null, true, false, true);
+		standardItems.addSeparator();
+		int nOverlay = sonarsPanel.sonarOverlayManager.addSelectionMenuItems(standardItems, null, true, false, true);
 //		if (nOverlay == 0) {
 //			return;
 		//		}
@@ -838,18 +847,36 @@ public class SonarImagePanel extends JPanel {
 							}
 						}
 					});
-					popMenu.addSeparator();
-					popMenu.add(menuItem);
+					standardItems.addSeparator();
+					standardItems.add(menuItem);
 				}
 			}
 		}
 		catch (Exception exc) {
 			
 		}
+		PamDataUnit hoveredData = xyProjector.getHoveredDataUnit();
+		if (hoveredData != null && hoveredData.getSuperDetection(0) != null) {
+			hoveredData = hoveredData.getSuperDetection(0);
+		}
+		if (hoveredData != null) {
+			String str = "Move cursor to detection";
+			menuItem = new JMenuItem(str);
+			long t = hoveredData.getTimeMilliseconds();
+			menuItem.addActionListener(new ActionListener() {
+				
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					sonarsPanel.scrollTo(t);
+				}
+			});
+			standardItems.add(menuItem);
+		}
 		
 		
-
-		popMenu.show(e.getComponent(), e.getX(), e.getY());
+		
+		
+		return standardItems;
 	}
 
 	private class OverlayMarkObserver implements PamView.paneloverlay.overlaymark.OverlayMarkObserver {
