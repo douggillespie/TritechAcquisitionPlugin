@@ -13,6 +13,8 @@ import java.awt.event.MouseEvent;
 import java.awt.geom.Rectangle2D;
 import java.io.File;
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 
@@ -22,6 +24,7 @@ import javax.swing.JPopupMenu;
 
 import Layout.PamAxis;
 import PamController.PamControlledUnitSettings;
+import PamController.PamController;
 import PamController.PamSettingManager;
 import PamController.PamSettings;
 import PamController.SettingsNameProvider;
@@ -38,8 +41,13 @@ import PamView.panel.CornerLayoutContraint;
 import PamView.panel.PamPanel;
 import PamguardMVC.PamDataBlock;
 import PamguardMVC.PamDataUnit;
+import PamguardMVC.PamObservable;
+import PamguardMVC.PamObserver;
+import PamguardMVC.PamObserverAdapter;
 import PamguardMVC.datamenus.DataMenuParent;
+import PamguardMVC.superdet.SuperDetDataBlock;
 import annotation.handler.AnnotationHandler;
+import offlineProcessing.superdet.OfflineSuperDetFilter;
 import tritechgemini.fileio.MultiFileCatalog;
 import tritechgemini.imagedata.GeminiImageRecordI;
 import tritechplugins.acquire.ImageDataBlock;
@@ -47,6 +55,7 @@ import tritechplugins.acquire.TritechAcquisition;
 import tritechplugins.acquire.offline.TritechOffline;
 import tritechplugins.detect.threshold.BackgroundRemoval;
 import tritechplugins.display.swing.overlays.OverlayTailDialogPanel;
+import tritechplugins.display.swing.overlays.SonarOverlayData;
 import tritechplugins.display.swing.overlays.SonarOverlayManager;
 
 /*
@@ -86,6 +95,8 @@ public class SonarsPanel extends PamPanel implements DataMenuParent {
 	private long currentScrollTime;
 
 	private JPanel imagesPanel;
+	
+	private OverlayObserver overlayObserver;
 
 	/**
 	 * Layout for the individual sonar panels. 
@@ -98,6 +109,7 @@ public class SonarsPanel extends PamPanel implements DataMenuParent {
 		this.nameProvider = nameProvider;
 		setLayout(new CornerLayout(new CornerLayoutContraint()));
 		
+		overlayObserver = new OverlayObserver();
 		/**
 		 * ImagesPanel fills the SonarsPanel behind the corner control panels
 		 * and uses it's own layout to position a panel per sonar. Most painting will 
@@ -116,6 +128,7 @@ public class SonarsPanel extends PamPanel implements DataMenuParent {
 //
 		sonarOverlayManager = new SonarOverlayManager(this);
 		
+		overlaySelectionChange();
 	}
 
 	public SonarsPanelParams getSonarsPanelParams() {
@@ -578,6 +591,43 @@ public class SonarsPanel extends PamPanel implements DataMenuParent {
 	public void overlaySelectionChange() {
 		clearDataOverlays();
 		repaint();
+		Collection<SonarOverlayData> selBlocks = sonarOverlayManager.getSelectedDataBlocks();
+		for (SonarOverlayData selData : selBlocks) {
+			PamDataBlock dataBlock = PamController.getInstance().getDataBlockByLongName(selData.dataName);
+			if (dataBlock != null) {
+				dataBlock.addObserver(overlayObserver);
+				ArrayList<SuperDetDataBlock> superBlocks = OfflineSuperDetFilter.findPossibleSuperDetections(dataBlock);
+				if (superBlocks != null) {
+					for (PamDataBlock ablock : superBlocks) {
+						ablock.addObserver(overlayObserver);
+					}
+				}
+			}
+		}
+	}
+	
+	/**
+	 * Observer which gets added to any super detection datablocks. This
+	 * will cause the overlays to repaint if ever there is a change
+	 * to things like track groups. Needed because of the creation of
+	 * a static image of the overlays in viewer mode so need to force
+	 * this to redraw. 
+	 * @author dg50
+	 *
+	 */
+	private class OverlayObserver extends PamObserverAdapter implements PamObserver {
+
+		@Override
+		public void updateData(PamObservable observable, PamDataUnit pamDataUnit) {
+			clearDataOverlays();
+			repaint();
+		}
+
+		@Override
+		public String getObserverName() {
+			return getDisplayName();
+		}
+		
 	}
 
 	/**
