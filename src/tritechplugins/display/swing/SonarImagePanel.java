@@ -490,10 +490,10 @@ public class SonarImagePanel extends JPanel {
 			return;
 		}
 		setSonarId(imageRecord.getDeviceId());
-		if (isViewer) {
+//		if (isViewer) {
 			makeFinalImage();
 			repaint();
-		}
+//		}
 	}
 	
 	/**

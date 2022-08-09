@@ -266,11 +266,11 @@ public class TritechJNADaq extends Svs5JNADaqSystem {
 			menuItem.addActionListener(new ActionListener() {
 				@Override
 				public void actionPerformed(ActionEvent e) {
-					try {
+//					try {
 						rebootSonars();
-					} catch (Svs5Exception e1) {
-						e1.printStackTrace();
-					}
+//					} catch (Svs5Exception e1) {
+//						e1.printStackTrace();
+//					}
 				}
 			});
 			menu.add(menuItem);

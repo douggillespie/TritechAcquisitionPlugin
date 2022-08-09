@@ -189,6 +189,16 @@ public class TritechDaqProcess extends PamProcess implements TritechRunMode {
 				showSettingsDialog(parentFrame);
 			}
 		});
+//		tritechDaqSystem.
+		menuItem = new JMenuItem("Reboot");
+		menu.add(menuItem);
+		menuItem.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				tritechDaqSystem.rebootSonars();
+			}
+		});
 		
 		return menu;
 	}

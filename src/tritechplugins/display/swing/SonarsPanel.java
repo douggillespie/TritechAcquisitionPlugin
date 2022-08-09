@@ -175,12 +175,20 @@ public class SonarsPanel extends PamPanel implements DataMenuParent {
 	 * @param imageRecord
 	 */
 	public void setImageRecord(int sonarIndex, GeminiImageRecordI imageRecord) {
-		// System.out.printf("New image record for id %d %s\n", sonarIndex,
-		// imageRecord);
+//		 System.out.printf("New image record for id %d %s\n", sonarIndex,
+//		 imageRecord);
 //		if (imageRecord != null) {
 //			sonarIndex = checkSonarIndex(imageRecord.getDeviceId());
 //		}
-//		if (sonarIndex < numSonars) {
+		 if (sonarIndex >= numSonars) {
+			 setNumSonars(sonarIndex+1);
+		 }
+		if (sonarIndex < numSonars) {
+			SonarImagePanel imagePanel = getImagePanel(sonarIndex);
+			if (imagePanel != null) {
+				imagePanel.setImageRecord(imageRecord);
+				imagePanel.repaint();
+			}
 //			if (imageRecord != null && sonarsPanelParams.subtractBackground) {
 //				BackgroundRemoval backgroundSub = findBackgroundSub(imageRecord.getDeviceId());
 //				backgroundSub.setTimeConstant(sonarsPanelParams.backgroundTimeFactor);
@@ -196,7 +204,7 @@ public class SonarsPanel extends PamPanel implements DataMenuParent {
 //				 */
 //				//				imageRecord.freeImageData();
 //			}
-//		}
+		}
 	}
 
 	/**

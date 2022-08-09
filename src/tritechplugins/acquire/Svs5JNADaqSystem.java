@@ -79,7 +79,9 @@ abstract public class Svs5JNADaqSystem extends TritechDaqSystem {
 	
 	@Override
 	protected void uninitialise() {
-//		svs5Commands.
+		if (gSerialiser != null) {
+			gSerialiser.svs5StopSvs5();
+		}
 	}
 	
 	public class GeminiCallback extends Svs5StandardCallback {
@@ -176,9 +178,14 @@ abstract public class Svs5JNADaqSystem extends TritechDaqSystem {
 		return ids;
 	}
 
-	public void rebootSonars() throws Svs5Exception {
-		long ans  = svs5Commands.setConfiguration(GeminiStructure.SVS5_CONFIG_REBOOT_SONAR, null, 0);
-		System.out.println("Reboot returned : " + ans);
+	public void rebootSonars() {
+		try {
+			long ans  = svs5Commands.setConfiguration(GeminiStructure.SVS5_CONFIG_REBOOT_SONAR, null, 0);
+			System.out.println("Reboot returned : " + ans);
+		}
+		catch ( Svs5Exception e) {
+			e.printStackTrace();
+		}
 	}
 
 	/**
@@ -217,6 +224,9 @@ abstract public class Svs5JNADaqSystem extends TritechDaqSystem {
 	public int setRange(int range, int deviceId) throws Svs5Exception {
 		GeminiRange rangeObj = new GeminiRange(range);
 		int err = 0;
+		if (svs5Commands == null) {
+			return 0;
+		}
 		err = svs5Commands.setConfiguration(rangeObj, deviceId);
 		if (err != Svs5ErrorType.SVS5_SEQUENCER_STATUS_OK) {
 			throw new Svs5Exception(err);
@@ -235,6 +245,9 @@ abstract public class Svs5JNADaqSystem extends TritechDaqSystem {
 	}
 	
 	public int setGain(int gain, int deviceId) throws Svs5Exception {
+		if (svs5Commands == null) {
+			return 0;
+		}
 		GeminiGain gainObj = new GeminiGain(gain);
 		int err = svs5Commands.setConfiguration(gainObj, deviceId);	
 		if (err != Svs5ErrorType.SVS5_SEQUENCER_STATUS_OK) {
@@ -264,6 +277,9 @@ abstract public class Svs5JNADaqSystem extends TritechDaqSystem {
 		//		long err = svs5Commands.setConfiguration(gemLoc, 0);
 		//		return err;
 		//		return 0;
+		if (svs5Commands == null) {
+			return 0;
+		}
 		return svs5Commands.sendStringCommand(GeminiStructure.SVS5_CONFIG_FILE_LOCATION, filePath, 0);
 //		return 0;
 	}

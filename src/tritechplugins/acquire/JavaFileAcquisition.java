@@ -313,5 +313,11 @@ public class JavaFileAcquisition extends TritechDaqSystem  implements CatalogStr
 	public void removeObserver(JavaFileObserver javaFileObserver) {
 		javaFileObservers.remove(javaFileObserver);
 	}
+
+	@Override
+	protected void rebootSonars() {
+		// TODO Auto-generated method stub
+		
+	}
 	
 }

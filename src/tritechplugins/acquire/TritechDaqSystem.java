@@ -120,4 +120,6 @@ public abstract class TritechDaqSystem {
 	public SonarDisplayDecorations getSwingDecorations() {
 		return null;
 	}
+
+	protected abstract void rebootSonars();
 }
