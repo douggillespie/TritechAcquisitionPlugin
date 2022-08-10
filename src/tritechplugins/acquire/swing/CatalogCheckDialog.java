@@ -54,8 +54,11 @@ public class CatalogCheckDialog extends PamDialog implements CancelObserver {
 		mainPanel.add(selectFolder.getFolderPanel(), c);
 		
 		c.gridy++;
-		mainPanel.add(infoText = new JLabel(), c);
+		c.gridx = 1;
+		c.gridwidth = 2;
+		mainPanel.add(infoText = new JLabel(" Select folder and hit OK to catalogue files "), c);
 		
+		c.gridx = 0;
 		c.gridwidth = 1;
 		c.gridy ++;
 		mainPanel.add(new JLabel("Progress:", JLabel.RIGHT), c);
@@ -152,6 +155,7 @@ public class CatalogCheckDialog extends PamDialog implements CancelObserver {
 		addedMain.setText(String.format("%d", catalogCheckUpdate.addedMain));
 		progressBar.setMaximum(catalogCheckUpdate.totalFiles);
 		progressBar.setValue(catalogCheckUpdate.processedFiles);
+		infoText.setText(catalogCheckUpdate.fileName);
 	}
 
 	@Override
