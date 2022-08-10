@@ -34,6 +34,7 @@ import tritechplugins.acquire.ImageDataBlock;
 import tritechplugins.acquire.TritechAcquisition;
 import tritechplugins.acquire.TritechDaqParams;
 import tritechplugins.acquire.TritechRunMode;
+import tritechplugins.acquire.swing.CatalogCheckDialog;
 import tritechplugins.acquire.swing.TritechOfflineDialog;
 import warnings.PamWarning;
 import warnings.WarningSystem;
@@ -72,6 +73,18 @@ public class TritechOffline implements TritechRunMode, OfflineDataStore {
 			}
 		});
 		menu.add(menuItem);
+		
+		menuItem = new JMenuItem("Check file catalogue");
+		menuItem.setToolTipText("Check catalogueing of glf and ecd file creating fast access index files as necessary");
+		menuItem.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				checkFileCatalogue(parentFrame);
+			}
+		});
+		menu.add(menuItem);
+		
 		return menu;
 	}
 
@@ -82,8 +95,16 @@ public class TritechOffline implements TritechRunMode, OfflineDataStore {
 			updateCatalog();
 		}
 	}
-	
-//	@Override
+
+	/**
+	 * Checks all cataloge files. 
+	 * @param parentFrame
+	 */
+	protected void checkFileCatalogue(Frame parentFrame) {
+		CatalogCheckDialog.showDialog(parentFrame, this);
+	}
+
+	//	@Override
 	public int getNumSonars() {
 		int[] ids = multiFileCatalog.getSonarIDs();
 		if (ids == null) {
@@ -353,6 +374,13 @@ public class TritechOffline implements TritechRunMode, OfflineDataStore {
 	public DatagramManager getDatagramManager() {
 		// TODO Auto-generated method stub
 		return null;
+	}
+
+	/**
+	 * @return the tritechAcquisition
+	 */
+	public TritechAcquisition getTritechAcquisition() {
+		return tritechAcquisition;
 	}
 
 
