@@ -89,6 +89,7 @@ public class CatalogCheckDialog extends PamDialog implements CancelObserver {
 	public static void showDialog(Frame parentFrame, TritechOffline tritechOffline) {
 		CatalogCheckDialog checkDialog = new CatalogCheckDialog(parentFrame, tritechOffline);
 		checkDialog.setParams();
+		checkDialog.pack();
 		checkDialog.setVisible(true);
 	}
 
