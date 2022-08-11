@@ -51,6 +51,7 @@ import detectiongrouplocaliser.DetectionGroupSummary;
 import javafx.scene.control.MenuItem;
 import tritechgemini.imagedata.FanImageData;
 import tritechgemini.imagedata.FanPicksFromData;
+import tritechgemini.imagedata.GLFImageRecord;
 import tritechgemini.imagedata.GeminiImageRecordI;
 import tritechgemini.imagedata.ImageFanMaker;
 import tritechplugins.detect.threshold.RegionDataUnit;
@@ -343,6 +344,13 @@ public class SonarImagePanel extends JPanel {
 			paintTextLine(g2d, str, xt, yt, "Gemini log file");
 			yt += lineHeight;
 		}
+		// check it's GLF
+		if (geminiImageRecord instanceof GLFImageRecord) {
+			GLFImageRecord glfRecord = (GLFImageRecord) geminiImageRecord;
+			str = String.format("%s, %s Mode", glfRecord.getDeviceType(), glfRecord.isHF() ? "HF" : "LF");
+			paintTextLine(g2d, str, xt, yt, "Device Info");
+			yt += lineHeight;
+		}
 		str = PamCalendar.formatDBDateTime(geminiImageRecord.getRecordTime(), true);
 		paintTextLine(g2d, str, xt, yt, "Record time (UTC)");
 		yt += lineHeight;
@@ -361,8 +369,10 @@ public class SonarImagePanel extends JPanel {
 		str = String.format("SoS %3.2fm/s", geminiImageRecord.getSoS());
 		paintTextLine(g2d, str, xt, yt, "Speed of sound");
 		yt += lineHeight;
-		str = String.format("Gain %d%%", geminiImageRecord.getGain());
-		paintTextLine(g2d, str, xt, yt, "Recording gain");
+		str = String.format("Gain %d%%, Range %3.1fm", geminiImageRecord.getGain(), 
+				geminiImageRecord.getMaxRange());
+		paintTextLine(g2d, str, xt, yt, "Recording gain and range");
+		
 		
 		str = getDragText();
 		if (str != null) {

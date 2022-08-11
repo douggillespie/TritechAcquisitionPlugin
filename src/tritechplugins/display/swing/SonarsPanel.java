@@ -78,8 +78,6 @@ public class SonarsPanel extends PamPanel implements DataMenuParent {
 
 	private HashMap<Integer, BackgroundRemoval> backgroundSubtractors = new HashMap<>();
 
-	private HashMap<Integer, Integer> imageIndexes = new HashMap<>();
-
 	protected SonarOverlayManager sonarOverlayManager;
 
 	private static final int NCOLOURS = 256;
@@ -179,22 +177,22 @@ public class SonarsPanel extends PamPanel implements DataMenuParent {
 //		 imageRecord);
 //		if (imageRecord != null) {
 //			sonarIndex = checkSonarIndex(imageRecord.getDeviceId());
-//		}
-		 if (sonarIndex >= numSonars) {
-			 setNumSonars(sonarIndex+1);
-		 }
+		//		}
+		if (sonarIndex >= numSonars) {
+			setNumSonars(sonarIndex+1);
+		}
 		if (sonarIndex < numSonars) {
 			SonarImagePanel imagePanel = getImagePanel(sonarIndex);
+			if (imageRecord != null && sonarsPanelParams.subtractBackground) {
+				BackgroundRemoval backgroundSub = findBackgroundSub(imageRecord.getDeviceId());
+				backgroundSub.setTimeConstant(sonarsPanelParams.backgroundTimeFactor);
+				backgroundSub.setRemovalScale(sonarsPanelParams.backgroundScale);
+				imageRecord = backgroundSub.removeBackground(imageRecord, true);
+			}
 			if (imagePanel != null) {
 				imagePanel.setImageRecord(imageRecord);
 				imagePanel.repaint();
 			}
-//			if (imageRecord != null && sonarsPanelParams.subtractBackground) {
-//				BackgroundRemoval backgroundSub = findBackgroundSub(imageRecord.getDeviceId());
-//				backgroundSub.setTimeConstant(sonarsPanelParams.backgroundTimeFactor);
-//				backgroundSub.setRemovalScale(sonarsPanelParams.backgroundScale);
-//				imageRecord = backgroundSub.removeBackground(imageRecord, true);
-//			}
 //			prepareSonarImage(sonarIndex, imageRecord);
 //			if (imageRecord != null && PamController.getInstance().getRunMode() == PamController.RUN_PAMVIEW) {
 //				/*
@@ -207,22 +205,6 @@ public class SonarsPanel extends PamPanel implements DataMenuParent {
 		}
 	}
 
-	/**
-	 * Gets an index for each sonar, allowing for new ones coming online after
-	 * start. Will update number of plots.
-	 * 
-	 * @param deviceId device unique id.
-	 * @return 0,1, etc. index for image drawing.
-	 */
-	private int checkSonarIndex(int deviceId) {
-		Integer ind = imageIndexes.get(deviceId);
-		if (ind == null) {
-			ind = imageIndexes.size();
-			imageIndexes.put(deviceId, ind);
-			setNumSonars(imageIndexes.size());
-		}
-		return ind;
-	}
 
 	/**
 	 * Find background subtractor for device, creating if necessary.
@@ -264,12 +246,13 @@ public class SonarsPanel extends PamPanel implements DataMenuParent {
 //			if (imageRec == null) {
 //				System.out.println("No image for sonar " + sonarIDs[i]);
 //			}
-			SonarImagePanel imagePanel = getImagePanel(i);
-			if (imagePanel != null) {
-				getImagePanel(i).setImageRecord(imageRec);
-			}
+			setImageRecord(i, imageRec);
+//			SonarImagePanel imagePanel = getImagePanel(i);
+//			if (imagePanel != null) {
+//				getImagePanel(i).setImageRecord(imageRec);
+//			}
 		}
-		imagesPanel.repaint();
+//		imagesPanel.repaint();
 		geminiCatalog.freeImageData(valueMillis, 10000);
 	}
 

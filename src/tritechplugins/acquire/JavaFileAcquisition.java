@@ -319,5 +319,11 @@ public class JavaFileAcquisition extends TritechDaqSystem  implements CatalogStr
 		// TODO Auto-generated method stub
 		
 	}
+
+	@Override
+	protected void newSonar(SonarStatusData sonarData) {
+		// TODO Auto-generated method stub
+		
+	}
 	
 }

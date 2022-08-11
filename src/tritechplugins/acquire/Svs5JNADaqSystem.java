@@ -11,6 +11,7 @@ import geminisdk.Svs5ErrorType;
 import geminisdk.Svs5Exception;
 import geminisdk.Svs5StandardCallback;
 import geminisdk.GenesisSerialiser.GlfLib;
+import geminisdk.structures.ChirpMode;
 import geminisdk.structures.GemRecord;
 import geminisdk.structures.GeminiGain;
 import geminisdk.structures.GeminiRange;
@@ -242,6 +243,19 @@ abstract public class Svs5JNADaqSystem extends TritechDaqSystem {
 			throw new Svs5Exception(err);
 		}
 		return rangeObj.range;
+	}
+	
+	public int setChirpMode(int chipMode, int deviceId) throws Svs5Exception {
+
+		if (svs5Commands == null) {
+			return 0;
+		}
+		ChirpMode chirpMode = new ChirpMode(ChirpMode.CHIRP_AUTO);
+		int err = svs5Commands.setConfiguration(chirpMode, deviceId);
+		if (err != Svs5ErrorType.SVS5_SEQUENCER_STATUS_OK) {
+			throw new Svs5Exception(err);
+		}
+		return err;
 	}
 	
 	public int setGain(int gain, int deviceId) throws Svs5Exception {

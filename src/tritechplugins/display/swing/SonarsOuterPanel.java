@@ -1,6 +1,7 @@
 package tritechplugins.display.swing;
 
 import java.awt.BorderLayout;
+import java.util.HashMap;
 import java.util.List;
 
 import PamController.PamController;
@@ -61,6 +62,8 @@ public class SonarsOuterPanel implements ConfigurationObserver {
 	private GeminiTaskBar geminiTaskBar;
 	
 	private TritechDaqSystem currentDaqSystem;
+
+	private HashMap<Integer, Integer> imageIndexes = new HashMap<>();
 	
 	private SonarDisplayDecoration nwDecoration, neDecoration, swDecoration, seDecoration, tbDecoration;
 
@@ -275,11 +278,28 @@ public class SonarsOuterPanel implements ConfigurationObserver {
 		public void addData(PamObservable observable, PamDataUnit pamDataUnit) {
 			ImageDataUnit imageDataUnit = (ImageDataUnit) pamDataUnit;
 //			sonarsPanel.setNumSonars(tritechAcquisition.get);
-			sonarsPanel.setImageRecord(0, imageDataUnit.getGeminiImage());
+			int index = getSonarIndex(imageDataUnit.getGeminiImage().getDeviceId());
+			sonarsPanel.setImageRecord(index, imageDataUnit.getGeminiImage());
 		}
 
 	}
 
+	/**
+	 * Gets an index for each sonar, allowing for new ones coming online after
+	 * start. Will update number of plots.
+	 * 
+	 * @param deviceId device unique id.
+	 * @return 0,1, etc. index for image drawing.
+	 */
+	private int getSonarIndex(int deviceId) {
+		Integer ind = imageIndexes.get(deviceId);
+		if (ind == null) {
+			ind = imageIndexes.size();
+			imageIndexes.put(deviceId, ind);
+		}
+		return ind;
+	}
+	
 	@Override
 	public void configurationChanged() {
 		sortCornerDecorations();

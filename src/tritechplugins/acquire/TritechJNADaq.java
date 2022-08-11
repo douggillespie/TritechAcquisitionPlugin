@@ -194,6 +194,24 @@ public class TritechJNADaq extends Svs5JNADaqSystem {
 	}
 
 
+	@Override
+	protected void newSonar(SonarStatusData sonarData) {
+		/**
+		 * Called on first status data for each sonar so can check it's
+		 * set up correctly. 
+		 */
+		TritechDaqParams params = tritechAcquisition.getDaqParams();
+		try {
+			setRange(params.getRange(), sonarData.getDeviceId());
+			setGain(params.getGain(), sonarData.getDeviceId());
+			setChirpMode(params.getChirpMode(), sonarData.getDeviceId());
+		} catch (Svs5Exception e) {
+			e.printStackTrace();
+		}
+		
+		
+	}
+
 	public void pamClose() {
 		// only want to run this when really cleaning up the process. 
 		long ans2 = gSerialiser.svs5StopSvs5();
