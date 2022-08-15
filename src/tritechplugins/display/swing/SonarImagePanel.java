@@ -155,6 +155,9 @@ public class SonarImagePanel extends JPanel {
 		double maxRange = 50;
 		Rectangle panelRectangle = new Rectangle(0,0,getWidth(),getHeight());
 		Rectangle imageBounds = panelRectangle;
+		if (!isViewer && fanImage == null) {
+			makeFinalImage();
+		}
 		if (fanImage != null) {
 			maxRange = fanImage.getFanData().getGeminiRecord().getMaxRange();
 			BufferedImage bufIm = fanImage.getBufferedImage();
@@ -185,6 +188,10 @@ public class SonarImagePanel extends JPanel {
 		markOverlayDraw.drawDataUnit(g2d, null, xyProjector);
 		
 		Point textPoint = new Point(g.getFontMetrics().charWidth(' '),0);
+		if (PamController.getInstance().getRunMode() == PamController.RUN_NORMAL && panelIndex == 0) {
+			textPoint.x = getWidth()*3/4;
+			textPoint.y = getHeight()*3/4;
+		}
 		paintTextinformation(g, textPoint, imageRecord);
 	}
 	
@@ -490,7 +497,8 @@ public class SonarImagePanel extends JPanel {
 	 * Set the gemini record. In viewer mode we create the image
 	 * before repainting so that paint runs as fast as and we also 
 	 * block the scrolling thread. In normal mode we don't make 
-	 * the image and paint will get one when it can. 
+	 * the image and paint will get one when it can. In normal mode it's
+	 * possible that not every frame will get painted. 
 	 * @param imageRec
 	 */
 	public void setImageRecord(GeminiImageRecordI imageRec) {
@@ -500,10 +508,15 @@ public class SonarImagePanel extends JPanel {
 			return;
 		}
 		setSonarId(imageRecord.getDeviceId());
-//		if (isViewer) {
+		if (isViewer) {
 			makeFinalImage();
 			repaint();
-//		}
+		}
+		else {
+			fanImageData = null;
+			fanImage = null;
+			repaint(10);
+		}
 	}
 	
 	/**

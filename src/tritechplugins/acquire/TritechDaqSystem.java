@@ -88,6 +88,7 @@ public abstract class TritechDaqSystem {
 			boolean isNewSonar = sonarData == null;
 			
 			sonarData = findSonarStatusData(statusPacket.m_deviceID);
+			sonarData.setStatusPacket(statusPacket);
 			
 			if (isNewSonar) {
 				newSonar(sonarData);

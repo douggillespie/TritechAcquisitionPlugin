@@ -254,6 +254,7 @@ public class SonarsPanel extends PamPanel implements DataMenuParent {
 		}
 //		imagesPanel.repaint();
 		geminiCatalog.freeImageData(valueMillis, 10000);
+		repaint(10);
 	}
 
 	/**
@@ -622,6 +623,11 @@ public class SonarsPanel extends PamPanel implements DataMenuParent {
 		@Override
 		public String getObserverName() {
 			return getDisplayName();
+		}
+
+		@Override
+		public long getRequiredDataHistory(PamObservable observable, Object arg) {
+			return (long) (getSonarsPanelParams().tailTime * 1000);
 		}
 		
 	}

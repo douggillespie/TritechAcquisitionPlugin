@@ -205,7 +205,15 @@ public class TritechJNADaq extends Svs5JNADaqSystem {
 			setRange(params.getRange(), sonarData.getDeviceId());
 			setGain(params.getGain(), sonarData.getDeviceId());
 			setChirpMode(params.getChirpMode(), sonarData.getDeviceId());
+			svs5Commands.setBoolCommand(GeminiStructure.SVS5_CONFIG_HIGH_RESOLUTION, false, sonarData.getDeviceId());
+			RangeFrequencyConfig rfConfig = new RangeFrequencyConfig(RangeFrequencyConfig.FREQUENCY_LOW);
+			int err = svs5Commands.setConfiguration(rfConfig, sonarData.getDeviceId());
+			System.out.printf("Error %d from set rangefrequencyconfig\n", err);
+			
 		} catch (Svs5Exception e) {
+			e.printStackTrace();
+		}
+		catch (Exception e) {
 			e.printStackTrace();
 		}
 		
