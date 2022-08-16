@@ -129,4 +129,10 @@ public class SonarsStatusPanel implements SonarStatusObserver, SonarDisplayDecor
 		tritechDaqProcess.removeStatusObserver(this);
 	}
 
+	@Override
+	public void updateQueueSize(int queueSize) {
+		// TODO Auto-generated method stub
+		
+	}
+
 }

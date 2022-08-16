@@ -138,4 +138,10 @@ public class PlaybackTaskBar implements GeminiTaskBar, SonarStatusObserver {
 		
 	}
 
+	@Override
+	public void updateQueueSize(int queueSize) {
+		// TODO Auto-generated method stub
+		
+	}
+
 }

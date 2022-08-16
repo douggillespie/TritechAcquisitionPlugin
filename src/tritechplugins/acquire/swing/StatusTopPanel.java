@@ -24,7 +24,7 @@ public class StatusTopPanel implements SonarStatusObserver {
 	private JPanel topPanel;
 	private InfoStrip versionStrip;
 	private InfoStrip errorStrip;
-	private InfoStrip frameRate;
+	private InfoStrip frameRate, queueSize;;
 	private boolean haveVersion = false;
 	private Svs5JNADaqSystem svs5DaqSystem;
 
@@ -41,6 +41,7 @@ public class StatusTopPanel implements SonarStatusObserver {
 		versionStrip = InfoStrip.addInfoStrip("svs5 Version", topPanel, c);
 		errorStrip = InfoStrip.addInfoStrip("Error", topPanel, c);
 		frameRate = InfoStrip.addInfoStrip("Frame Rate", topPanel, c);
+		queueSize = InfoStrip.addInfoStrip("Svs5 queue size", topPanel, c);
 		
 		tritechDaqProcess.addStatusObserver(this);
 		
@@ -68,6 +69,10 @@ public class StatusTopPanel implements SonarStatusObserver {
 		}
 	}
 	
+	public void updateQueueSize(int queueLen) {
+		queueSize.setText(String.format("%d items", queueLen));
+	}
+	
 	public void sayVersion() {
 		String v = svs5DaqSystem.getLibVersion();
 		if (v == null) {
@@ -82,6 +87,7 @@ public class StatusTopPanel implements SonarStatusObserver {
 
 	@Override
 	public void updateFrameRate(int frameRate) {
+//		String str = String.format("%d fps, Queue %d items", frameRate, )
 		this.frameRate.setText(String.format("%d fps", frameRate));
 	}
 

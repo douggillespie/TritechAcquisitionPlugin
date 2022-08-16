@@ -258,6 +258,13 @@ public class TritechDaqProcess extends PamProcess implements TritechRunMode {
 		}
 	}
 	
+	public void updateQueueSize(int svs5QueueSize) {
+		for (SonarStatusObserver obs : statusObservers) {
+			obs.updateQueueSize(svs5QueueSize);
+		}
+		
+	}
+
 	public void updateLoggerPlayback(LoggerPlaybackUpdate loggerPlaybackUpdate) {
 		for (SonarStatusObserver obs : statusObservers) {
 			obs.updateLoggerPlayback(loggerPlaybackUpdate);

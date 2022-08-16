@@ -369,9 +369,18 @@ public class SonarImagePanel extends JPanel {
 		paintTextLine(g2d, str, xt, yt, "Number of range and bearing bins");
 		yt += lineHeight;
 		long paintTime = System.nanoTime()-paintStart;
-		str = String.format("L=%3.1fms; T=%3.1fms; P=%3.1fms", geminiImageRecord.getLoadTime() / 1000000.,
-				imageTime / 1000000., paintTime / 1000000.);
-		paintTextLine(g2d, str, xt, yt, "L=load, T=transform, P=paint time");
+		String tip;
+		if (isViewer) {
+			str = String.format("L=%3.1fms; T=%3.1fms; P=%3.1fms", geminiImageRecord.getLoadTime() / 1000000.,
+					imageTime / 1000000., paintTime / 1000000.);
+			tip = "L=load time, T=transform time, P=paint time";
+		}
+		else {
+			str = String.format("T=%3.1fms; P=%3.1fms", 
+					imageTime / 1000000., paintTime / 1000000.);
+			tip = "T=transform time, P=paint time";
+		}
+		paintTextLine(g2d, str, xt, yt, tip);
 		yt += lineHeight;
 		str = String.format("SoS %3.2fm/s", geminiImageRecord.getSoS());
 		paintTextLine(g2d, str, xt, yt, "Speed of sound");

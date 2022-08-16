@@ -78,6 +78,14 @@ abstract public class Svs5JNADaqSystem extends TritechDaqSystem {
 
 	}
 	
+	/**
+	 * 
+	 * @return The SVS5 callback queue size.
+	 */
+	public int getSvs5QueueSize() {
+		return geminiCallback.getSvs5QueueSize();
+	}
+	
 	@Override
 	protected void uninitialise() {
 		if (gSerialiser != null) {
@@ -97,6 +105,7 @@ abstract public class Svs5JNADaqSystem extends TritechDaqSystem {
 		@Override
 		public void setFrameRate(int framesPerSecond) {
 			tritechProcess.updateFrameRate(framesPerSecond);
+			tritechProcess.updateQueueSize(getSvs5QueueSize());
 		}
 
 		int nImages = 0;
