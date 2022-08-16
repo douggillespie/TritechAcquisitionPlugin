@@ -361,9 +361,15 @@ public class SonarImagePanel extends JPanel {
 		str = PamCalendar.formatDBDateTime(geminiImageRecord.getRecordTime(), true);
 		paintTextLine(g2d, str, xt, yt, "Record time (UTC)");
 		yt += lineHeight;
-		str = String.format("Sonar %d, record %d", geminiImageRecord.getDeviceId(),
-				geminiImageRecord.getRecordNumber());
-		paintTextLine(g2d, str, xt, yt, "Sonar ID and record index");
+//		if (isViewer) {
+//			str = String.format("Sonar %d, record %d", geminiImageRecord.getDeviceId(),
+//					geminiImageRecord.getRecordNumber());
+//		}
+//		else {
+			str = String.format("Sonar %d, rec %d, chirp %s", geminiImageRecord.getDeviceId(),
+					geminiImageRecord.getRecordNumber(), geminiImageRecord.getChirp() > 0 ? "on" : "off");
+//		}
+		paintTextLine(g2d, str, xt, yt, "Sonar ID, record index and chirp mode");
 		yt += lineHeight;
 		str = String.format("nRange %d, nAngle %d", geminiImageRecord.getnRange(), geminiImageRecord.getnBeam());
 		paintTextLine(g2d, str, xt, yt, "Number of range and bearing bins");

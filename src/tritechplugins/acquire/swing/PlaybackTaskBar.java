@@ -109,7 +109,7 @@ public class PlaybackTaskBar implements GeminiTaskBar, SonarStatusObserver {
 	}
 
 	@Override
-	public void updateFrameRate(int frameRate) {
+	public void updateFrameRate(int frameRate, double trueFPS) {
 		// TODO Auto-generated method stub
 		
 	}

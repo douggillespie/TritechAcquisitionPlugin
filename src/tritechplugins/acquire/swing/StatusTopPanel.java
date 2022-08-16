@@ -86,9 +86,9 @@ public class StatusTopPanel implements SonarStatusObserver {
 	}
 
 	@Override
-	public void updateFrameRate(int frameRate) {
+	public void updateFrameRate(int frameRate, double trueFPS) {
 //		String str = String.format("%d fps, Queue %d items", frameRate, )
-		this.frameRate.setText(String.format("%d fps", frameRate));
+		this.frameRate.setText(String.format("%2d/%4.1f fps", frameRate, trueFPS));
 	}
 
 	@Override

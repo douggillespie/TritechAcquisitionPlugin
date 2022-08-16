@@ -35,6 +35,10 @@ abstract public class Svs5JNADaqSystem extends TritechDaqSystem {
 	
 	protected Svs5Commands svs5Commands;
 
+	private String lastFileName = "";
+	
+	private int[] recordIndexes = new int[4];
+
 	public Svs5JNADaqSystem(TritechAcquisition tritechAcquisition, TritechDaqProcess tritechProcess) {
 		super(tritechAcquisition, tritechProcess);
 		geminiCallback = new GeminiCallback();
@@ -103,8 +107,8 @@ abstract public class Svs5JNADaqSystem extends TritechDaqSystem {
 		int frameCalls = 0;
 		
 		@Override
-		public void setFrameRate(int framesPerSecond) {
-			tritechProcess.updateFrameRate(framesPerSecond);
+		public void setFrameRate(int framesPerSecond, double trueFPS) {
+			tritechProcess.updateFrameRate(framesPerSecond, trueFPS);
 			tritechProcess.updateQueueSize(getSvs5QueueSize());
 		}
 
@@ -119,6 +123,7 @@ abstract public class Svs5JNADaqSystem extends TritechDaqSystem {
 //				System.out.printf("Unable to find sonar data for id %d\n", glfImage.genericHeader.tm_deviceId);
 			}
 			int chan = glfImage.getSonarIndex();
+			glfImage.recordIndex = recordIndexes[chan]++;;
 			long timeMS = glfImage.getRecordTime();
 			if (glfImage instanceof GeminiImageRecordI) {
 				totalFrames++;
@@ -139,13 +144,20 @@ abstract public class Svs5JNADaqSystem extends TritechDaqSystem {
 			if (sonarStatusData != null) {
 				tritechProcess.updateStatusData(sonarStatusData);
 			}
-
 		}
 
 		@Override
 		public void recUpdateMessage(OutputFileInfo outputFileInfo) {
 //			System.out.printf("Record update message \"%s\" nREc %d, percentDisk %3.1f\n", outputFileInfo.getM_strFileName(),
 //					outputFileInfo.getM_uiNumberOfRecords(), outputFileInfo.getM_percentDiskSpaceFree());
+			if (outputFileInfo.getM_strFileName() != null) {
+				if (outputFileInfo.getM_strFileName().equals(lastFileName) == false) {
+					lastFileName = outputFileInfo.getM_strFileName();
+					for (int i = 0; i < recordIndexes.length; i++) {
+						recordIndexes[i] = 0;
+					}
+				}
+			}
 			tritechProcess.updateFileName(outputFileInfo);
 		}
 

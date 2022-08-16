@@ -89,8 +89,13 @@ public class TritechJNADaq extends Svs5JNADaqSystem {
 			//		err += svs5Commands.setConfiguration(range, 1);
 			System.out.println("setRange returned " + err);
 			err = setRange(tritechAcquisition.getDaqParams().getRange(), 0);
+			
+//			PingMode pingMode = new PingMode(true, (short) 0);
+			err = svs5Commands.setPingMode(true, (short) 5000);
+			System.out.println("setConfiguration pingMode returned " + err);
+			
 
-			ChirpMode chirpMode = new ChirpMode(ChirpMode.CHIRP_AUTO);
+			ChirpMode chirpMode = new ChirpMode(tritechAcquisition.getDaqParams().getChirpMode());
 			err = svs5Commands.setConfiguration(chirpMode, 0);
 			System.out.println("setConfiguration chirpMode returned " + err);
 

@@ -37,6 +37,9 @@ public class SonarStatusPanel {
 	private InfoStrip firmware;
 	private InfoStrip lastUpdate;
 	
+	private long lastUpdateTime;
+	private int totalFrameCount;
+	
 
 	public SonarStatusPanel(TritechAcquisition tritechAcquisition, int sonarId) {
 		this.tritechAcquisition = tritechAcquisition;
@@ -80,11 +83,33 @@ public class SonarStatusPanel {
 	public int m_droppedPacketCount;
 	public int m_unknownPacketCount;
 		 */
+		double badRate = 0;
+		long now = System.currentTimeMillis();
+		if (lastUpdateTime == 0) {
+			lastUpdateTime = System.currentTimeMillis();
+		}
+		else {// if (now - lastUpdateTime > 100) {
+			int newFrames = sonarStatusData.getTotalImages() - totalFrameCount;
+//			if (newFrames < 2) {
+				badRate = newFrames * 1000. / (double) (now-lastUpdateTime);
+//			}
+			totalFrameCount = sonarStatusData.getTotalImages();
+			lastUpdateTime = now;
+		}
+		
+		
 		String pxtText = String.format("%d/%d/%d/%d", statusPacket.m_packetCount, statusPacket.m_droppedPacketCount,
 				statusPacket.m_resentPacketCount, statusPacket.m_lostLineCount);
 		rxPackets.setText(pxtText);
 		ipStrip.setIpAddr(statusPacket.m_sonarAltIp);
-		linkquality.setText(String.format("%d%%", statusPacket.m_linkQuality));
+		String lq;
+		if (badRate < 2) {
+			lq = String.format("%d%% ERROR: %3.0ffps", statusPacket.m_linkQuality, badRate);
+		}
+		else {
+			lq = String.format("%d%%", statusPacket.m_linkQuality);
+		}
+		linkquality.setText(lq);
 //		subnetStrip.setIpAddr(statusPacket.m_subNetMask);
 //		pcipStrip.setIpAddr(statusPacket.m_surfaceIp);
 		String mac = String.format("%s:%s:%s", formatMacBit(statusPacket.m_macAddress1), formatMacBit(statusPacket.m_macAddress3), formatMacBit(statusPacket.m_macAddress3));

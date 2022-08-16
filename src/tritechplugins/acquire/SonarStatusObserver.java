@@ -11,7 +11,7 @@ public interface SonarStatusObserver {
 	
 	public void updateQueueSize(int queueSize);
 	
-	public void updateFrameRate(int frameRate);
+	public void updateFrameRate(int frameRate, double trueFPS);
 	
 	public void updateOutputFileInfo(OutputFileInfo outputFileInfo);
 	

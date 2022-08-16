@@ -29,6 +29,7 @@ public class TritechDaqProcess extends PamProcess implements TritechRunMode {
 	private ImageDataBlock imageDataBlock;
 	private TritechAcquisition tritechAcquisition;
 	private boolean isAcquire;
+		
 	
 	private ArrayList<SonarStatusObserver> statusObservers = new ArrayList();
 	
@@ -241,6 +242,8 @@ public class TritechDaqProcess extends PamProcess implements TritechRunMode {
 	 * @param sonarStatusData
 	 */
 	public void updateStatusData(SonarStatusData sonarStatusData) {
+		// run some checks on the status to see if it looks OK. 
+		
 		for (SonarStatusObserver obs : statusObservers) {
 			obs.updateStatus(sonarStatusData);
 		}
@@ -252,9 +255,9 @@ public class TritechDaqProcess extends PamProcess implements TritechRunMode {
 		}		
 	}
 
-	public void updateFrameRate(int frameRate) {
+	public void updateFrameRate(int frameRate, double trueFPS) {
 		for (SonarStatusObserver obs : statusObservers) {
-			obs.updateFrameRate(frameRate);
+			obs.updateFrameRate(frameRate, trueFPS);
 		}
 	}
 	
