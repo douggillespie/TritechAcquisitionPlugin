@@ -104,10 +104,10 @@ public class SonarStatusPanel {
 		ipStrip.setIpAddr(statusPacket.m_sonarAltIp);
 		String lq;
 		if (badRate < 2) {
-			lq = String.format("%d%% ERROR: %3.0ffps", statusPacket.m_linkQuality, badRate);
+			lq = String.format("%d%% ERROR: %3.0f fps", statusPacket.m_linkQuality, badRate);
 		}
 		else {
-			lq = String.format("%d%%", statusPacket.m_linkQuality);
+			lq = String.format("%d%% %3.0f fps", statusPacket.m_linkQuality, badRate);
 		}
 		linkquality.setText(lq);
 //		subnetStrip.setIpAddr(statusPacket.m_subNetMask);

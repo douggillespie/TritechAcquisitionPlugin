@@ -65,10 +65,10 @@ public class TritechJNADaq extends Svs5JNADaqSystem {
 		geminiCallback.setPlaybackMode(false);
 
 		int waitCount = 0;
-		while (deviceInfo.size() < 1) {
+		while (deviceInfo.size() < 2) {
 			System.out.println("Waiting for devices ...");
 			try {
-				Thread.sleep(5);
+				Thread.sleep(20);
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -78,6 +78,11 @@ public class TritechJNADaq extends Svs5JNADaqSystem {
 				return false;
 			}
 		}
+		
+		return prepareDevice(0);
+		
+	}
+	private boolean prepareDevice(int deviceId) {
 		int err = 0;
 		try {
 			if (tritechAcquisition.getDaqParams().getOfflineFileFolder() != null) {
@@ -88,7 +93,7 @@ public class TritechJNADaq extends Svs5JNADaqSystem {
 			err = svs5Commands.setConfiguration(range, 0);
 			//		err += svs5Commands.setConfiguration(range, 1);
 			System.out.println("setRange returned " + err);
-			err = setRange(tritechAcquisition.getDaqParams().getRange(), 0);
+			err = setRange(tritechAcquisition.getDaqParams().getRange(), deviceId);
 			
 //			PingMode pingMode = new PingMode(true, (short) 0);
 			err = svs5Commands.setPingMode(true, (short) 5000);
@@ -96,7 +101,7 @@ public class TritechJNADaq extends Svs5JNADaqSystem {
 			
 
 			ChirpMode chirpMode = new ChirpMode(tritechAcquisition.getDaqParams().getChirpMode());
-			err = svs5Commands.setConfiguration(chirpMode, 0);
+			err = svs5Commands.setConfiguration(chirpMode, deviceId);
 			System.out.println("setConfiguration chirpMode returned " + err);
 
 
@@ -122,7 +127,7 @@ public class TritechJNADaq extends Svs5JNADaqSystem {
 			//		System.out.printf("Gemini file location is \"%s\"\n", fileLoc);
 
 			ConfigOnline cOnline = new ConfigOnline(true);
-			err = svs5Commands.setConfiguration(cOnline, 0);
+			err = svs5Commands.setConfiguration(cOnline, deviceId);
 			//		cOnline.value = false;
 			//		err += svs5Commands.setConfiguration(cOnline, 0);
 			System.out.println("setOnline returned " + err);
@@ -205,22 +210,23 @@ public class TritechJNADaq extends Svs5JNADaqSystem {
 		 * Called on first status data for each sonar so can check it's
 		 * set up correctly. 
 		 */
-		TritechDaqParams params = tritechAcquisition.getDaqParams();
-		try {
-			setRange(params.getRange(), sonarData.getDeviceId());
-			setGain(params.getGain(), sonarData.getDeviceId());
-			setChirpMode(params.getChirpMode(), sonarData.getDeviceId());
-			svs5Commands.setBoolCommand(GeminiStructure.SVS5_CONFIG_HIGH_RESOLUTION, false, sonarData.getDeviceId());
-			RangeFrequencyConfig rfConfig = new RangeFrequencyConfig(RangeFrequencyConfig.FREQUENCY_LOW);
-			int err = svs5Commands.setConfiguration(rfConfig, sonarData.getDeviceId());
-			System.out.printf("Error %d from set rangefrequencyconfig\n", err);
-			
-		} catch (Svs5Exception e) {
-			e.printStackTrace();
-		}
-		catch (Exception e) {
-			e.printStackTrace();
-		}
+//		prepareDevice(sonarData.getDeviceId());
+//		TritechDaqParams params = tritechAcquisition.getDaqParams();
+//		try {
+//			setRange(params.getRange(), sonarData.getDeviceId());
+//			setGain(params.getGain(), sonarData.getDeviceId());
+//			setChirpMode(params.getChirpMode(), sonarData.getDeviceId());
+//			svs5Commands.setBoolCommand(GeminiStructure.SVS5_CONFIG_HIGH_RESOLUTION, false, sonarData.getDeviceId());
+//			RangeFrequencyConfig rfConfig = new RangeFrequencyConfig(RangeFrequencyConfig.FREQUENCY_LOW);
+//			int err = svs5Commands.setConfiguration(rfConfig, sonarData.getDeviceId());
+//			System.out.printf("Error %d from set rangefrequencyconfig\n", err);
+//			
+//		} catch (Svs5Exception e) {
+//			e.printStackTrace();
+//		}
+//		catch (Exception e) {
+//			e.printStackTrace();
+//		}
 		
 		
 	}

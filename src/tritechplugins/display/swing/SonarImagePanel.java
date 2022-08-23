@@ -144,6 +144,9 @@ public class SonarImagePanel extends JPanel {
 
 		paintStart = System.nanoTime();
 		
+		long currentTime = sonarsPanel.getCurrentScrollTime();
+		
+		
 		Graphics2D g2d = (Graphics2D) g;
 		g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 		g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
@@ -164,6 +167,7 @@ public class SonarImagePanel extends JPanel {
 			if (bufIm != null) {
 				imageBounds = new Rectangle(0,0,bufIm.getWidth(),bufIm.getHeight());
 			}
+			currentTime = fanImage.getFanData().getGeminiRecord().getRecordTime();
 		}
 		sonarZoomTransform = new SonarZoomTransform(maxRange, panelRectangle, imageBounds, 
 				sonarsPanel.getZoomFactor(), sonarsPanel.getZoomCentre(),
@@ -180,7 +184,7 @@ public class SonarImagePanel extends JPanel {
 			}
 		}
 		else {
-			paintDetectorData(g, sonarsPanel.getCurrentScrollTime());
+			paintDetectorData(g, currentTime);
 		}
 		
 		paintMouseDragLine(g);
@@ -274,6 +278,7 @@ public class SonarImagePanel extends JPanel {
 			tailStart = (long) (tailEnd - sonarsPanel.getSonarsPanelParams().tailTime * 1000.);
 			break;
 		}
+//		System.out.printf("Paint tail from %s to %s\n", PamCalendar.formatDBDateTime(tailStart), PamCalendar.formatDBDateTime(tailEnd));
 		for (PamDataUnit aUnit : dataCopy) {
 			if (aUnit instanceof RegionDataUnit) {
 				if (((RegionDataUnit) aUnit).getSonarId() != sonarId) {

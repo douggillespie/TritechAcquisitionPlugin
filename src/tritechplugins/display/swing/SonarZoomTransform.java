@@ -280,9 +280,9 @@ public class SonarZoomTransform {
 	public Coordinate3d imageMetresToScreen(double imageMetresX, double imageMetresY) {
 		Coordinate3d imagePix = metresToImagePix(imageMetresX, imageMetresY);
 		Coordinate3d screen = imagePixelsToScreen(imagePix.x, imagePix.y);
-		if (isFlip) {
-			screen.x = screenRectangle.getX()*2+screenRectangle.getWidth() - screen.x;
-		}
+//		if (isFlip) {
+//			screen.x = screenRectangle.getX()*2+screenRectangle.getWidth() - screen.x;
+//		}
 		return screen;
 	}
 	
@@ -298,9 +298,9 @@ public class SonarZoomTransform {
 //			imagePixX = -imagePixX;
 //		}
 		double x = (imagePixX - fanImageRectangle.getWidth()/2.)*metresPerPix;
-		if (isFlip) {
-			x = -x;
-		}
+//		if (isFlip) {
+//			x = -x;
+//		}
 		double y = (imagePixY) * metresPerPix;
 //		System.out.printf("Image metres x %3.1f, y %3.1f\n", x, y);
 		return new Coordinate3d(x, y);
@@ -318,7 +318,7 @@ public class SonarZoomTransform {
 //			imageMetresY -= zoomCentre.y;
 //		}
 		double metresPerPix = maximumRange / fanImageRectangle.getHeight();
-		if (!isFlip) {
+		if (isFlip) {
 			imageMetresX = -imageMetresX;
 		}
 		double x = fanImageRectangle.getWidth()/2. + imageMetresX / metresPerPix;
