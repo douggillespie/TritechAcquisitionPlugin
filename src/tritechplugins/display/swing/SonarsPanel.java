@@ -294,17 +294,10 @@ public class SonarsPanel extends PamPanel implements DataMenuParent {
 	 * remake the images from fan data, e.g. after a colour map change.
 	 * All this really does is set the images to null and they will get
 	 * rebuilt in the paint thread when it runs. 
+	 * Also kill off the data overlays. 
 	 */
 	public void remakeImages() {
-//		for (int i = 0; i < imageFanData.length; i++) {
-//			imageFanData[i] = null;
-//			images[i] = null;
-//			//			if (imageFanData != null) {
-//			//				FanDataImage fanImage = new FanDataImage(imageFanData[i], colourArray, false, sonarsPanelParams.displayGain);
-//			//				images[i] = fanImage.getBufferedImage();
-//			//			}
-//		}
-//		clearDataOverlays();
+		clearDataOverlays();
 		repaint();
 	}
 
@@ -477,7 +470,9 @@ public class SonarsPanel extends PamPanel implements DataMenuParent {
 		if (zoomCentre == null) {
 			zoomCentre = new Coordinate3d(0, 0);
 		}
-		double flip = sonarsPanelParams.flipLeftRight ? -1 : 1;
+		// flipping all seems taken care of elsewhere now 
+//		double flip = sonarsPanelParams.flipLeftRight ? -1 : 1;
+		double flip = 1;
 		double mouseX = sonarPos.getX() * flip;
 		double mouseY = sonarPos.getY();
 		double dx = mouseX - zoomCentre.x;
