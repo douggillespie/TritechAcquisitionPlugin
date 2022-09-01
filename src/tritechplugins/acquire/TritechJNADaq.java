@@ -84,6 +84,7 @@ public class TritechJNADaq extends Svs5JNADaqSystem {
 	}
 	private boolean prepareDevice(int deviceId) {
 		int err = 0;
+//		if (1>0) return false;
 		try {
 			if (tritechAcquisition.getDaqParams().getOfflineFileFolder() != null) {
 				setFileLocation(tritechAcquisition.getDaqParams().getOfflineFileFolder());
@@ -138,6 +139,9 @@ public class TritechJNADaq extends Svs5JNADaqSystem {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 			return false;
+		} catch (Error e) {
+			System.out.println("Error calling SvS5 startup functions:" + e.getMessage());
+			e.printStackTrace();
 		}
 		return true;
 	}

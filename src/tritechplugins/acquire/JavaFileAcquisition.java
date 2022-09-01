@@ -290,6 +290,11 @@ public class JavaFileAcquisition extends TritechDaqSystem  implements CatalogStr
 		public SonarDisplayDecoration getTopBar() {
 			return new JavaFileStatusBar(tritechAcquisition, JavaFileAcquisition.this);
 		}
+
+//		@Override
+//		public SonarDisplayDecoration getNorthEastInset() {
+//			return new 
+//		}
 		
 	}
 	

@@ -655,5 +655,18 @@ public class SonarsPanel extends PamPanel implements DataMenuParent {
 		
 	}
 
+	/**
+	 * Get the images currently displayed. 
+	 * @return 
+	 */
+	public GeminiImageRecordI[] getCurrentImages() {
+		int n = getNumImagePanels();
+		GeminiImageRecordI[] currentRecords = new GeminiImageRecordI[n];
+		for (int i = 0; i < n; i++) {
+			currentRecords[i] = getImagePanel(i).getImageRecord();
+		}
+		return currentRecords;
+	}
+
 
 }

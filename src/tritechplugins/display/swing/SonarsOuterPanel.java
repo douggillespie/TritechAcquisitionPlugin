@@ -27,6 +27,7 @@ import tritechplugins.acquire.TritechAcquisition;
 import tritechplugins.acquire.TritechDaqParams;
 import tritechplugins.acquire.TritechDaqSystem;
 import tritechplugins.acquire.offline.TritechOffline;
+import tritechplugins.acquire.swing.CornerPanel;
 import tritechplugins.acquire.swing.DaqControlPanel;
 import tritechplugins.acquire.swing.SonarsStatusPanel;
 import tritechplugins.detect.track.TrackLinkDataUnit;
@@ -81,7 +82,10 @@ public class SonarsOuterPanel implements ConfigurationObserver {
 		tritechAcquisition.addConfigurationObserver(this);
 
 		if (tritechAcquisition.isViewer()) {
-			viewerSlider = new PamScrollSlider(nameProvider.getUnitName(), PamScrollSlider.HORIZONTAL, 5, 600000, true);
+			FineScrollControl fsc = new FineScrollControl(this);
+			sonarsPanel.add(fsc.getComponent(), new CornerLayoutContraint(CornerLayoutContraint.FIRST_LINE_END));
+			
+			viewerSlider = new PamScrollSlider(nameProvider.getUnitName(), PamScrollSlider.HORIZONTAL, 10, 600000, true);
 			outerPanel.add(viewerSlider.getComponent(), BorderLayout.SOUTH);
 			viewerSlider.addDataBlock(tritechAcquisition.getImageDataBlock());
 			viewerSlider.addObserver(new ScrollObserver());
@@ -310,5 +314,54 @@ public class SonarsOuterPanel implements ConfigurationObserver {
 	 */
 	public PamScrollSlider getViewerSlider() {
 		return viewerSlider;
+	}
+
+	/**
+	 * Used in viewer mode to scroll forwards or backwards by a given number of frames. 
+	 * @param scrollFrames
+	 */
+	public void scrollByFrames(int scrollFrames) {
+		/**
+		 * Need to work out current frame numbers and jump that many ...
+		 * May need a bit of dicking about in the catalog. 
+		 * What if there are two displays, do we leave on frame still and just move
+		 * the other. 
+		 */
+//		System.out.println("Scroll by n Frames: " + scrollFrames);
+		TritechOffline tritechOffline = tritechAcquisition.getTritechOffline();
+		if (tritechOffline == null) {
+			return;
+		}
+		MultiFileCatalog geminiCatalog = tritechOffline.getMultiFileCatalog();
+		if (geminiCatalog == null) {
+			return;
+		}
+		// get current frame numbers
+		GeminiImageRecordI[] currentImages = sonarsPanel.getCurrentImages();
+		if (currentImages == null || currentImages.length == 0) {
+			return;
+		}
+		/**
+		 * Strategy is to find the relative records, then set the average time 
+		 * of those in the scroll bar
+		 */
+		long totalTime = 0;
+		int nImage = 0;
+		for (int i = 0; i < currentImages.length; i++) {
+			if (currentImages[i] == null) {
+				continue;
+			}
+			GeminiImageRecordI relImage = geminiCatalog.findRelativeRecord(currentImages[i], scrollFrames);
+			if (relImage == null) {
+				continue;
+			}
+			nImage++;
+			totalTime += relImage.getRecordTime();
+		}
+		if (nImage == 0) {
+			return;
+		}
+		long aveTime = totalTime/nImage;
+		viewerSlider.setValueMillis(aveTime);
 	}
 }

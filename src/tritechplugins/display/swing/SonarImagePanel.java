@@ -540,6 +540,14 @@ public class SonarImagePanel extends JPanel {
 	}
 	
 	/**
+	 * Get the current image record. 
+	 * @return current image record.
+	 */
+	public GeminiImageRecordI getImageRecord() {
+		return imageRecord;
+	}
+	
+	/**
 	 * Convert a gemini image record into fan image data, then into
 	 * a buffered image for display
 	 */
