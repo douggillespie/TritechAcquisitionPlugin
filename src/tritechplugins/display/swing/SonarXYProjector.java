@@ -65,7 +65,7 @@ public class SonarXYProjector extends GeneralProjector {
 		if (sonarZoomTransform == null) {
 			return null;
 		}
-		Coordinate3d coord = sonarZoomTransform.imageMetresToScreen(-dataObject.getCoordinate(0), dataObject.getCoordinate(1));
+		Coordinate3d coord = sonarZoomTransform.imageMetresToScreen(dataObject.getCoordinate(0), dataObject.getCoordinate(1));
 		Point p = new Point((int) coord.getCoordinate(0), (int) coord.getCoordinate(1));
 		if (sonarZoomTransform.getScreenRectangle().contains(p)) {
 			return coord;
