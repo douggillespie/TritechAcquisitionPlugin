@@ -259,9 +259,6 @@ public class SonarImagePanel extends JPanel {
 			return;
 		}
 		ArrayList<PamDataUnit> dataCopy = null;
-		synchronized (dataBlock.getSynchLock()) {
-			dataCopy = dataBlock.getDataCopy();
-		}
 		long tailEnd = currentTime;
 		long tailStart = 0;
 		switch (sonarsPanel.getSonarsPanelParams().tailOption) {
@@ -277,6 +274,9 @@ public class SonarImagePanel extends JPanel {
 		case SonarsPanelParams.OVERLAY_TAIL_TIME:
 			tailStart = (long) (tailEnd - sonarsPanel.getSonarsPanelParams().tailTime * 1000.);
 			break;
+		}
+		synchronized (dataBlock.getSynchLock()) {
+			dataCopy = dataBlock.getDataCopy(tailStart, tailEnd, true, dataSelector);
 		}
 //		System.out.printf("Paint tail from %s to %s\n", PamCalendar.formatDBDateTime(tailStart), PamCalendar.formatDBDateTime(tailEnd));
 		for (PamDataUnit aUnit : dataCopy) {

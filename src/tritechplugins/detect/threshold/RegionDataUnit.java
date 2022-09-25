@@ -3,7 +3,9 @@ package tritechplugins.detect.threshold;
 import PamUtils.PamCalendar;
 import PamUtils.time.CalendarControl;
 import PamguardMVC.DataUnitBaseData;
+import PamguardMVC.PamDataBlock;
 import PamguardMVC.PamDataUnit;
+import PamguardMVC.superdet.SuperDetection;
 import tritechgemini.detect.DetectedRegion;
 
 public class RegionDataUnit extends PamDataUnit {
@@ -92,6 +94,22 @@ public class RegionDataUnit extends PamDataUnit {
 		else {
 			return super.getChannelBitmap();
 		}
+	}
+
+	@Override
+	public SuperDetection getSuperDetection(PamDataBlock superDataBlock) {
+		/**
+		 * Have overridden this, so that it looks for super super detections
+		 * which is needed on the Tritech display data selector which may be
+		 * used with a Detection Grouper. The group is a super of the lined regions 
+		 * data unit so is the super-super of this. 
+		 * As an alternative, it may be pracital to change line 64 of
+		 * SuperDetDataSelector ...
+		 * SuperDetection superDetection = pamDataUnit.getSuperDetection(superDataBlock);
+		 * so that this calls with the additional 'true'argument. That may affect other
+		 * PAMGuard modules though. 
+		 */
+		return super.getSuperDetection(superDataBlock, true);
 	}
 
 
