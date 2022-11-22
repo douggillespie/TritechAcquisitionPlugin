@@ -14,6 +14,7 @@ public class RegionDataBlock extends PamDataBlock<RegionDataUnit> {
 	
 	public RegionDataBlock(String dataName, ThresholdProcess thresholdProcess) {
 		super(RegionDataUnit.class, dataName, thresholdProcess, 0);
+		setNaturalLifetimeMillis(2000);
 	}
 
 	@Override

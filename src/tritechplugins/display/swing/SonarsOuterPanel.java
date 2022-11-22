@@ -1,6 +1,7 @@
 package tritechplugins.display.swing;
 
 import java.awt.BorderLayout;
+import java.util.HashMap;
 import java.util.List;
 
 import PamController.PamController;
@@ -26,6 +27,7 @@ import tritechplugins.acquire.TritechAcquisition;
 import tritechplugins.acquire.TritechDaqParams;
 import tritechplugins.acquire.TritechDaqSystem;
 import tritechplugins.acquire.offline.TritechOffline;
+import tritechplugins.acquire.swing.CornerPanel;
 import tritechplugins.acquire.swing.DaqControlPanel;
 import tritechplugins.acquire.swing.SonarsStatusPanel;
 import tritechplugins.detect.track.TrackLinkDataUnit;
@@ -61,14 +63,16 @@ public class SonarsOuterPanel implements ConfigurationObserver {
 	private GeminiTaskBar geminiTaskBar;
 	
 	private TritechDaqSystem currentDaqSystem;
+
+	private HashMap<Integer, Integer> imageIndexes = new HashMap<>();
 	
 	private SonarDisplayDecoration nwDecoration, neDecoration, swDecoration, seDecoration, tbDecoration;
 
 	public SonarsOuterPanel(TritechAcquisition tritechAcquisition, SettingsNameProvider nameProvider) {
 		this.tritechAcquisition = tritechAcquisition;
-		sonarsPanel = new SonarsPanel(tritechAcquisition, nameProvider);
+		sonarsPanel = new SonarsPanel(tritechAcquisition, this, nameProvider);
 		outerPanel = new PamPanel(new BorderLayout());
-		outerPanel.add(sonarsPanel.getsonarsPanel(), BorderLayout.CENTER);
+		outerPanel.add(sonarsPanel, BorderLayout.CENTER);
 		displayControlPanel = new DisplayControlPanel(this, sonarsPanel);
 		
 		HidingPanel hideDisplay = new HidingPanel(sonarsPanel, displayControlPanel.getMainPanel(),
@@ -76,21 +80,12 @@ public class SonarsOuterPanel implements ConfigurationObserver {
 		sonarsPanel.add(hideDisplay, new CornerLayoutContraint(CornerLayoutContraint.LAST_LINE_END));
 		
 		tritechAcquisition.addConfigurationObserver(this);
-//		if (tritechAcquisition.isViewer() == false) {
-//			daqControlPanel = new DaqControlPanel(tritechAcquisition);
-//			HidingPanel hidingPanel = new HidingPanel(sonarsPanel, daqControlPanel.getMainPanel(),
-//					HidingPanel.HORIZONTAL, false, "Online controls", nameProvider.getUnitName() + " Controls");
-//			sonarsPanel.add(hidingPanel, new CornerLayoutContraint(CornerLayoutContraint.LAST_LINE_START));
-//
-//			sonarsStatusPanel = new SonarsStatusPanel(tritechAcquisition);
-//			HidingPanel hidingStatus = new HidingPanel(sonarsPanel, sonarsStatusPanel.getMainPanel(),
-//					HidingPanel.HORIZONTAL, false, "Sonar Online Status", nameProvider.getUnitName() + " Status");
-////			hidingStatus.setOpaque(false);
-//			sonarsPanel.add(hidingStatus, new CornerLayoutContraint(CornerLayoutContraint.FIRST_LINE_START));
-//		}
 
 		if (tritechAcquisition.isViewer()) {
-			viewerSlider = new PamScrollSlider(nameProvider.getUnitName(), PamScrollSlider.HORIZONTAL, 5, 600000, true);
+			FineScrollControl fsc = new FineScrollControl(this);
+			sonarsPanel.add(fsc.getComponent(), new CornerLayoutContraint(CornerLayoutContraint.FIRST_LINE_END));
+			
+			viewerSlider = new PamScrollSlider(nameProvider.getUnitName(), PamScrollSlider.HORIZONTAL, 10, 600000, true);
 			outerPanel.add(viewerSlider.getComponent(), BorderLayout.SOUTH);
 			viewerSlider.addDataBlock(tritechAcquisition.getImageDataBlock());
 			viewerSlider.addObserver(new ScrollObserver());
@@ -119,6 +114,7 @@ public class SonarsOuterPanel implements ConfigurationObserver {
 		
 		sortCornerDecorations();
 //		sortTaskBar();
+		sonarsPanel.checkMainZPosition();
 	}
 	
 	/*
@@ -178,6 +174,7 @@ public class SonarsOuterPanel implements ConfigurationObserver {
 		}
 		if (newDecoration != null) {
 			sonarsPanel.add(newDecoration.getComponent(), cornerLayoutContraint);
+			sonarsPanel.checkMainZPosition();
 		}
 		return newDecoration;
 	}
@@ -285,13 +282,86 @@ public class SonarsOuterPanel implements ConfigurationObserver {
 		public void addData(PamObservable observable, PamDataUnit pamDataUnit) {
 			ImageDataUnit imageDataUnit = (ImageDataUnit) pamDataUnit;
 //			sonarsPanel.setNumSonars(tritechAcquisition.get);
-			sonarsPanel.setImageRecord(0, imageDataUnit.getGeminiImage());
+			int index = getSonarIndex(imageDataUnit.getGeminiImage().getDeviceId());
+			sonarsPanel.setImageRecord(index, imageDataUnit.getGeminiImage());
 		}
 
 	}
 
+	/**
+	 * Gets an index for each sonar, allowing for new ones coming online after
+	 * start. Will update number of plots.
+	 * 
+	 * @param deviceId device unique id.
+	 * @return 0,1, etc. index for image drawing.
+	 */
+	private int getSonarIndex(int deviceId) {
+		Integer ind = imageIndexes.get(deviceId);
+		if (ind == null) {
+			ind = imageIndexes.size();
+			imageIndexes.put(deviceId, ind);
+		}
+		return ind;
+	}
+	
 	@Override
 	public void configurationChanged() {
 		sortCornerDecorations();
+	}
+
+	/**
+	 * @return the viewerSlider
+	 */
+	public PamScrollSlider getViewerSlider() {
+		return viewerSlider;
+	}
+
+	/**
+	 * Used in viewer mode to scroll forwards or backwards by a given number of frames. 
+	 * @param scrollFrames
+	 */
+	public void scrollByFrames(int scrollFrames) {
+		/**
+		 * Need to work out current frame numbers and jump that many ...
+		 * May need a bit of dicking about in the catalog. 
+		 * What if there are two displays, do we leave on frame still and just move
+		 * the other. 
+		 */
+//		System.out.println("Scroll by n Frames: " + scrollFrames);
+		TritechOffline tritechOffline = tritechAcquisition.getTritechOffline();
+		if (tritechOffline == null) {
+			return;
+		}
+		MultiFileCatalog geminiCatalog = tritechOffline.getMultiFileCatalog();
+		if (geminiCatalog == null) {
+			return;
+		}
+		// get current frame numbers
+		GeminiImageRecordI[] currentImages = sonarsPanel.getCurrentImages();
+		if (currentImages == null || currentImages.length == 0) {
+			return;
+		}
+		/**
+		 * Strategy is to find the relative records, then set the average time 
+		 * of those in the scroll bar
+		 */
+		long totalTime = 0;
+		int nImage = 0;
+		for (int i = 0; i < currentImages.length; i++) {
+			if (currentImages[i] == null) {
+				continue;
+			}
+			GeminiImageRecordI relImage = geminiCatalog.findRelativeRecord(currentImages[i], scrollFrames);
+			if (relImage == null) {
+				continue;
+			}
+			nImage++;
+			totalTime += relImage.getRecordTime();
+		}
+		if (nImage == 0) {
+			return;
+		}
+		long aveTime = totalTime/nImage;
+		viewerSlider.setValueMillis(aveTime);
 	}
 }

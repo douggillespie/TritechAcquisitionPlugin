@@ -13,10 +13,14 @@ class InfoStrip {
 	
 	private PamLabel valueLabel;
 
-	public InfoStrip(String name) {
+	public InfoStrip(String name, String toolTip) {
 		super();
 		this.nameLabel = new PamLabel(formatName(name), PamLabel.RIGHT);
 		valueLabel = new PamLabel();
+		if (toolTip != null) {
+			nameLabel.setToolTipText(toolTip);
+			valueLabel.setToolTipText(toolTip);
+		}
 	}
 	
 	public String formatName(String bareName) {
@@ -52,7 +56,7 @@ class InfoStrip {
 	 * @return InfoStrip object. 
 	 */
 	public static InfoStrip addInfoStrip(String name, JComponent component, GridBagConstraints c) {
-		InfoStrip iStrip = new InfoStrip(name);
+		InfoStrip iStrip = new InfoStrip(name, null);
 		c.gridx = 0;
 		component.add(iStrip.nameLabel = new PamLabel(name + ": ", JLabel.RIGHT), c);
 		c.gridx++;

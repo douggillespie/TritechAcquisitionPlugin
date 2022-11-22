@@ -1,16 +1,24 @@
 package tritechplugins.display.swing;
 
+import java.awt.Component;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 
+import javax.swing.JPopupMenu;
+
 import PamView.GeneralProjector;
+import PamView.paneloverlay.overlaymark.ExtMouseAdapter;
 import PamView.paneloverlay.overlaymark.MarkDataSelector;
 import PamView.paneloverlay.overlaymark.OverlayMark;
 import PamView.paneloverlay.overlaymark.OverlayMarker;
 import PamguardMVC.PamDataUnit;
 import PamguardMVC.superdet.SuperDetection;
+import javafx.embed.swing.SwingFXUtils;
+import javafx.scene.control.MenuItem;
 import javafx.scene.input.MouseEvent;
+import pamViewFX.fxNodes.utilsFX.MenuItemInfo;
+import pamViewFX.fxNodes.utilsFX.PamUtilsFX;
 import tritechplugins.detect.threshold.RegionDataUnit;
 import tritechplugins.detect.track.TrackLinkDataUnit;
 
@@ -72,6 +80,34 @@ public class SonarsPanelMarker extends OverlayMarker {
 		}
 		newSelection = new ArrayList<PamDataUnit>(set);
 		return newSelection;
+	}
+	
+
+	@Override
+	public List<MenuItem> getPopupMenuItems(MouseEvent e) {
+		List<MenuItem> markItems = super.getPopupMenuItems(e);
+		if (markItems == null) {
+			return null;
+		}
+
+		//		List<MenuItem> panelItems = 
+		SonarImagePanel imagePanel = sonarsPanel.getImagePanel(imageIndex);
+		if (imagePanel != null) {
+			java.awt.event.MouseEvent swingMouse = ExtMouseAdapter.swingMouse(e); 
+			JPopupMenu panelItems = imagePanel.getImageMenu(swingMouse);
+			if (panelItems != null) {
+				List<MenuItem> fxMenu = PamUtilsFX.getSwingMenuItems(panelItems);
+				for (MenuItem mio : fxMenu) {
+					if (mio != null) {
+						markItems.add(mio);	
+					}
+					else {
+//						System.out.println("null item");
+					}
+				}
+			}
+		}
+		return markItems;
 	}
 
 }

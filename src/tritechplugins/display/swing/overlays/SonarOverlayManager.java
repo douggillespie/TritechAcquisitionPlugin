@@ -29,7 +29,7 @@ public class SonarOverlayManager extends OverlayDataManager<SonarOverlayData> {
 	public void selectionChanged(PamDataBlock dataBlock, boolean selected) {
 		SonarOverlayData overlayData = getOverlayInfo(dataBlock);
 		overlayData.select = selected;
-		sonarsPanel.repaint();
+		sonarsPanel.overlaySelectionChange();
 	}
 
 	@Override
@@ -51,6 +51,7 @@ public class SonarOverlayManager extends OverlayDataManager<SonarOverlayData> {
 	private HashMap<String, SonarOverlayData> getOverlayData() {
 		return sonarsPanel.getSonarsPanelParams().getOverlayDatas();
 	}
+	
 	/**
 	 * Get a list of selected datablocks. 
 	 * @return

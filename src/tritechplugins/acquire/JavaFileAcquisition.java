@@ -290,6 +290,11 @@ public class JavaFileAcquisition extends TritechDaqSystem  implements CatalogStr
 		public SonarDisplayDecoration getTopBar() {
 			return new JavaFileStatusBar(tritechAcquisition, JavaFileAcquisition.this);
 		}
+
+//		@Override
+//		public SonarDisplayDecoration getNorthEastInset() {
+//			return new 
+//		}
 		
 	}
 	
@@ -312,6 +317,18 @@ public class JavaFileAcquisition extends TritechDaqSystem  implements CatalogStr
 	 */
 	public void removeObserver(JavaFileObserver javaFileObserver) {
 		javaFileObservers.remove(javaFileObserver);
+	}
+
+	@Override
+	protected void rebootSonars() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	protected void newSonar(SonarStatusData sonarData) {
+		// TODO Auto-generated method stub
+		
 	}
 	
 }

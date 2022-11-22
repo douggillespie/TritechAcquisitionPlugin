@@ -96,7 +96,7 @@ public class SonarsStatusPanel implements SonarStatusObserver, SonarDisplayDecor
 	}
 
 	@Override
-	public void updateFrameRate(int frameRate) {
+	public void updateFrameRate(int frameRate, double trueFPS) {
 		// TODO Auto-generated method stub
 		
 	}
@@ -127,6 +127,12 @@ public class SonarsStatusPanel implements SonarStatusObserver, SonarDisplayDecor
 	@Override
 	public void destroyComponent() {
 		tritechDaqProcess.removeStatusObserver(this);
+	}
+
+	@Override
+	public void updateQueueSize(int queueSize) {
+		// TODO Auto-generated method stub
+		
 	}
 
 }

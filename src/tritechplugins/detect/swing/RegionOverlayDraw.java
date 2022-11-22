@@ -68,7 +68,7 @@ public class RegionOverlayDraw extends PanelOverlayDraw {
 		double ang = (region.getMaxBearing()+region.getMinBearing())/2.;
 		double range = (region.getMinRange()+region.getMaxRange())/2.;
 				
-		double x = range*Math.sin(ang);
+		double x = -range*Math.sin(ang);
 		double y = range*Math.cos(ang);
 		
 		Coordinate3d pos = generalProjector.getCoord3d(x,  y,  0);
@@ -93,13 +93,13 @@ public class RegionOverlayDraw extends PanelOverlayDraw {
 		double maxR = region.getMaxRange();
 		double[] x = new double[4];
 		double[] y = new double[4];
-		x[0] =  minR*Math.sin(minAng);
+		x[0] =  -minR*Math.sin(minAng);
 		y[0] =  minR*Math.cos(minAng);
-		x[1] =  maxR*Math.sin(minAng);
+		x[1] =  -maxR*Math.sin(minAng);
 		y[1] =  maxR*Math.cos(minAng);
-		x[2] =  maxR*Math.sin(maxAng);
+		x[2] =  -maxR*Math.sin(maxAng);
 		y[2] =  maxR*Math.cos(maxAng);
-		x[3] =  minR*Math.sin(maxAng);
+		x[3] =  -minR*Math.sin(maxAng);
 		y[3] =  minR*Math.cos(maxAng);
 		int[] xp = new int[4];
 		int[] yp = new int[4];

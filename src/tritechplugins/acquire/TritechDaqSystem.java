@@ -84,7 +84,15 @@ public abstract class TritechDaqSystem {
 		SonarStatusData sonarData = null;
 		synchronized (deviceInfo) {
 			n = deviceInfo.size();
+			sonarData = getSonarStatusData(statusPacket.m_deviceID);
+			boolean isNewSonar = sonarData == null;
+			
 			sonarData = findSonarStatusData(statusPacket.m_deviceID);
+			sonarData.setStatusPacket(statusPacket);
+			
+			if (isNewSonar) {
+				newSonar(sonarData);
+			}
 //			sonarData = deviceInfo.get((int) statusPacket.m_deviceID);
 //			if (sonarData == null) {
 //				sonarData = new SonarStatusData(statusPacket);
@@ -102,6 +110,30 @@ public abstract class TritechDaqSystem {
 		return sonarData;
 	}
 	
+	/**
+	 * Called when a new sonar sends it's first status packet.
+	 * Can be used to set up everything on that sonar. 
+	 * @param sonarData
+	 */
+	protected abstract void newSonar(SonarStatusData sonarData);
+
+	/**
+	 * Gets sonar status data. Does NOT create it. 
+	 * @param sonarId
+	 * @return status data or null.
+	 */
+	public SonarStatusData getSonarStatusData(int sonarId) {
+		synchronized (deviceInfo) {
+			SonarStatusData statusData = deviceInfo.get(sonarId);
+			return statusData;
+		}
+	}
+	
+	/**
+	 * finds sonar status data and creates if necessary
+	 * @param sonarId
+	 * @return
+	 */
 	public SonarStatusData findSonarStatusData(int sonarId) {
 		synchronized (deviceInfo) {
 			SonarStatusData statusData = deviceInfo.get(sonarId);
@@ -120,4 +152,6 @@ public abstract class TritechDaqSystem {
 	public SonarDisplayDecorations getSwingDecorations() {
 		return null;
 	}
+
+	protected abstract void rebootSonars();
 }

@@ -192,10 +192,6 @@ public class SonarZoomTransform {
 	 * Calculate everything we're likely to want to know. 
 	 */
 	private void calculateTransforms() {
-		/**
-		 * size ratio between original fan image and the screen rectangle
-		 */
-		double secondScale = (double) screenRectangle.getWidth() / (double) fanImageRectangle.getWidth();
 		/*
 		 * scale of original fan image in pixels per metre.
 		 */
@@ -215,23 +211,17 @@ public class SonarZoomTransform {
 		double y1 = zoomCentre.y*imageScale;
 		double y2 = y1+hs/zoomFactor;
 		
-//		x1 *= secondScale;
-//		x2 *= secondScale;
-//		y1 *= secondScale;
-//		y2 *= secondScale;
 		
 //		System.out.printf("Z %3.1f, ws %d, hs %d, x1 %3.1f, x2 %3.1f, y1 %3.1f, y2 %3.1f\n", 
 //				zoomFactor, ws, hs, x1,x2,y1,y2);
 		if (x1 < 0) {
 			x2 -= x1;
 			x1 = 0;
-//			zoomCentre.x = x1;
 		}
 		if (x2 > ws) {
 			double wid = x2-x1;
 			x2 = ws-1;
 			x1 = x2-wid;		
-//			zoomCentre.x = x1;	
 		}
 		if (y1 < 0) {
 			y2 -= y1;
@@ -246,12 +236,7 @@ public class SonarZoomTransform {
 		/**
 		 * This is now the bit of the fan image that get's projected into the screen rectangle. 
 		 */
-//		if (isFlip) {
-//			imageClipRect = new Rectangle((int) x1, (int) y1, (int) (x2-x1), (int) (y2-y1));
-//		}
-//		else {
-			imageClipRect = new Rectangle((int) x1, (int) y1, (int) (x2-x1), (int) (y2-y1));
-//		}
+		imageClipRect = new Rectangle((int) x1, (int) y1, (int) (x2-x1), (int) (y2-y1));
 	}
 	
 	/**
@@ -294,13 +279,7 @@ public class SonarZoomTransform {
 	 */
 	public Coordinate3d imagePixToImageMetres(double imagePixX, double imagePixY) {
 		double metresPerPix = maximumRange / fanImageRectangle.getHeight();
-//		if (isFlip) {
-//			imagePixX = -imagePixX;
-//		}
 		double x = (imagePixX - fanImageRectangle.getWidth()/2.)*metresPerPix;
-				if (isFlip) {
-					x = -x;
-				}
 		double y = (imagePixY) * metresPerPix;
 //		System.out.printf("Image metres x %3.1f, y %3.1f\n", x, y);
 		return new Coordinate3d(x, y);
@@ -313,18 +292,8 @@ public class SonarZoomTransform {
 	 * @return position in metres.
 	 */
 	public Coordinate3d metresToImagePix(double imageMetresX, double imageMetresY) {
-//		if (zoomCentre != null) {
-//			imageMetresX -= zoomCentre.x;
-//			imageMetresY -= zoomCentre.y;
-//		}
 		double metresPerPix = maximumRange / fanImageRectangle.getHeight();
-//		if (!isFlip) {
-//			imageMetresX = -imageMetresX;
-//		}
 		double x = fanImageRectangle.getWidth()/2. + imageMetresX / metresPerPix;
-//		if (isFlip) {
-//			x = -x;
-//		}
 		double y = imageMetresY / metresPerPix;
 		return new Coordinate3d(x, y);
 	}

@@ -85,4 +85,10 @@ public class TritechJNAPlayback extends Svs5JNADaqSystem {
 		}
 
 	}
+
+	@Override
+	protected void newSonar(SonarStatusData sonarData) {
+		// TODO Auto-generated method stub
+		
+	}
 }

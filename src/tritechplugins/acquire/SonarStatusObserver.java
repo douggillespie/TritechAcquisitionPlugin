@@ -9,7 +9,9 @@ public interface SonarStatusObserver {
 	
 	public void errorMessage(String errorMessage);
 	
-	public void updateFrameRate(int frameRate);
+	public void updateQueueSize(int queueSize);
+	
+	public void updateFrameRate(int frameRate, double trueFPS);
 	
 	public void updateOutputFileInfo(OutputFileInfo outputFileInfo);
 	
