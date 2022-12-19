@@ -158,16 +158,18 @@ public class SonarImagePanel extends JPanel {
 		double maxRange = 50;
 		Rectangle panelRectangle = new Rectangle(0,0,getWidth(),getHeight());
 		Rectangle imageBounds = panelRectangle;
-		if (!isViewer && fanImage == null) {
-			makeFinalImage();
+		// copy reference, just incase it get's knocked out in a different thread while we're drawing. 
+		FanDataImage theFanimage = fanImage;
+		if (!isViewer && theFanimage == null) {
+			theFanimage = makeFinalImage();
 		}
-		if (fanImage != null) {
-			maxRange = fanImage.getFanData().getGeminiRecord().getMaxRange();
-			BufferedImage bufIm = fanImage.getBufferedImage();
+		if (theFanimage != null) {
+			maxRange = theFanimage.getFanData().getGeminiRecord().getMaxRange();
+			BufferedImage bufIm = theFanimage.getBufferedImage();
 			if (bufIm != null) {
 				imageBounds = new Rectangle(0,0,bufIm.getWidth(),bufIm.getHeight());
 			}
-			currentTime = fanImage.getFanData().getGeminiRecord().getRecordTime();
+			currentTime = theFanimage.getFanData().getGeminiRecord().getRecordTime();
 		}
 		sonarZoomTransform = new SonarZoomTransform(maxRange, panelRectangle, imageBounds, 
 				sonarsPanel.getZoomFactor(), sonarsPanel.getZoomCentre(),
@@ -550,8 +552,9 @@ public class SonarImagePanel extends JPanel {
 	/**
 	 * Convert a gemini image record into fan image data, then into
 	 * a buffered image for display
+	 * @return 
 	 */
-	private void makeFinalImage() {
+	private FanDataImage makeFinalImage() {
 		if (imageRecord == null) {
 			fanImageData = null;
 			fanImage = null;
@@ -566,6 +569,7 @@ public class SonarImagePanel extends JPanel {
 			fanImage.getBufferedImage(); // created and kept..
 			imageTime = System.nanoTime()-t1;
 		}
+		return fanImage;
 	}
 	
 	/**
