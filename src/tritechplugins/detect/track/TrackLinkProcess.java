@@ -133,12 +133,12 @@ public class TrackLinkProcess extends PamProcess implements PamSettings {
 	
 	private TrackLinker findTrackLinker(int sonarId) {
 		if (trackLinkParams.separateSonars) {
-		TrackLinker linker = trackLinkers.get(sonarId);
-		if (linker == null) {
-			linker = new TrackLinker(this, sonarId);
-			trackLinkers.put(sonarId, linker);
-		}
-		return linker;
+			TrackLinker linker = trackLinkers.get(sonarId);
+			if (linker == null) {
+				linker = new TrackLinker(this, sonarId);
+				trackLinkers.put(sonarId, linker);
+			}
+			return linker;
 		}
 		else {
 			if (singleLinker == null) {

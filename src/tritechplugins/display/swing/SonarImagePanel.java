@@ -11,6 +11,8 @@ import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
@@ -110,6 +112,8 @@ public class SonarImagePanel extends JPanel {
 	private BufferedImage overlayImage;
 	
 	private Object overlaySynch = new Object();
+
+	public long lastEscape;
 	
 	public SonarImagePanel(SonarsPanel sonarsPanel, int panelIndex) {
 		this.panelIndex = panelIndex;
@@ -126,13 +130,14 @@ public class SonarImagePanel extends JPanel {
 		externalMouseHandler.addMouseHandler(sonarPanelMarker);
 		sonarPanelMarker.addObserver(new OverlayMarkObserver());
 		markOverlayDraw = new MarkOverlayDraw(sonarPanelMarker);
-
+		
 		sonarsPanelMouse = new SonarPanelMouse();
 		this.addMouseListener(sonarsPanelMouse);
 		this.addMouseMotionListener(sonarsPanelMouse);
 		this.addMouseWheelListener(sonarsPanelMouse);
 		setToolTipText("Sonar display panel. No data");
 	}
+
 
 	@Override
 	public void paintComponent(Graphics g) {
@@ -579,6 +584,10 @@ public class SonarImagePanel extends JPanel {
 
 	@Override
 	public String getToolTipText(MouseEvent event) {
+		
+		if (System.currentTimeMillis() - lastEscape < 10000) {
+			return null;
+		}
 		
 		String tip = findTextTip(event.getPoint());
 		if (tip != null) {

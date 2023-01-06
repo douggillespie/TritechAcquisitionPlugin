@@ -13,6 +13,7 @@ public class TrackLinkDataUnit extends SuperDetection<RegionDataUnit> {
 	public TrackLinkDataUnit(TrackChain trackChain) {
 		super(trackChain.getFirstTime());
 		this.trackChain = trackChain;
+		trackChain.setParentDataUnit(this);
 	}
 	
 	public TrackLinkDataUnit(long timeMilliseconds) {

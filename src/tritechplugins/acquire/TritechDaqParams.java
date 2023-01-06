@@ -1,12 +1,14 @@
 package tritechplugins.acquire;
 
 import java.io.Serializable;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Iterator;
 
 import geminisdk.structures.ChirpMode;
 import geminisdk.structures.RangeFrequencyConfig;
 
 public class TritechDaqParams implements Serializable, Cloneable{
-
 
 	public static final long serialVersionUID = 1L;
 
@@ -37,6 +39,13 @@ public class TritechDaqParams implements Serializable, Cloneable{
 	private int chirpMode = ChirpMode.CHIRP_ENABLED;
 	
 	private double playSpeed = 1.0;
+	
+	/**
+	 * All sonars use the same settings
+	 */
+	private boolean allTheSame = true;
+	
+	private HashMap<Integer, SonarDaqParams> sonarSpecificParams;
 	
 	/**
 	 * 1200i only
@@ -205,6 +214,63 @@ public class TritechDaqParams implements Serializable, Cloneable{
 	 */
 	public void setPlaySpeed(double playSpeed) {
 		this.playSpeed = playSpeed;
+	}
+
+	/**
+	 * @return the allTheSame
+	 */
+	public boolean isAllTheSame() {
+		return allTheSame;
+	}
+
+	/**
+	 * @param allTheSame the allTheSame to set
+	 */
+	public void setAllTheSame(boolean allTheSame) {
+		this.allTheSame = allTheSame;
+	}
+	
+	public void setSonarParams(int sonarId, SonarDaqParams sonarDaqParams) {
+		if (allTheSame) {
+			sonarId = -1;
+		}
+		if (sonarSpecificParams == null) {
+			sonarSpecificParams = new HashMap<>();
+		}
+		sonarSpecificParams.put(sonarId, sonarDaqParams);
+	}
+	
+	public SonarDaqParams getSonarParams(int sonarId) {
+		if (allTheSame) {
+			sonarId = -1;
+		}
+		if (sonarSpecificParams == null) {
+			sonarSpecificParams = new HashMap<>();
+		}
+		SonarDaqParams sonarParams = sonarSpecificParams.get(sonarId);
+		if (sonarParams == null) {
+			sonarParams = getAnyParams();
+		}
+		if (sonarParams == null) {
+			sonarParams = new SonarDaqParams();
+		}
+		return sonarParams;
+	}
+
+	/**
+	 * Get any existing params. 
+	 * @return any existing params. 
+	 */
+	private SonarDaqParams getAnyParams() {
+		if (sonarSpecificParams == null) {
+			return null;
+		}
+		Collection<SonarDaqParams> available = sonarSpecificParams.values();
+		Iterator<SonarDaqParams> iterator = available.iterator();
+		if (iterator.hasNext()) {
+			return iterator.next();
+		}
+		return null;
 	}
 
 }

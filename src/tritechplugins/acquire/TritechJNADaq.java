@@ -65,7 +65,7 @@ public class TritechJNADaq extends Svs5JNADaqSystem {
 		geminiCallback.setPlaybackMode(false);
 
 		int waitCount = 0;
-		while (deviceInfo.size() < 2) {
+		while (deviceInfo.size() < 1) {
 			System.out.println("Waiting for devices ...");
 			try {
 				Thread.sleep(20);

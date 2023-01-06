@@ -14,6 +14,8 @@ public class TrackChain {
 	
 	private double meanOccupancy;
 	
+	private TrackLinkDataUnit parentDataUnit;
+	
 	public TrackChain(DetectedRegion region) {
 		this.regions = new LinkedList<>();
 		if (region != null) {
@@ -222,5 +224,19 @@ public class TrackChain {
 			totalPix += r.getnPoints();
 		}
 		return totalOcc/totalPix;
+	}
+
+	/**
+	 * @return the parentDataUnit
+	 */
+	public TrackLinkDataUnit getParentDataUnit() {
+		return parentDataUnit;
+	}
+
+	/**
+	 * @param parentDataUnit the parentDataUnit to set
+	 */
+	public void setParentDataUnit(TrackLinkDataUnit parentDataUnit) {
+		this.parentDataUnit = parentDataUnit;
 	}
 }
