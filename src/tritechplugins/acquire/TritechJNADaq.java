@@ -64,51 +64,82 @@ public class TritechJNADaq extends Svs5JNADaqSystem {
 
 		geminiCallback.setPlaybackMode(false);
 
-		int waitCount = 0;
-		while (deviceInfo.size() < 1) {
-			System.out.println("Waiting for devices ...");
+		TritechDaqParams daqParams = tritechAcquisition.getDaqParams();
+		if (daqParams.getOfflineFileFolder() != null) {
 			try {
-				Thread.sleep(20);
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
+				setFileLocation(tritechAcquisition.getDaqParams().getOfflineFileFolder());
+			} catch (Svs5Exception e) {
 				e.printStackTrace();
-			}
-			if (++waitCount > 6) {
-				System.out.println("No sonars found");
-				return false;
 			}
 		}
 		
-		return prepareDevice(0);
+		/**
+		 * No longer wait here for sonars. They will initialise when they become available. 
+		 */
+
+//		int waitCount = 0;
+//		while (deviceInfo.size() < 1) {
+//			System.out.println("Waiting for devices ...");
+//			try {
+//				Thread.sleep(20);
+//			} catch (InterruptedException e) {
+//				// TODO Auto-generated catch block
+//				e.printStackTrace();
+//			}
+//			if (++waitCount > 6) {
+//				System.out.println("No sonars found");
+//				return false;
+//			}
+//		}
+
+		
+		int[] sonars = getSonarIds();
+		return prepareAllDevices(sonars);
+		
+		
+		
+		
+//		return prepareDevice(0);
 		
 	}
+	private boolean prepareAllDevices(int[] sonars) {
+		if (sonars == null) {
+			return true;
+		}
+		boolean ok = true;
+		for (int i = 0; i < sonars.length; i++) {
+			ok |= prepareDevice(sonars[i]);
+		}
+		return ok;
+	}
+
 	private boolean prepareDevice(int deviceId) {
 		int err = 0;
 //		if (1>0) return false;
 		try {
-			if (tritechAcquisition.getDaqParams().getOfflineFileFolder() != null) {
-				setFileLocation(tritechAcquisition.getDaqParams().getOfflineFileFolder());
-			}
+			
+			SonarDaqParams sonarParams = tritechAcquisition.getDaqParams().getSonarParams(deviceId);
 
-			GeminiRange range = new GeminiRange(tritechAcquisition.getDaqParams().getRange());
-			err = svs5Commands.setConfiguration(range, 0);
+			GeminiRange range = new GeminiRange(sonarParams.getRange());
+			err = svs5Commands.setConfiguration(range, deviceId);
 			//		err += svs5Commands.setConfiguration(range, 1);
-			System.out.println("setRange returned " + err);
-			err = setRange(tritechAcquisition.getDaqParams().getRange(), deviceId);
+//			System.out.println("setRange returned " + err);
+			err = setRange(sonarParams.getRange(), deviceId);
 			
 //			PingMode pingMode = new PingMode(true, (short) 0);
 			err = svs5Commands.setPingMode(true, (short) 5000);
-			System.out.println("setConfiguration pingMode returned " + err);
+//			System.out.println("setConfiguration pingMode returned " + err);
 			
 
-			ChirpMode chirpMode = new ChirpMode(tritechAcquisition.getDaqParams().getChirpMode());
+			ChirpMode chirpMode = new ChirpMode(sonarParams.getChirpMode());
 			err = svs5Commands.setConfiguration(chirpMode, deviceId);
-			System.out.println("setConfiguration chirpMode returned " + err);
+//			System.out.println("setConfiguration chirpMode returned " + err);
 
 
 			RangeFrequencyConfig rfConfig = new RangeFrequencyConfig();
+			rfConfig.m_frequency = sonarParams.getRangeConfig();
 			err = svs5Commands.setConfiguration(rfConfig);
-			System.out.println("setConfiguration returned " + err);
+//			System.out.println("setConfiguration returned " + err);
 			//		
 			//	
 			////		SimulateADC simADC = new SimulateADC(true);
@@ -194,12 +225,15 @@ public class TritechJNADaq extends Svs5JNADaqSystem {
 
 
 	private boolean stopAcquisition() {
-
-		ConfigOnline cOnline = new ConfigOnline(true);
+		/*
+		 * Leave it online, just stop recording
+		 */
+		//		ConfigOnline cOnline = new ConfigOnline(true);
 		long err;
 		try {
-			err = svs5Commands.setConfiguration(cOnline);
-			System.out.println("setOnline off returned " + err);
+			//			err = svs5Commands.setConfiguration(cOnline);
+			err = setRecord(false);
+			//			System.out.println("setOnline off returned " + err);
 		} catch (Svs5Exception e) {
 			System.err.println("Tritech stop: " + e.getMessage());
 		}
@@ -214,7 +248,7 @@ public class TritechJNADaq extends Svs5JNADaqSystem {
 		 * Called on first status data for each sonar so can check it's
 		 * set up correctly. 
 		 */
-//		prepareDevice(sonarData.getDeviceId());
+		prepareDevice(sonarData.getDeviceId());
 //		TritechDaqParams params = tritechAcquisition.getDaqParams();
 //		try {
 //			setRange(params.getRange(), sonarData.getDeviceId());
@@ -297,7 +331,8 @@ public class TritechJNADaq extends Svs5JNADaqSystem {
 
 		@Override
 		public SonarDisplayDecoration getSouthWestInset() {
-			return new DaqControlPanel(tritechAcquisition, TritechJNADaq.this);
+			return null;
+//			return new DaqControlPanel(tritechAcquisition, TritechJNADaq.this, TritechDaqParams.DEFAULT_SONAR_PARAMETERSET);
 		}
 
 		@Override

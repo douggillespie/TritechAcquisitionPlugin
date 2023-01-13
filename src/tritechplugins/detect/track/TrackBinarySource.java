@@ -110,6 +110,8 @@ public class TrackBinarySource extends BinaryDataSource {
 				trackDataUnit.addSubDetection(rdu);
 			}
 			
+			trackDataUnit.sortSubDetections();
+			
 		}
 		catch (IOException e) {
 			e.printStackTrace();

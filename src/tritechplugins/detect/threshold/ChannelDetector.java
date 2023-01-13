@@ -10,6 +10,8 @@ import tritechgemini.detect.DetectedRegion;
 import tritechgemini.detect.RegionDetector;
 import tritechgemini.imagedata.GeminiImageRecordI;
 import tritechplugins.acquire.ImageDataUnit;
+import warnings.PamWarning;
+import warnings.WarningSystem;
 
 public class ChannelDetector {
 
@@ -21,6 +23,10 @@ public class ChannelDetector {
 	
 	private BackgroundRemoval backgroundRemoval;
 	private RegionDataBlock regionDataBlock;
+	
+	private static final int MAX_FRAME_REGIONS = 100;
+	
+	private PamWarning regionWarning = new PamWarning("Tritech Detector", "Too many", 0);
 	
 	/**
 	 * Detector for a single sonar. 
@@ -65,7 +71,15 @@ public class ChannelDetector {
 		regionDetector.setMaxObjectSize(params.maxSize);
 		ArrayList<DetectedRegion> regions = regionDetector.detectRegions(clonedImage, params.highThreshold, params.lowThreshold, params.connectionType);
 		
-		if (regions == null || regions.size() == 0) {
+		if (regions == null || regions.size() == 0 ) {
+			return null;
+		}
+		if (regions.size() > MAX_FRAME_REGIONS) {
+			regionWarning.setEndOfLife(6000);
+			String msg = String.format("High detection count: $d on sonar %d", regions.size(), sonarId);
+			regionWarning.setWarningMessage(msg);
+			regionWarning.setWarnignLevel(2);
+			WarningSystem.getWarningSystem().addWarning(regionWarning);
 			return null;
 		}
 				

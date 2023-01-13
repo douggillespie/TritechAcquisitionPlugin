@@ -1,8 +1,11 @@
 package tritechplugins.detect.track;
 
+import java.util.Iterator;
+
 import PamUtils.PamCalendar;
 import PamguardMVC.DataUnitBaseData;
 import PamguardMVC.PamDataUnit;
+import PamguardMVC.superdet.SubdetectionInfo;
 import PamguardMVC.superdet.SuperDetection;
 import tritechplugins.detect.threshold.RegionDataUnit;
 
@@ -33,7 +36,12 @@ public class TrackLinkDataUnit extends SuperDetection<RegionDataUnit> {
 		 * list, but in detection mode, the chain already exists, to this
 		 * would cause a concurrentmodificationexception
 		 */
-		trackChain.addRegion(subDetection.getRegion());
+		if (findSubDetection(subDetection.getUID()) == null) {
+			trackChain.addRegion(subDetection.getRegion());
+		}
+//		else {
+//			System.out.println("Sub chain detectoin already exists");
+//		}
 		return super.addSubDetection(subDetection);
 	}
 	
@@ -71,6 +79,9 @@ public class TrackLinkDataUnit extends SuperDetection<RegionDataUnit> {
 		str += String.format("<br>Sonars %s, Mean Occupancy %3.1f%%<br>Duration %3.1fs, points %d<br>", 
 				trackChain.getsonarIdString(), trackChain.getMeanOccupancy(), getDurationInMilliseconds()/1000., 
 				trackChain.getChainLength());
+		
+		str+= String.format("Total length %3.1fm, Straight length %3.1fm, Straightness %4.2f<br>", 
+				trackChain.getWobblyLength(), trackChain.getEnd2EndMetres(), trackChain.getStraigtness());
 		
 		String annotStr = getAnnotationsSummaryString();
 		if (annotStr != null) {
@@ -114,5 +125,21 @@ public class TrackLinkDataUnit extends SuperDetection<RegionDataUnit> {
 	 */
 	public void setMeanOccupancy(double meanOccupancy) {
 		trackChain.setMeanOccupancy(meanOccupancy);
+	}
+	
+	/**
+	 * Get a count of the maximum number of detections per frame within this
+	 * track. Can be used to not display total crap. 
+	 * @return max count
+	 */
+	public int getMaxFrameDetectionCount() {
+		int n = 0;
+		synchronized (getSubDetectionSyncronisation()) {
+			Iterator<SubdetectionInfo<RegionDataUnit>> iter = getSubDetectionInfo().iterator();
+			while (iter.hasNext()) {
+				n = Math.max(n, iter.next().getSubDetection().getFrameDetectionCount());
+			}
+		} 
+		return n;
 	}
 }

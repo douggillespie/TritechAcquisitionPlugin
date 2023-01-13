@@ -205,7 +205,7 @@ public class TritechDaqProcess extends PamProcess implements TritechRunMode {
 	}
 
 	protected void showSettingsDialog(Frame parentFrame) {
-		TritechDaqParams newParams = DaqDialog.showDialog(parentFrame, tritechAcquisition.getDaqParams());
+		TritechDaqParams newParams = DaqDialog.showDialog(parentFrame, this, tritechAcquisition.getDaqParams());
 		if (newParams != null) {
 			tritechAcquisition.setDaqParams(newParams);
 			prepareProcess();

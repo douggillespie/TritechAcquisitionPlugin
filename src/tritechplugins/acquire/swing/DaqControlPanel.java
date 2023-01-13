@@ -16,6 +16,7 @@ import PamView.dialog.PamLabel;
 import PamView.hidingpanel.HidingPanel;
 import PamView.panel.PamPanel;
 import geminisdk.Svs5Exception;
+import tritechplugins.acquire.SonarDaqParams;
 import tritechplugins.acquire.TritechAcquisition;
 import tritechplugins.acquire.TritechDaqParams;
 import tritechplugins.acquire.TritechDaqProcess;
@@ -32,10 +33,12 @@ public class DaqControlPanel implements SonarDisplayDecoration {
 	private ValueSlider rangeSlider;
 	private TritechJNADaq jnaAcquisition;
 	private HidingPanel hidingPanel;
+	private int sonarId;
 		
-	public DaqControlPanel(TritechAcquisition tritechAcquisition, TritechJNADaq jnaAcquisition) {
+	public DaqControlPanel(TritechAcquisition tritechAcquisition, TritechJNADaq jnaAcquisition, int sonarId) {
 		this.tritechAcquisition = tritechAcquisition;
 		this.jnaAcquisition = jnaAcquisition;
+		this.sonarId = sonarId;
 		tritechProcess = tritechAcquisition.getTritechDaqProcess();
 		
 		mainPanel = new PamPanel();
@@ -78,17 +81,19 @@ public class DaqControlPanel implements SonarDisplayDecoration {
 	
 	private void setParams() {
 		TritechDaqParams daqParams = tritechAcquisition.getDaqParams();
-		rangeSlider.setValue(daqParams.getRange());
-		gainSlider.setValue(daqParams.getGain());
+		SonarDaqParams sonarParams = daqParams.getSonarParams(sonarId);
+		rangeSlider.setValue(sonarParams.getRange());
+		gainSlider.setValue(sonarParams.getGain());
 		
 	}
 
 	protected void rangeChanged() {
 //		System.out.printf("New range value = %dm\n", rangeSlider.getValue());
 		TritechDaqParams daqParams = tritechAcquisition.getDaqParams();
-		daqParams.setRange(rangeSlider.getValue());
+		SonarDaqParams sonarParams = daqParams.getSonarParams(sonarId);
+		sonarParams.setRange(rangeSlider.getValue());
 		try {
-			jnaAcquisition.setRange(daqParams.getRange(), 0);
+			jnaAcquisition.setRange(sonarParams.getRange(), 0);
 		} catch (Svs5Exception e) {
 			e.printStackTrace();
 		}
@@ -97,9 +102,10 @@ public class DaqControlPanel implements SonarDisplayDecoration {
 	protected void gainChanged() {
 //		System.out.printf("New gain value = %d%%\n", gainSlider.getValue());
 		TritechDaqParams daqParams = tritechAcquisition.getDaqParams();
-		daqParams.setGain(gainSlider.getValue());
+		SonarDaqParams sonarParams = daqParams.getSonarParams(sonarId);
+		sonarParams.setGain(gainSlider.getValue());
 		try {
-			jnaAcquisition.setGain(daqParams.getGain(), 0);
+			jnaAcquisition.setGain(sonarParams.getGain(), 0);
 		} catch (Svs5Exception e) {
 			e.printStackTrace();
 		}

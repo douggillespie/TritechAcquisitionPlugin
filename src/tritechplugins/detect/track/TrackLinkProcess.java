@@ -3,6 +3,7 @@ package tritechplugins.detect.track;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.List;
+import java.util.ListIterator;
 
 import PamController.PamControlledUnitSettings;
 import PamController.PamSettingManager;
@@ -17,6 +18,7 @@ import tritechplugins.detect.threshold.RegionDataBlock;
 import tritechplugins.detect.threshold.RegionDataUnit;
 import tritechplugins.detect.threshold.ThresholdDetector;
 import tritechplugins.detect.threshold.ThresholdProcess;
+import tritechplugins.detect.track.dataselect.TrackDataSelectCreator;
 import tritechplugins.display.swing.overlays.TrackSymbolManager;
 
 /**
@@ -80,6 +82,7 @@ public class TrackLinkProcess extends PamProcess implements PamSettings {
 		trackLogging.setSubLogging(thresholdProcess.getRegionLogging());
 		trackLinkDataBlock.SetLogging(trackLogging);
 		trackLinkDataBlock.setBinaryDataSource(new TrackBinarySource(this, trackLinkDataBlock));
+		trackLinkDataBlock.setDataSelectCreator(new TrackDataSelectCreator(trackLinkDataBlock));
 //		annotationHandler = new ManualAnnotationHandler(thresholdDetector, trackLinkDataBlock);
 //		trackLinkDataBlock.setAnnotationHandler(annotationHandler);
 		trackLinkDataBlock.setPamSymbolManager(new TrackSymbolManager(trackLinkDataBlock));
@@ -172,6 +175,39 @@ public class TrackLinkProcess extends PamProcess implements PamSettings {
 	public boolean restoreSettings(PamControlledUnitSettings pamControlledUnitSettings) {
 		trackLinkParams = (TrackLinkParameters) pamControlledUnitSettings.getSettings();
 		return true;
+	}
+
+	/**
+	 * Called after data loaded from binary files in viewer mode and will add a count of how many detections
+	 * per frame there are to each region and track. This can be used on the display to 
+	 * cut overly busy frames from the display to remove clutter. 
+	 */
+	public void countFrameDetections() {
+
+		/**
+		 * Make a map of all frames then count how many items there were 
+		 * per frame, then go back and add those data back into the regions. 
+		 */
+		HashMap<Long, Integer> frameCountMap = new HashMap<>();
+		synchronized (regionDataBlock.getSynchLock()) {
+			ListIterator<RegionDataUnit> iter = regionDataBlock.getListIterator(0);
+			while (iter.hasNext()) {
+				RegionDataUnit region = iter.next();
+				Integer val = frameCountMap.get(region.getTimeMilliseconds());
+				if (val == null) {
+					frameCountMap.put(region.getTimeMilliseconds(), 1);
+				}
+				else {
+					frameCountMap.put(region.getTimeMilliseconds(), val+1);
+				}
+			}
+			iter = regionDataBlock.getListIterator(0);
+			while (iter.hasNext()) {
+				RegionDataUnit region = iter.next();
+				Integer val = frameCountMap.get(region.getTimeMilliseconds());
+				region.setFrameDetectionCount(val);
+			}
+		}
 	}
 
 //	/**
