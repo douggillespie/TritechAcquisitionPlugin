@@ -4,6 +4,8 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
 
 import javax.swing.JCheckBox;
 import javax.swing.JLabel;
@@ -27,7 +29,7 @@ public class DisplayControlPanel {
 
 	private SonarsOuterPanel sonarsOuterPanel;
 	
-	private ColourComboBox colourComboBox;
+//	private ColourComboBox colourComboBox;
 	
 	private JSlider gainSlider;
 	
@@ -47,6 +49,12 @@ public class DisplayControlPanel {
 	
 	private JTextField backgroundScaleFac;
 	
+	private JCheckBox usePersistence;
+	
+	private JTextField persistentFrames;
+	
+	private JCheckBox rescalePersistence;
+	
 //	private HidingPanel hidingPanel;
 	
 	public DisplayControlPanel(SonarsOuterPanel sonarsOuterPanel, SonarsPanel sonarsPanel) {
@@ -58,7 +66,9 @@ public class DisplayControlPanel {
 		mainPanel.setBorder(new TitledBorder("Display options"));
 		
 		GeneralAction generalAction = new GeneralAction();
-		colourComboBox = new ColourComboBox(200, 15);
+		GeneralFocus generalFocus = new GeneralFocus();
+		
+//		colourComboBox = new ColourComboBox(200, 15);
 		
 		gainSlider = new JSlider(1, 10);
 
@@ -78,7 +88,7 @@ public class DisplayControlPanel {
 		c.gridwidth = 1;
 		SettingsButton moreButton = new SettingsButton();
 		mainPanel.add(moreButton, c);
-		moreButton.setToolTipText("More display options");
+		moreButton.setToolTipText("Resolution and Colour)");
 		moreButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -96,18 +106,18 @@ public class DisplayControlPanel {
 				gainChange();
 			}
 		});
-		c.gridy++;
-		c.gridwidth = 1;
-		mainPanel.add(new PamLabel("Colour", JLabel.RIGHT), c);
-		c.gridx++;
-		c.gridwidth = 5;
-		mainPanel.add(colourComboBox, c);
-		colourComboBox.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				colourChange();
-			}
-		});
+//		c.gridy++;
+//		c.gridwidth = 1;
+//		mainPanel.add(new PamLabel("Colour", JLabel.RIGHT), c);
+//		c.gridx++;
+//		c.gridwidth = 5;
+//		mainPanel.add(colourComboBox, c);
+//		colourComboBox.addActionListener(new ActionListener() {
+//			@Override
+//			public void actionPerformed(ActionEvent e) {
+//				colourChange();
+//			}
+//		});
 		c.gridy++;
 		c.gridx = 0;
 		c.gridwidth = 2;
@@ -122,16 +132,39 @@ public class DisplayControlPanel {
 		c.gridx += c.gridwidth;
 		mainPanel.add(backgroundScaleFac = new PamTextField(2), c);
 		
+		c.gridy++;
+		c.gridx = 0;
+		c.gridwidth = 2;
+		mainPanel.add(usePersistence = new JCheckBox("Persistant image "), c);
+		c.gridx+= c.gridwidth;
+		c.gridwidth = 1;
+		mainPanel.add(new PamLabel(" Time"), c);
+		c.gridx += c.gridwidth;
+		mainPanel.add(persistentFrames = new PamTextField(2), c);
+		c.gridx++;
+		mainPanel.add(new PamLabel(" (frames)"), c);;
+		c.gridx++;
+		mainPanel.add(rescalePersistence = new JCheckBox("Rescale"), c);
+		
 		removeBackground.addActionListener(generalAction);
 		backgroundTimeFac.addActionListener(generalAction);
 		backgroundScaleFac.addActionListener(generalAction);
+		usePersistence.addActionListener(generalAction);
+		persistentFrames.addActionListener(generalAction);
+		rescalePersistence.addActionListener(generalAction);
+		backgroundTimeFac.addFocusListener(generalFocus);
+		backgroundScaleFac.addFocusListener(generalFocus);
+		persistentFrames.addFocusListener(generalFocus);
 		
 		gainSlider.setToolTipText("Amplify the image");
-		colourComboBox.setToolTipText("Select colour scheme");
+//		colourComboBox.setToolTipText("Select colour scheme");
 		showGrid.setToolTipText("Overlay grid");
 		flipLeftRight.setToolTipText("Flip images left-right");
 		removeBackground.setToolTipText("Automatically remove stationary background from image");
 		backgroundTimeFac.setToolTipText("Background scale factor: big numbers = slow background update, small = fast update");
+		usePersistence.setToolTipText("Generate a persistent image: the average or sum of multiple frames");
+		persistentFrames.setToolTipText("Number of frames in persistent image");
+		rescalePersistence.setToolTipText("Rescale data (divide by number of frames)");
 //		gainSlider.setMajorTickSpacing(5);
 //		gainSlider.setMinorTickSpacing(1);
 //		gainSlider.setPaintTicks(true);
@@ -142,11 +175,13 @@ public class DisplayControlPanel {
 	}
 
 	protected void moreSettings() {
-		SonarsPanelParams newParams = MoreDisplayParamsDialog.showDialog(null, sonarsPanel.getSonarsPanelParams());
+		SonarsPanelParams newParams = MoreDisplayParamsDialog.showDialog(null, sonarsPanel);
 		if (newParams != null) {
 			sonarsPanel.setSonarsPanelParams(newParams);
 			setParams();
 			sonarsPanel.remakeImages();
+
+			sonarsPanel.updateColourMap(newParams.colourMap);
 		}
 		
 	}
@@ -157,6 +192,19 @@ public class DisplayControlPanel {
 		public void actionPerformed(ActionEvent e) {
 			parameterChange();
 		}
+	}
+	
+	private class GeneralFocus implements FocusListener {
+
+		@Override
+		public void focusGained(FocusEvent e) {			
+		}
+
+		@Override
+		public void focusLost(FocusEvent e) {
+			parameterChange();
+		}
+		
 	}
 	
 
@@ -170,6 +218,8 @@ public class DisplayControlPanel {
 		params.showGrid = showGrid.isSelected();
 		params.flipLeftRight = flipLeftRight.isSelected();
 		params.subtractBackground = removeBackground.isSelected();
+		params.usePersistence = usePersistence.isSelected();
+		params.rescalePersistence = rescalePersistence.isSelected();
 		try {
 			double update = Double.valueOf(backgroundTimeFac.getText());
 			int iUpdate = (int) Math.round(update);
@@ -177,6 +227,9 @@ public class DisplayControlPanel {
 				params.backgroundTimeFactor = iUpdate;
 			}
 //			System.out.println("Background scale updated to " + iUpdate);
+			if (params.usePersistence) {
+				params.persistentFrames = Integer.valueOf(persistentFrames.getText());
+			}
 		}
 		catch (NumberFormatException e) {
 		}
@@ -191,7 +244,7 @@ public class DisplayControlPanel {
 
 	protected void colourChange() {
 		SonarsPanelParams params = sonarsPanel.getSonarsPanelParams();
-		params.colourMap = colourComboBox.getSelectedColourMap();
+//		params.colourMap = colourComboBox.getSelectedColourMap();
 		sonarsPanel.updateColourMap(params.colourMap);
 	}
 
@@ -216,11 +269,14 @@ public class DisplayControlPanel {
 		SonarsPanelParams params = sonarsPanel.getSonarsPanelParams();
 		showGrid.setSelected(params.showGrid);
 		flipLeftRight.setSelected(params.flipLeftRight);
-		colourComboBox.setSelectedColourMap(params.colourMap);
+//		colourComboBox.setSelectedColourMap(params.colourMap);
 		gainSlider.setValue(params.displayGain);
 		removeBackground.setSelected(params.subtractBackground);
 		backgroundTimeFac.setText(String.format("%d", params.backgroundTimeFactor));
 		backgroundScaleFac.setText(String.format("%3.2f", params.backgroundScale));
+		usePersistence.setSelected(params.usePersistence);
+		persistentFrames.setText(String.format("%d", params.persistentFrames));
+		rescalePersistence.setSelected(params.rescalePersistence);
 		sayGain();
 	}
 

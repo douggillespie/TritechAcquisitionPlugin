@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import javax.management.PersistentMBean;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
@@ -115,6 +116,8 @@ public class SonarImagePanel extends JPanel {
 
 	public long lastEscape;
 	
+	private PersistentFanImageMaker persistentFanMaker;
+	
 	public SonarImagePanel(SonarsPanel sonarsPanel, int panelIndex) {
 		this.panelIndex = panelIndex;
 		this.sonarsPanel = sonarsPanel;
@@ -123,6 +126,7 @@ public class SonarImagePanel extends JPanel {
 		setOpaque(false);
 		isViewer = (PamController.getInstance().getRunMode() == PamController.RUN_PAMVIEW);
 		imageFanMaker = new FanPicksFromData(4);
+		persistentFanMaker = new PersistentFanImageMaker();
 		xyProjector = new SonarXYProjector(sonarsPanel, sonarId, sonarId);
 		externalMouseHandler = new ExtMapMouseHandler(PamController.getMainFrame(), false);
 		sonarPanelMarker = new SonarsPanelMarker(sonarsPanel, xyProjector, panelIndex);
@@ -566,8 +570,14 @@ public class SonarImagePanel extends JPanel {
 			int nBearing = imageRecord.getnBeam();
 			int nXPix = getWidth();
 			int usePix = sonarsPanel.getImagePixels(nBearing, nXPix);
+			SonarsPanelParams panelParams = sonarsPanel.getSonarsPanelParams();
 			fanImageData = imageFanMaker.createFanData(imageRecord, usePix);
-			fanImage = new FanDataImage(fanImageData, sonarsPanel.getColourMap(), true, sonarsPanel.getSonarsPanelParams().displayGain);
+			FanImageData totallyFinalData = fanImageData;
+			if (panelParams.usePersistence) {
+				totallyFinalData = persistentFanMaker.makePersistentImage(totallyFinalData, 
+						panelParams.persistentFrames, panelParams.rescalePersistence);
+			}
+			fanImage = new FanDataImage(totallyFinalData, sonarsPanel.getColourMap(), true, panelParams.displayGain);
 			fanImage.getBufferedImage(); // created and kept..
 			imageTime = System.nanoTime()-t1;
 		}

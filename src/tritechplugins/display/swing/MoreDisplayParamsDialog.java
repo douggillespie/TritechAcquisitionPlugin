@@ -3,6 +3,8 @@ package tritechplugins.display.swing;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Window;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
@@ -10,8 +12,10 @@ import javax.swing.JPanel;
 import javax.swing.border.TitledBorder;
 
 import PamController.PamController;
+import PamView.ColourComboBox;
 import PamView.dialog.PamDialog;
 import PamView.dialog.PamGridBagContraints;
+import PamView.dialog.PamLabel;
 import PamView.dialog.warn.WarnOnce;
 
 public class MoreDisplayParamsDialog extends PamDialog{
@@ -21,9 +25,17 @@ public class MoreDisplayParamsDialog extends PamDialog{
 	private SonarsPanelParams sonarParams;
 	
 	private JComboBox<String> resolution;
+
+	private ColourComboBox colourComboBox;
+
+	private SonarsPanel sonarsPanel;
 	
 	private MoreDisplayParamsDialog(Window parentFrame) {
-		super(parentFrame, "Sonar display", true);
+		super(parentFrame, "Sonar display", false);
+		
+		colourComboBox = new ColourComboBox(200, 15);
+		colourComboBox.setBorder(null);
+		colourComboBox.setToolTipText("Select colour scheme");
 		
 		resolution = new JComboBox<String>();
 		int[] ress = SonarsPanelParams.getResolutionValues();
@@ -34,31 +46,57 @@ public class MoreDisplayParamsDialog extends PamDialog{
 		JPanel mainPanel = new JPanel(new GridBagLayout());
 		GridBagConstraints c = new PamGridBagContraints();
 		
-		mainPanel.setBorder(new TitledBorder("Image resolution"));
+		mainPanel.setBorder(new TitledBorder("Image style"));
 		mainPanel.add(new JLabel("Image resolution", JLabel.RIGHT), c);
 		c.gridx ++;
 		mainPanel.add(resolution, c);
+
+		c.gridy++;
+		c.gridx = 0;
+		c.gridwidth = 1;
+		mainPanel.add(new PamLabel("Colour", JLabel.RIGHT), c);
+		c.gridx++;
+		c.gridwidth = 2;
+		c.fill = GridBagConstraints.HORIZONTAL;
+		mainPanel.add(colourComboBox, c);
+		colourComboBox.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				colourChange();
+			}
+		});
 		
 		setDialogComponent(mainPanel);
 	}
 	
-	public static SonarsPanelParams showDialog(Window parent, SonarsPanelParams params) {
+	public static SonarsPanelParams showDialog(Window parent, SonarsPanel sonarsPanel) {
 		if (singleInstance == null || singleInstance.getOwner() != parent) {
 			singleInstance = new MoreDisplayParamsDialog(parent);
 		}
-		singleInstance.setParams(params);
+		singleInstance.setParams(sonarsPanel);
 		singleInstance.moveToMouseLocation();
 		singleInstance.setVisible(true);
 		return singleInstance.sonarParams;
 	}
 
-	private void setParams(SonarsPanelParams params) {
-		this.sonarParams = params;
+	private void setParams(SonarsPanel sonarsPanel) {
+		this.sonarsPanel = sonarsPanel;
+		this.sonarParams = sonarsPanel.getSonarsPanelParams();
 		int[] ress = SonarsPanelParams.getResolutionValues();
 		for (int i = 0; i < ress.length; i++) {
 			if (sonarParams.resolution == ress[i]) {
 				resolution.setSelectedIndex(i);
 			}
+		}
+
+		colourComboBox.setSelectedColourMap(sonarsPanel.getSonarsPanelParams().colourMap);
+	}
+
+	protected void colourChange() {
+//		SonarsPanelParams params = sonarsPanel.getSonarsPanelParams();
+		sonarParams.colourMap = colourComboBox.getSelectedColourMap();
+		if (sonarsPanel != null) {
+			sonarsPanel.updateColourMap(sonarParams.colourMap);
 		}
 	}
 
@@ -74,6 +112,9 @@ public class MoreDisplayParamsDialog extends PamDialog{
 			}
 		}
 		sonarParams.resolution = res;
+
+		sonarParams.colourMap = colourComboBox.getSelectedColourMap();
+		
 		return true;
 	}
 
@@ -84,7 +125,7 @@ public class MoreDisplayParamsDialog extends PamDialog{
 
 	@Override
 	public void restoreDefaultSettings() {
-		setParams(new SonarsPanelParams());
+//		setParams(new SonarsPanelParams());
 	}
 
 }
