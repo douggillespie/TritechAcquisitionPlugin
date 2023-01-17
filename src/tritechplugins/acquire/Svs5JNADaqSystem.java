@@ -20,6 +20,8 @@ import geminisdk.structures.LoggerPlaybackUpdate;
 import tritechgemini.imagedata.GLFImageRecord;
 import tritechgemini.imagedata.GLFStatusData;
 import tritechgemini.imagedata.GeminiImageRecordI;
+import warnings.PamWarning;
+import warnings.WarningSystem;
 
 /**
  * Daq systems based around the JNA interface to the Svs5 library. There
@@ -38,6 +40,8 @@ abstract public class Svs5JNADaqSystem extends TritechDaqSystem {
 	private String lastFileName = "";
 	
 	private int[] recordIndexes = new int[4];
+	
+	private PamWarning oowWarning = new PamWarning("Gemini"	, "", 2);
 
 	public Svs5JNADaqSystem(TritechAcquisition tritechAcquisition, TritechDaqProcess tritechProcess) {
 		super(tritechAcquisition, tritechProcess);
@@ -141,6 +145,9 @@ abstract public class Svs5JNADaqSystem extends TritechDaqSystem {
 			// m_sonarId and m_deviceId are the same thing. 
 			//			System.out.printf("Sonar id %d device id = %d\n", statusPacket.m_sonarId, statusPacket.m_deviceID);
 			SonarStatusData sonarStatusData = checkDeviceInfo(statusData);
+			
+			checkOutOfWater(statusData);
+			
 			if (sonarStatusData != null) {
 				tritechProcess.updateStatusData(sonarStatusData);
 			}
@@ -187,6 +194,50 @@ abstract public class Svs5JNADaqSystem extends TritechDaqSystem {
 		return sv5Inf;
 	}
 
+
+	public void checkOutOfWater(GLFStatusData statusData) {
+		if (statusData == null) {
+			return;
+		}
+		OpsSonarStatusData opsData = getOpsSonarStatusData(statusData.m_deviceID);
+		if (statusData.isOutOfWater() != opsData.outOfWater) {
+			opsData.outOfWater = statusData.isOutOfWater();
+//			System.out.println("OOW is " + opsData.outOfWater);
+			sayOOWWarning();
+		}
+	}
+
+	private void sayOOWWarning() {
+		int nOOW = 0;
+		int[] sonars = getSonarIDs();
+		String warning = "";
+		for (int i = 0; i < sonars.length; i++) {
+			OpsSonarStatusData opsData = getOpsSonarStatusData(sonars[i]);
+			if (opsData.outOfWater) {
+				if (nOOW == 0) {
+					warning = String.format("Sonar %d", sonars[i]);
+				}
+				else {
+					warning += String.format(" and sonar %d", sonars[i]);
+				}
+				nOOW++;
+			}
+		}
+		if (nOOW == 1) {
+			warning += " is out of water";
+		}
+		else if (nOOW > 1) {
+			warning += " are out of water";
+		}
+		if (nOOW == 0) {
+			WarningSystem.getWarningSystem().removeWarning(oowWarning);
+		}
+		else {
+			oowWarning.setWarningMessage(warning);
+			oowWarning.setWarnignLevel(2);
+			WarningSystem.getWarningSystem().addWarning(oowWarning);
+		}
+	}
 
 	public int[] getSonarIDs() {
 		// could probably actually use the keys since the sonar id's are the keys in the hash table.

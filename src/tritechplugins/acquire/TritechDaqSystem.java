@@ -25,6 +25,8 @@ public abstract class TritechDaqSystem {
 	
 	protected HashMap<Integer, SonarStatusData> deviceInfo = new HashMap<>();
 	
+	protected HashMap<Integer, OpsSonarStatusData> opsStatusData = new HashMap();
+	
 	protected int totalFrames;
 
 	public TritechDaqSystem(TritechAcquisition tritechAcquisition, TritechDaqProcess tritechProcess) {
@@ -156,6 +158,20 @@ public abstract class TritechDaqSystem {
 			}
 			return statusData; 
 		}
+	}
+	
+	/**
+	 * Get an ops sonar data for each sonar. 
+	 * @param sonarId
+	 * @return
+	 */
+	public OpsSonarStatusData getOpsSonarStatusData(int sonarId) {
+		OpsSonarStatusData opsData = opsStatusData.get(sonarId);
+		if (opsData == null) {
+			opsData = new OpsSonarStatusData();
+			opsStatusData.put(sonarId, opsData);
+		}
+		return opsData;
 	}
 	
 	/**
