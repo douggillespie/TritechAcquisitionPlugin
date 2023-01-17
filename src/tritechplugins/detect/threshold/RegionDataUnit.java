@@ -12,6 +12,7 @@ public class RegionDataUnit extends PamDataUnit {
 
 	private DetectedRegion region;
 	private int sonarId;
+	private int frameDetectionCount;
 
 	public RegionDataUnit(long timeMilliseconds, int sonarId, DetectedRegion region) {
 		super(timeMilliseconds);
@@ -112,5 +113,22 @@ public class RegionDataUnit extends PamDataUnit {
 		return super.getSuperDetection(superDataBlock, true);
 	}
 
+	/**
+	 * Set a count of the number of detections in this sonar frame 
+	 * (Get's used in various vetoes of noisy data)
+	 * @param detCount
+	 */
+	public void setFrameDetectionCount(Integer detCount) {
+		frameDetectionCount = detCount == null ? 0 : detCount;
+	}
+
+	/**
+	 * Get a count of the number of detections in this sonar frame 
+	 * (Get's used in various vetoes of noisy data)
+	 * @return count of detections in one frame. 
+	 */
+	public int getFrameDetectionCount() {
+		return frameDetectionCount;
+	}
 
 }

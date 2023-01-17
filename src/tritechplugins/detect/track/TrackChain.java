@@ -14,6 +14,8 @@ public class TrackChain {
 	
 	private double meanOccupancy;
 	
+	private TrackLinkDataUnit parentDataUnit;
+	
 	public TrackChain(DetectedRegion region) {
 		this.regions = new LinkedList<>();
 		if (region != null) {
@@ -104,12 +106,49 @@ public class TrackChain {
 		}
 		double len = 0.;
 		synchronized (this) {
+			/* 
+			 * may need to do this separately for each sonar if multiples are interleaved
+			 * since the sonar to sonar data jump about quite a bit spatially, but on the 
+			 * other hand, what do do if it starts on one and ends on the other ?  
+			 */
+			int startId = regions.get(0).getSonarId();
+			int endId = regions.get(regions.size()-1).getSonarId();
+			/*
+			 *  go from the end, until we reach the first sonar with the other
+			 *  id, then carry on with that one only.  
+			 */
+//			if (startId == endId) {
+//				endId = startId+1; // something else, so never happens. 
+//			}
+			int usingSonar = startId;
+//			System.out.println()
 			ListIterator<DetectedRegion> it = regions.listIterator();
 			DetectedRegion last = it.next();
+			int i = 0;
+//			System.out.println("\n\n\n\n");
 			while (it.hasNext()) {
+				i++;
 				DetectedRegion next = it.next();
-				len += Math.sqrt(Math.pow(next.getPeakX()-last.getPeakX(), 2) + 
-						Math.pow(next.getPeakY()-last.getPeakY(), 2));
+				if (next.getSonarId() == endId) {
+					usingSonar = endId;
+				}
+				if (usingSonar != next.getSonarId()) {
+//					System.out.printf("Skipping point %d from sonar %d to sonar %d\n", i, 
+//							last.getSonarId(), next.getSonarId());
+					continue;
+				}
+				if (next.getTimeMilliseconds() == last.getTimeMilliseconds()) {
+					continue;
+				}
+					double x = next.getPeakX()-last.getPeakX();
+					double y = next.getPeakY()-last.getPeakY();
+					len += Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2));
+//					System.out.printf("Using point %d from sonar %d to sonar %d, xy = %3.1f,%3.1f t = %dms\n", i, 
+//							last.getSonarId(), next.getSonarId(), x, y, next.getTimeMilliseconds()-last.getTimeMilliseconds());
+//				}
+//				else {
+//					continue;
+//				}
 				last = next;
 			}
 		}
@@ -222,5 +261,29 @@ public class TrackChain {
 			totalPix += r.getnPoints();
 		}
 		return totalOcc/totalPix;
+	}
+
+	/**
+	 * @return the parentDataUnit
+	 */
+	public TrackLinkDataUnit getParentDataUnit() {
+		return parentDataUnit;
+	}
+
+	/**
+	 * @param parentDataUnit the parentDataUnit to set
+	 */
+	public void setParentDataUnit(TrackLinkDataUnit parentDataUnit) {
+		this.parentDataUnit = parentDataUnit;
+	}
+
+	public double getStraigtness() {
+		double wl = getWobblyLength();
+		if (wl == 0) {
+			return 1.;
+		}
+		else {
+			return getEnd2EndMetres() / wl;
+		}
 	}
 }

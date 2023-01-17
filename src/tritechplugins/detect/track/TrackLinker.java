@@ -8,6 +8,7 @@ import java.util.List;
 
 import javax.sound.midi.Track;
 
+import PamUtils.PamCalendar;
 import tritechgemini.detect.DetectedRegion;
 import tritechplugins.detect.threshold.RegionDataBlock;
 import tritechplugins.detect.threshold.RegionDataUnit;
@@ -72,6 +73,21 @@ public class TrackLinker {
 			// should be good to add new region to chain. 
 			candidate.chain.addRegion(regions.get(candidate.regionIndex));
 			usedRegions[candidate.regionIndex] = true;
+			/**
+			 * If a chain isn't yet a data unit and is long enough, then we want to make
+			 * an embryonic data unit to add to the output datablock so it get's displayed. 
+			 */
+			if (candidate.chain.getParentDataUnit() == null && wantChain(candidate.chain)) {
+				intiailiseDataUnit(candidate.chain);
+			}
+			else if (candidate.chain.getParentDataUnit() != null) {
+				/**
+				 * Otherwise there may be a data unit, in which case we need to update it 
+				 * with a new revion using this latest region. 
+				 */
+				extendDataUnit(candidate.chain, regions.get(candidate.regionIndex));
+			}
+			// or nothing needs to be done if the chain is still to small. 
 		}
 		
 		// then take everything else and turn it into an embryo. 
@@ -136,11 +152,13 @@ public class TrackLinker {
 	}
 
 	/**
-	 * Finish it - make data units, save to datablock, database, etc. 
+	 * Start a data unit and add it to the output data block as an embryo. 
+	 * Will stop being embryonic when the chain is completed. 
 	 * @param chain
 	 */
-	private void completeChain(TrackChain chain) {
+	private void intiailiseDataUnit(TrackChain chain) {
 		TrackLinkDataUnit trackDataUnit = new TrackLinkDataUnit(chain);
+		trackDataUnit.setEmbryonic(true);
 		/*
 		 *  me thinks that we're first going to have to make all the sub detections and
 		 *  add them to this super detection 
@@ -152,8 +170,45 @@ public class TrackLinker {
 				trackLinkProcess.getThresholdDetector().getThresholdProcess().getRegionDataBlock().addPamData(regionDataUnit);
 			}
 		}
-		
+
+		trackDataUnit.setEmbryonic(true);
 		trackDataBlock.addPamData(trackDataUnit);
+	}
+	
+	private void extendDataUnit(TrackChain chain, DetectedRegion region) {
+		TrackLinkDataUnit trackDataUnit = chain.getParentDataUnit();
+		if (trackDataUnit == null) {
+			return;
+		}
+		RegionDataUnit regionDataUnit = new RegionDataUnit(region.getTimeMilliseconds(), region.getSonarId(), region);
+		trackLinkProcess.getThresholdDetector().getThresholdProcess().getRegionDataBlock().addPamData(regionDataUnit);
+		trackDataUnit.addNewSubDetection(regionDataUnit);
+		trackDataBlock.updatePamData(trackDataUnit, region.getTimeMilliseconds());
+		
+	}
+
+	/**
+	 * Finish it - make data units, save to datablock, database, etc. 
+	 * @param chain
+	 */
+	private void completeChain(TrackChain chain) {
+//		TrackLinkDataUnit trackDataUnit = new TrackLinkDataUnit(chain);
+//		/*
+//		 *  me thinks that we're first going to have to make all the sub detections and
+//		 *  add them to this super detection 
+//		 */
+//		synchronized(chain) {
+//			for (DetectedRegion region : chain.getRegions()) {
+//				RegionDataUnit regionDataUnit = new RegionDataUnit(region.getTimeMilliseconds(), region.getSonarId(), region);
+//				trackDataUnit.addNewSubDetection(regionDataUnit);
+//				trackLinkProcess.getThresholdDetector().getThresholdProcess().getRegionDataBlock().addPamData(regionDataUnit);
+//			}
+//		}
+		TrackLinkDataUnit trackDataUnit = chain.getParentDataUnit();
+		trackDataUnit.setEmbryonic(false);
+		trackDataBlock.updatePamData(trackDataUnit, trackDataUnit.getEndTimeInMilliseconds());
+		
+//		trackDataBlock.addPamData(trackDataUnit);
 	}
 
 	/**

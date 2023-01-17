@@ -1,12 +1,14 @@
 package tritechplugins.acquire;
 
 import java.io.Serializable;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Iterator;
 
 import geminisdk.structures.ChirpMode;
 import geminisdk.structures.RangeFrequencyConfig;
 
 public class TritechDaqParams implements Serializable, Cloneable{
-
 
 	public static final long serialVersionUID = 1L;
 
@@ -15,6 +17,8 @@ public class TritechDaqParams implements Serializable, Cloneable{
 	public static final int RUN_SIMULATE = 2;
 	
 	private int runMode = RUN_ACQUIRE;
+	
+	public static final int DEFAULT_SONAR_PARAMETERSET = -1;
 
 	/*
 	 * List of available playback speeds for offline analysis in 'normal' mode via 
@@ -37,6 +41,13 @@ public class TritechDaqParams implements Serializable, Cloneable{
 	private int chirpMode = ChirpMode.CHIRP_ENABLED;
 	
 	private double playSpeed = 1.0;
+	
+	/**
+	 * All sonars use the same settings
+	 */
+	private boolean allTheSame = true;
+	
+	private HashMap<Integer, SonarDaqParams> sonarSpecificParams;
 	
 	/**
 	 * 1200i only
@@ -86,81 +97,81 @@ public class TritechDaqParams implements Serializable, Cloneable{
 		this.offlineSubFolders = offlineSubFolders;
 	}
 
-	/**
-	 * @return the range
-	 */
-	public int getRange() {
-		if (range == 0) {
-			range = 30;
-		}
-		return range;
-	}
-
-	/**
-	 * @param range the range to set
-	 */
-	public void setRange(int range) {
-		this.range = range;
-	}
-
-	/**
-	 * @return the gain
-	 */
-	public int getGain() {
-		if (gain == 0) {
-			gain = 50;
-		}
-		return gain;
-	}
-
-	/**
-	 * @param gain the gain to set
-	 */
-	public void setGain(int gain) {
-		this.gain = gain;
-	}
-
-	/**
-	 * @return the chirpMode
-	 */
-	public int getChirpMode() {
-		return chirpMode;
-	}
-
-	/**
-	 * @param chirpMode the chirpMode to set
-	 */
-	public void setChirpMode(int chirpMode) {
-		this.chirpMode = chirpMode;
-	}
-
-	/**
-	 * @return the rangeConfig
-	 */
-	public int getRangeConfig() {
-		return rangeConfig;
-	}
-
-	/**
-	 * @param rangeConfig the rangeConfig to set
-	 */
-	public void setRangeConfig(int rangeConfig) {
-		this.rangeConfig = rangeConfig;
-	}
-
-	/**
-	 * @return the rangeRangeThreshold
-	 */
-	public double getRangeRangeThreshold() {
-		return rangeRangeThreshold;
-	}
-
-	/**
-	 * @param rangeRangeThreshold the rangeRangeThreshold to set
-	 */
-	public void setRangeRangeThreshold(double rangeRangeThreshold) {
-		this.rangeRangeThreshold = rangeRangeThreshold;
-	}
+//	/**
+//	 * @return the range
+//	 */
+//	public int getRange() {
+//		if (range == 0) {
+//			range = 30;
+//		}
+//		return range;
+//	}
+//
+//	/**
+//	 * @param range the range to set
+//	 */
+//	public void setRange(int range) {
+//		this.range = range;
+//	}
+//
+//	/**
+//	 * @return the gain
+//	 */
+//	public int getGain() {
+//		if (gain == 0) {
+//			gain = 50;
+//		}
+//		return gain;
+//	}
+//
+//	/**
+//	 * @param gain the gain to set
+//	 */
+//	public void setGain(int gain) {
+//		this.gain = gain;
+//	}
+//
+//	/**
+//	 * @return the chirpMode
+//	 */
+//	public int getChirpMode() {
+//		return chirpMode;
+//	}
+//
+//	/**
+//	 * @param chirpMode the chirpMode to set
+//	 */
+//	public void setChirpMode(int chirpMode) {
+//		this.chirpMode = chirpMode;
+//	}
+//
+//	/**
+//	 * @return the rangeConfig
+//	 */
+//	public int getRangeConfig() {
+//		return rangeConfig;
+//	}
+//
+//	/**
+//	 * @param rangeConfig the rangeConfig to set
+//	 */
+//	public void setRangeConfig(int rangeConfig) {
+//		this.rangeConfig = rangeConfig;
+//	}
+//
+//	/**
+//	 * @return the rangeRangeThreshold
+//	 */
+//	public double getRangeRangeThreshold() {
+//		return rangeRangeThreshold;
+//	}
+//
+//	/**
+//	 * @param rangeRangeThreshold the rangeRangeThreshold to set
+//	 */
+//	public void setRangeRangeThreshold(double rangeRangeThreshold) {
+//		this.rangeRangeThreshold = rangeRangeThreshold;
+//	}
 	
 	public static int[] getRunModes() {
 		int[] modes = {RUN_ACQUIRE, RUN_REPROCESS};
@@ -205,6 +216,68 @@ public class TritechDaqParams implements Serializable, Cloneable{
 	 */
 	public void setPlaySpeed(double playSpeed) {
 		this.playSpeed = playSpeed;
+	}
+
+	/**
+	 * @return the allTheSame
+	 */
+	public boolean isAllTheSame() {
+		return allTheSame;
+	}
+
+	/**
+	 * @param allTheSame the allTheSame to set
+	 */
+	public void setAllTheSame(boolean allTheSame) {
+		this.allTheSame = allTheSame;
+	}
+	
+	public void setSonarParams(int sonarId, SonarDaqParams sonarDaqParams) {
+		if (allTheSame) {
+			sonarId = DEFAULT_SONAR_PARAMETERSET;
+		}
+		if (sonarSpecificParams == null) {
+			sonarSpecificParams = new HashMap<>();
+		}
+		sonarSpecificParams.put(sonarId, sonarDaqParams);
+	}
+	
+	public SonarDaqParams getSonarParams(int sonarId) {
+		if (allTheSame) {
+			sonarId = DEFAULT_SONAR_PARAMETERSET;
+		}
+		if (sonarSpecificParams == null) {
+			sonarSpecificParams = new HashMap<>();
+		}
+		SonarDaqParams sonarParams = sonarSpecificParams.get(sonarId);
+		if (sonarParams == null) {
+			sonarParams = getAnyParams();
+			if (sonarParams != null) {
+				sonarParams = sonarParams.clone();
+				sonarSpecificParams.put(sonarId, sonarParams);
+			}
+		}
+		if (sonarParams == null) {
+			sonarParams = new SonarDaqParams();
+			sonarSpecificParams.put(sonarId, sonarParams);
+		}
+		return sonarParams;
+	}
+
+	/**
+	 * Get any existing params. 
+	 * @return any existing params. 
+	 */
+	private SonarDaqParams getAnyParams() {
+		if (sonarSpecificParams == null) {
+			return null;
+		}
+		Collection<SonarDaqParams> available = sonarSpecificParams.values();
+		Iterator<SonarDaqParams> iterator = available.iterator();
+		if (iterator.hasNext()) {
+			return iterator.next();
+		}
+		return null;
 	}
 
 }

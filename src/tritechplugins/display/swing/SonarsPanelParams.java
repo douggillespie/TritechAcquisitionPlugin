@@ -50,7 +50,13 @@ public class SonarsPanelParams implements Serializable, Cloneable {
 	/**
 	 * Tail time in seconds. 
 	 */
-	public double tailTime = 2.0; 
+	public double tailTime = 2.0;  
+	
+	public boolean usePersistence = false;
+	
+	public int persistentFrames = 10;
+
+	public boolean rescalePersistence = true;
 	
 	private HashMap<String, SonarOverlayData> overlayDatas = new HashMap<>();
 	

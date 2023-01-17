@@ -1,5 +1,6 @@
 package tritechplugins.acquire;
 
+import java.util.Collection;
 import java.util.HashMap;
 
 import tritechgemini.imagedata.GLFStatusData;
@@ -23,6 +24,8 @@ public abstract class TritechDaqSystem {
 	protected ImageDataBlock outputData;
 	
 	protected HashMap<Integer, SonarStatusData> deviceInfo = new HashMap<>();
+	
+	protected HashMap<Integer, OpsSonarStatusData> opsStatusData = new HashMap();
 	
 	protected int totalFrames;
 
@@ -129,6 +132,18 @@ public abstract class TritechDaqSystem {
 		}
 	}
 	
+	public int[] getSonarIds() {
+		synchronized (deviceInfo) {
+			Collection<SonarStatusData> sonarValues = deviceInfo.values();
+			int[] ids = new int[sonarValues.size()];
+			int i = 0;
+			for (SonarStatusData val : sonarValues) {
+				ids[i++] = val.getDeviceId();
+			}
+			return ids;
+		}
+	}
+	
 	/**
 	 * finds sonar status data and creates if necessary
 	 * @param sonarId
@@ -143,6 +158,20 @@ public abstract class TritechDaqSystem {
 			}
 			return statusData; 
 		}
+	}
+	
+	/**
+	 * Get an ops sonar data for each sonar. 
+	 * @param sonarId
+	 * @return
+	 */
+	public OpsSonarStatusData getOpsSonarStatusData(int sonarId) {
+		OpsSonarStatusData opsData = opsStatusData.get(sonarId);
+		if (opsData == null) {
+			opsData = new OpsSonarStatusData();
+			opsStatusData.put(sonarId, opsData);
+		}
+		return opsData;
 	}
 	
 	/**
