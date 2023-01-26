@@ -162,7 +162,7 @@ public class TritechJNADaq extends Svs5JNADaqSystem {
 			err = svs5Commands.setConfiguration(cOnline, deviceId);
 			//		cOnline.value = false;
 			//		err += svs5Commands.setConfiguration(cOnline, 0);
-			System.out.println("setOnline returned " + err);
+//			System.out.println("setOnline returned " + err);
 
 
 
@@ -217,7 +217,7 @@ public class TritechJNADaq extends Svs5JNADaqSystem {
 			return true;
 		}
 
-		System.out.println("Total frames processed from svs5 is " + totalFrames);
+//		System.out.println("Total frames processed from svs5 is " + totalFrames);
 
 
 		return stopAcquisition();

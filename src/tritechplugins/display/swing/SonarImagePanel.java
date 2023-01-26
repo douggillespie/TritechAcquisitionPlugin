@@ -270,7 +270,7 @@ public class SonarImagePanel extends JPanel {
 			return;
 		}
 		ArrayList<PamDataUnit> dataCopy = null;
-		long tailEnd = currentTime;
+		long tailEnd = currentTime+1;
 		long tailStart = 0;
 		switch (sonarsPanel.getSonarsPanelParams().tailOption) {
 		case SonarsPanelParams.OVERLAY_TAIL_ALL:
@@ -280,6 +280,8 @@ public class SonarImagePanel extends JPanel {
 		case SonarsPanelParams.OVERLAY_TAIL_NONE:
 			if (imageRecord != null) {
 				tailStart = tailEnd = imageRecord.getRecordTime();
+				tailStart-=10;
+				tailEnd+=10;
 			}
 			break;
 		case SonarsPanelParams.OVERLAY_TAIL_TIME:
@@ -287,7 +289,7 @@ public class SonarImagePanel extends JPanel {
 			break;
 		}
 		synchronized (dataBlock.getSynchLock()) {
-			dataCopy = dataBlock.getDataCopy(tailStart, tailEnd, true, dataSelector);
+			dataCopy = dataBlock.getDataCopy(tailStart, tailEnd, false, dataSelector);
 		}
 //		System.out.printf("Paint tail from %s to %s\n", PamCalendar.formatDBDateTime(tailStart), PamCalendar.formatDBDateTime(tailEnd));
 		for (PamDataUnit aUnit : dataCopy) {

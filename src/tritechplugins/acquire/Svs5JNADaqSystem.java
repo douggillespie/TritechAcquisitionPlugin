@@ -254,7 +254,7 @@ abstract public class Svs5JNADaqSystem extends TritechDaqSystem {
 	public void rebootSonars() {
 		try {
 			long ans  = svs5Commands.setConfiguration(GeminiStructure.SVS5_CONFIG_REBOOT_SONAR, null, 0);
-			System.out.println("Reboot returned : " + ans);
+//			System.out.println("Reboot returned : " + ans);
 		}
 		catch ( Svs5Exception e) {
 			e.printStackTrace();

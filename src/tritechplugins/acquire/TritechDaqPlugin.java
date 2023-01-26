@@ -41,17 +41,17 @@ public class TritechDaqPlugin implements PamPluginInterface {
 
 	@Override
 	public String getVersion() {
-		return "1.14";
+		return "1.15";
 	}
 
 	@Override
 	public String getPamVerDevelopedOn() {
-		return "2.02.06";
+		return "2.02.07";
 	}
 
 	@Override
 	public String getPamVerTestedOn() {
-		return "2.02.06";
+		return "2.02.08";
 	}
 
 	@Override

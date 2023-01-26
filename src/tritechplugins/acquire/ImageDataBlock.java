@@ -30,7 +30,7 @@ public class ImageDataBlock extends PamDataBlock<ImageDataUnit> {
 	
 	}
 
-	@SuppressWarnings("unchecked")
+//	@SuppressWarnings("unchecked")
 	@Override
 	public boolean loadViewerData(OfflineDataLoadInfo offlineDataLoadInfo, ViewLoadObserver loadObserver) {
 		
