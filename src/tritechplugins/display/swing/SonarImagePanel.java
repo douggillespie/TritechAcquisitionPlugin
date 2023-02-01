@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import javax.imageio.ImageIO;
 import javax.management.PersistentMBean;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JMenu;
@@ -31,6 +32,7 @@ import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 
+import Layout.PamAxis;
 import PamController.PamController;
 import PamUtils.Coordinate3d;
 import PamUtils.LatLong;
@@ -52,11 +54,14 @@ import PamguardMVC.dataSelector.DataSelector;
 import annotation.handler.AnnotationHandler;
 import detectiongrouplocaliser.DetectionGroupSummary;
 import javafx.scene.control.MenuItem;
+import tritechgemini.detect.DetectedRegion;
+import tritechgemini.fileio.MultiFileCatalog;
 import tritechgemini.imagedata.FanImageData;
 import tritechgemini.imagedata.FanPicksFromData;
 import tritechgemini.imagedata.GLFImageRecord;
 import tritechgemini.imagedata.GeminiImageRecordI;
 import tritechgemini.imagedata.ImageFanMaker;
+import tritechplugins.acquire.offline.TritechOffline;
 import tritechplugins.detect.threshold.RegionDataUnit;
 import tritechplugins.display.swing.overlays.SonarOverlayData;
 
@@ -107,6 +112,12 @@ public class SonarImagePanel extends JPanel {
 	
 	private ArrayList<TextTip> textTips = new ArrayList();
 	
+	private PamAxis sideAxis;
+
+	private File toolTipImageFile;
+	
+	private BufferedImage toolTipImage;
+	
 	/**
 	 * Overlay image which get's used when all data are displayed 
 	 */
@@ -128,12 +139,14 @@ public class SonarImagePanel extends JPanel {
 		imageFanMaker = new FanPicksFromData(4);
 		persistentFanMaker = new PersistentFanImageMaker();
 		xyProjector = new SonarXYProjector(sonarsPanel, sonarId, sonarId);
+		
 		externalMouseHandler = new ExtMapMouseHandler(PamController.getMainFrame(), false);
 		sonarPanelMarker = new SonarsPanelMarker(sonarsPanel, xyProjector, panelIndex);
 		OverlayMarkProviders.singleInstance().addProvider(sonarPanelMarker);
 		externalMouseHandler.addMouseHandler(sonarPanelMarker);
 		sonarPanelMarker.addObserver(new OverlayMarkObserver());
 		markOverlayDraw = new MarkOverlayDraw(sonarPanelMarker);
+		sideAxis = new PamAxis(0, 1, 0,  1, 0,  1, PamAxis.BELOW_RIGHT, null, PamAxis.LABEL_NEAR_MIN, "  %3.1fm");
 		
 		sonarsPanelMouse = new SonarPanelMouse();
 		this.addMouseListener(sonarsPanelMouse);
@@ -188,6 +201,10 @@ public class SonarImagePanel extends JPanel {
 		
 		paintSonarImage(g);
 		
+		if (sonarsPanelParams.showGrid) {
+			paintGrid(g);
+		}
+		
 		if (sonarsPanelParams.tailOption == SonarsPanelParams.OVERLAY_TAIL_ALL) {
 			BufferedImage image = getOverlayImage();
 			if (image != null) {
@@ -210,6 +227,70 @@ public class SonarImagePanel extends JPanel {
 		paintTextinformation(g, textPoint, imageRecord);
 	}
 	
+	private void paintGrid(Graphics g) {
+		if (fanImage == null ||imageRecord == null) {
+			return;
+		}
+		
+		Color col = sonarsPanel.getColourMap().getContrastingColour();
+		col = new Color(col.getRed(), col.getGreen(), col.getBlue(), 192);
+		
+		g.setColor(col);
+
+		Coordinate3d zero = xyProjector.getCoord3d(0, 0, false);
+		if (zero == null) {
+			return;
+		}
+		double range = imageRecord.getMaxRange();
+		double[] bearings = imageRecord.getBearingTable();
+		double maxAng = Math.abs(bearings[0]);
+		double[] toPlot = {-1., -0.5, 0, .5, 1};
+		double x = 0, y = 0;
+		Coordinate3d end = null;
+		Coordinate3d maxXend = new Coordinate3d(0,0,0);
+		for (int i = 0; i < toPlot.length; i++) {
+			x = range*Math.sin(toPlot[i]*maxAng);
+			y = range*Math.cos(toPlot[i]*maxAng);
+			 end = xyProjector.getCoord3d(x, y, false);
+			 if (end.x > maxXend.x) {
+				 maxXend = end;
+			 }
+			g.drawLine((int)zero.x,  (int)zero.y,  (int)end.x,  (int)end.y);
+		}
+		if (end == null) {
+			return;
+		}
+		sideAxis.setRange(0, range);
+		sideAxis.setDrawLine(false);
+		sideAxis.setLabelPos(PamAxis.LABEL_NEAR_MAX);
+		sideAxis.drawAxis(g, (int)zero.x,  (int)zero.y,  (int)maxXend.x,  (int)maxXend.y);
+
+		// now the curves...
+		ArrayList<Double> ranges = sideAxis.getAxisValues();
+		for (Double aRange : ranges) {
+			if (aRange == null || aRange == 0) {
+				continue;
+			}
+//			aRange = range*.5;
+			g.setColor(col);
+			x = aRange*Math.sin(maxAng);
+			y = aRange*Math.cos(maxAng);
+			end = xyProjector.getCoord3d(x, y, false);
+//			double width = Math.abs(end.x-zero.x);
+			y = end.y;
+			Coordinate3d end2 = xyProjector.getCoord3d(0, aRange, false);
+			int maxDegs = (int) Math.toDegrees(maxAng);
+			int ang1 = 90-maxDegs;
+			int ang2 = 2*maxDegs;
+			int h = (int) Math.abs(end2.y-zero.y);
+			g.drawArc((int) (zero.x-h), (int) (zero.y-h), (int) (2*+h), (int) (2*h), ang1, ang2);
+//			g.drawRect((int) (zero.x-width), (int) (zero.y-h), (int) (2*+width), (int) (2*h));
+//			g.drawLine((int) (zero.x-width), (int) (zero.y-h), (int) (zero.x+width), (int) (zero.y+h));
+//			break;
+		}
+	}
+
+
 	/**
 	 * paint the main sonar image. 
 	 * @param g
@@ -618,21 +699,12 @@ public class SonarImagePanel extends JPanel {
 
 		// first see if we're on an overlay.
 		String overlayText = null;
-		// Coordinate3d c3d = new Coordinate3d(event.getX(), event.getY());
-//		if (showingOverlays && overlayProjectors != null) {
-//			for (int i = 0; i < overlayProjectors.length; i++) {
-//				Rectangle imageRect = imageRectangles[i].getImageRectangle();
-//				Point transPoint = new Point(event.getX() - imageRect.x, event.getY()-imageRect.y);
-//				overlayText = overlayProjectors[i].getHoverText(transPoint);
-//				if (overlayText != null) {
-//					break;
-//				}
-//			}
-//		}
-//		else if (xyProjectors != null) {
-				overlayText = xyProjector.getHoverText(event.getPoint());
+		overlayText = xyProjector.getHoverText(event.getPoint());
 
-//		}
+		BufferedImage image = null;
+		if (isViewer) {
+			image = getToolTipImage();
+		}
 
 		String str;
 
@@ -641,6 +713,49 @@ public class SonarImagePanel extends JPanel {
 		} else {
 			str = "<html>";
 		}
+		SonarsPanelParams panelParams = sonarsPanel.getSonarsPanelParams();
+
+		if (image != null) {
+			try {
+				if (toolTipImageFile == null) {
+					toolTipImageFile = File.createTempFile("littleimage", ".jpg");
+					toolTipImageFile.deleteOnExit();
+				}
+				int imWid = 200;
+				int imHei = 200;
+				if (image.getHeight() > image.getWidth()) {
+					imWid = imHei * image.getWidth() / image.getHeight();
+				}
+				else {
+					imHei = imWid * image.getHeight() / image.getWidth();
+				}
+				
+				//				if (toolTipImage == null) {
+				toolTipImage = new BufferedImage(imWid, imHei, BufferedImage.TYPE_INT_RGB);
+				//				}
+				if ( panelParams.flipLeftRight) {
+					toolTipImage.createGraphics().drawImage(image, imWid, imHei, 0, 0, 
+							0, 0, image.getWidth(), image.getHeight(), sonarsPanel);
+				}
+				else {
+					toolTipImage.createGraphics().drawImage(image, 0, imHei, imWid, 0, 
+							0, 0, image.getWidth(), image.getHeight(), sonarsPanel);
+				}
+				ImageIO.write(toolTipImage, "jpg", toolTipImageFile);
+				
+				String newLine = String.format("<br><img src=\"%s\"><br>",  toolTipImageFile.toURI());
+				// put after the first line. 
+				int firstBr = str.indexOf("<br>");
+				if (firstBr > 0) {
+					str = str.replaceFirst("<br>", newLine);
+				}
+				else {
+					str += newLine;
+				}
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}	
 
 		str += String.format("<b>Mouse ...</b><br>Range %3.1fm, Angle %3.1f%s<br>xy (%3.1f, %3.1f)m",
 				sonarCoord.getRange(), sonarCoord.getAngleDegrees(), LatLong.deg, sonarCoord.getX(), sonarCoord.getY());
@@ -666,6 +781,49 @@ public class SonarImagePanel extends JPanel {
 		str += "</html>";
 
 		return str;
+	}
+	
+	private BufferedImage getToolTipImage() {
+		try {
+			PamDataUnit hoverData = xyProjector.getHoveredDataUnit();
+			if (hoverData == null) {
+				return null;
+			}
+			if (hoverData instanceof RegionDataUnit == false) {
+				return null;
+			}
+			RegionDataUnit regionDataUnit = (RegionDataUnit) hoverData;
+			// get the frame and make it's full image. 
+			TritechOffline tritechOffline = sonarsPanel.getTritechAcquisition().getTritechOffline();
+			if (tritechOffline == null) {
+				return null;
+			}
+			MultiFileCatalog geminiCatalog = tritechOffline.getMultiFileCatalog();
+
+			//		System.out.printf("Find image records for time %s\n", PamCalendar.formatDateTime(valueMillis));
+			GeminiImageRecordI imageRec = geminiCatalog.findRecordForTime(regionDataUnit.getSonarId(), regionDataUnit.getTimeMilliseconds());
+			if (imageRec == null) {
+				return null;
+			}
+			FanImageData fanData = imageFanMaker.createFanData(imageRec);
+			SonarsPanelParams panelParams = sonarsPanel.getSonarsPanelParams();
+			// now need to clip a part of that out around our bit. 
+			DetectedRegion region = regionDataUnit.getRegion();
+			double flip = panelParams.flipLeftRight ? -1 : -1;
+			double xMin = Math.sin(region.getMinBearing()) * region.getMaxRange()*flip;
+			double xMax = Math.sin(region.getMaxBearing()) * region.getMaxRange()*flip;
+			double yMin = Math.cos(region.getMinBearing()) * region.getMaxRange();
+			double yMax = Math.cos(region.getMaxBearing()) * region.getMaxRange();
+			double w = Math.max(Math.abs(xMax-xMin),5);
+			double h = Math.max(Math.abs(yMax-yMin),5);
+			FanDataImage tipImage = new FanDataImage(fanData, sonarsPanel.getColourMap(), true, panelParams.displayGain,
+					Math.min(xMin,  xMax)-w, Math.max(xMin, xMax)+w, Math.min(yMin, yMax)-h, Math.max(yMin,  yMax)+h);
+			return tipImage.getBufferedImage();
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+		return null;
 	}
 	
 	/**

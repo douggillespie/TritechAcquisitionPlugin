@@ -38,6 +38,20 @@ public class SonarXYProjector extends GeneralProjector {
 		
 		return getCoord3d(new Coordinate3d(x, y, z));
 	}
+
+	/**
+	 * Get coordinate, not clipping outer. 
+	 * @param x
+	 * @param y
+	 * @param clipOuter
+	 * @return
+	 */
+	public Coordinate3d getCoord3d(double x, double y, boolean clipOuter) {
+		
+		return getCoord3d(new Coordinate3d(x, y, 0), clipOuter);
+	}
+	
+	
 	
 //	public void setLayout(Rectangle rectangle, GeminiImageRecordI imageRecord) {
 //		this.rectangle = rectangle;
@@ -62,12 +76,22 @@ public class SonarXYProjector extends GeneralProjector {
 	//	}
 	@Override
 	public Coordinate3d getCoord3d(PamCoordinate dataObject) {
+		return getCoord3d(dataObject, true);
+	}
+	
+	/**
+	 * Get 3D coordinate with option to clip points outside of the screen rectangle. 
+	 * @param dataObject
+	 * @param clipOuter
+	 * @return
+	 */
+	public Coordinate3d getCoord3d(PamCoordinate dataObject, boolean clipOuter) {
 		if (sonarZoomTransform == null) {
 			return null;
 		}
 		Coordinate3d coord = sonarZoomTransform.imageMetresToScreen(dataObject.getCoordinate(0), dataObject.getCoordinate(1));
 		Point p = new Point((int) coord.getCoordinate(0), (int) coord.getCoordinate(1));
-		if (sonarZoomTransform.getScreenRectangle().contains(p)) {
+		if (clipOuter == false || sonarZoomTransform.getScreenRectangle().contains(p)) {
 			return coord;
 		}
 		else {

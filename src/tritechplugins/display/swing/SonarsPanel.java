@@ -668,5 +668,12 @@ public class SonarsPanel extends PamPanel implements DataMenuParent {
 		return currentRecords;
 	}
 
+	/**
+	 * @return the tritechAcquisition
+	 */
+	public TritechAcquisition getTritechAcquisition() {
+		return tritechAcquisition;
+	}
+
 
 }
