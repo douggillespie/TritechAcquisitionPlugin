@@ -22,6 +22,7 @@ import offlineProcessing.OfflineTaskGroup;
 import tritechplugins.detect.swing.DetectorHistogramProvider;
 import tritechplugins.detect.swing.ThresholdDialog;
 import tritechplugins.detect.track.TrackLinkProcess;
+import tritechplugins.detect.veto.SpatialVetoManager;
 import userDisplay.UserDisplayControl;
 
 public class ThresholdDetector extends PamControlledUnit implements PamSettings {
@@ -42,6 +43,8 @@ public class ThresholdDetector extends PamControlledUnit implements PamSettings 
 
 	private TrackLinkProcess trackLinkProcess;
 	
+	private SpatialVetoManager spatialVetoManager;
+	
 
 	/**
 	 * @return the trackLinkProcess
@@ -53,6 +56,8 @@ public class ThresholdDetector extends PamControlledUnit implements PamSettings 
 	public static final String unitType = "Gemini Threshold Detector";
 	public ThresholdDetector(String unitName) {
 		super(unitType, unitName);
+		
+		spatialVetoManager = new SpatialVetoManager(this);
 		
 		thresholdProcess = new ThresholdProcess(this);
 		addPamProcess(thresholdProcess);
@@ -73,7 +78,6 @@ public class ThresholdDetector extends PamControlledUnit implements PamSettings 
 		case PamController.INITIALIZATION_COMPLETE:
 			thresholdProcess.prepareProcess();
 			trackLinkProcess.prepareProcess();
-//			sortLoggingAddons();
 			break;
 		}
 	}
@@ -176,5 +180,12 @@ public class ThresholdDetector extends PamControlledUnit implements PamSettings 
 		for (ThresholdObserver obs : thresholdObservers) {
 			obs.newTreatedData(sonarId, data);
 		}
+	}
+
+	/**
+	 * @return the spatialVetoManager
+	 */
+	public SpatialVetoManager getSpatialVetoManager() {
+		return spatialVetoManager;
 	}
 }

@@ -12,6 +12,7 @@ import javax.swing.JTextField;
 import javax.swing.border.TitledBorder;
 
 import PamView.dialog.PamDialog;
+import PamView.dialog.PamDialogPanel;
 import PamView.dialog.PamGridBagContraints;
 import PamView.dialog.SourcePanel;
 import PamguardMVC.PamDataBlock;
@@ -53,6 +54,8 @@ public class ThresholdDialog extends PamDialog {
 	private JTextField maxSizeRatio;
 	
 	private JTextField minLength, minStraightLength;
+	
+	private PamDialogPanel vetoPanel;
 
 
 	private ThresholdDialog(Window parentFrame, ThresholdDetector thresholdDetector) {
@@ -194,18 +197,19 @@ public class ThresholdDialog extends PamDialog {
 		c.gridx++;
 		trackPanel.add(new JLabel(" m", JLabel.LEFT), c);
 		
-		
+		vetoPanel = thresholdDetector.getSpatialVetoManager().getDialogPanel(this);
 
 		JTabbedPane tabbedPanel = new JTabbedPane();
 		tabbedPanel.add(thresholdPanel, "Threshold Detector");
+		tabbedPanel.add(vetoPanel.getDialogComponent(), "Spatial Vetos");
 		tabbedPanel.add(trackPanel, "Tracking");
 		setDialogComponent(tabbedPanel);
 	}
 
 	public static ThresholdParams showDialog(Window parentFrame, ThresholdDetector thresholdDetector) {
-		if (singleInstance == null || singleInstance.getOwner() != parentFrame || singleInstance.thresholdDetector != thresholdDetector) {
+//		if (singleInstance == null || singleInstance.getOwner() != parentFrame || singleInstance.thresholdDetector != thresholdDetector) {
 			singleInstance = new ThresholdDialog(parentFrame, thresholdDetector);
-		}
+//		}
 		singleInstance.setParams(thresholdDetector.getThresholdParams());
 		singleInstance.setVisible(true);
 		return singleInstance.thresholdParams;
@@ -235,6 +239,8 @@ public class ThresholdDialog extends PamDialog {
 		minTrackPoints.setText(String.format("%d", trackParams.minTrackPoints));
 		minLength.setText(String.format("%3.2f", trackParams.minWobblyLength));
 		minStraightLength.setText(String.format("%3.2f", trackParams.minStraightLength));
+		
+		vetoPanel.setParams();
 	}
 
 	@Override
@@ -285,6 +291,8 @@ public class ThresholdDialog extends PamDialog {
 //		minTrackPoints.setText(String.format("%e", trackParams.minTrackPoints));
 //		minLength.setText(String.format("%3.2f", trackParams.minWobblyLength));
 //		minStraightLength.setText(String.format("%3.2f", trackParams.minStraightLength));
+		
+		vetoPanel.getParams();
 		
 		return true;
 	}

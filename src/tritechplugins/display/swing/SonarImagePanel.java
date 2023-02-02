@@ -123,7 +123,10 @@ public class SonarImagePanel extends JPanel {
 	 */
 	private BufferedImage overlayImage;
 	
-	private Object overlaySynch = new Object();
+	/**
+	 * Share the synch between displays. 
+	 */
+	private static Object overlaySynch = new Object();
 
 	public long lastEscape;
 	
@@ -567,10 +570,12 @@ public class SonarImagePanel extends JPanel {
 	 * Create a new overlay image. 
 	 */
 	private void createNewOverlay() {
+		BufferedImage synchedImage = null;
 		synchronized (overlaySynch) {
 			overlayImage = new BufferedImage(getWidth(), getHeight(), BufferedImage.TYPE_4BYTE_ABGR);
-			paintDetectorData(overlayImage.getGraphics(), sonarsPanel.getCurrentScrollTime());
+			synchedImage = overlayImage;
 		}
+			paintDetectorData(synchedImage.getGraphics(), sonarsPanel.getCurrentScrollTime());
 	}
 	
 	public void clearOverlayImage() {
@@ -767,11 +772,11 @@ public class SonarImagePanel extends JPanel {
 			xPix = (int) Math.round(sonarCoord.getX() / fanImageData.getMetresPerPixX());
 			yPix = (int) Math.round(sonarCoord.getY() / fanImageData.getMetresPerPixY());
 			short[][] imValues = fanImageData.getImageValues();
-			if (sonarsPanel.getSonarsPanelParams().flipLeftRight) {
-				xPix = -xPix;
-			}
+			// this not needed, since coordinate ref back to original unflipped image. 
+//			if (sonarsPanel.getSonarsPanelParams().flipLeftRight) {
+//				xPix = -xPix;
+//			}
 			xPix += imValues.length / 2;
-			// yPix = imValues[0].length-yPix;
 			int val = imValues[xPix][yPix];
 			str += String.format("<br>Level %d", val);
 		} catch (Exception e) {

@@ -2,6 +2,7 @@ package tritechplugins.detect.swing;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
+import java.awt.GridLayout;
 import java.util.HashMap;
 
 import javax.swing.BoxLayout;
@@ -22,6 +23,7 @@ public class DetectorHistogramPanel implements UserDisplayComponent, ThresholdOb
 	private JPanel mainPanel;
 	private PamPanel plotsPanel;
 	private boolean firstPlot;
+	private GridLayout gridLayout;
 
 	public DetectorHistogramPanel(ThresholdDetector thresholdDetector, String panelName) {
 		this.thresholdDetector = thresholdDetector;
@@ -30,7 +32,9 @@ public class DetectorHistogramPanel implements UserDisplayComponent, ThresholdOb
 		
 		mainPanel = new PamPanel(new BorderLayout());
 		plotsPanel = new PamPanel();
-		plotsPanel.setLayout(new BoxLayout(plotsPanel, BoxLayout.Y_AXIS));
+		gridLayout = new GridLayout(0, 1);
+//		plotsPanel.setLayout(new BoxLayout(plotsPanel, BoxLayout.Y_AXIS));
+		plotsPanel.setLayout(gridLayout);
 		mainPanel.add(plotsPanel, BorderLayout.CENTER);
 		findHistogramPlot(0);
 		firstPlot = true;
@@ -43,11 +47,15 @@ public class DetectorHistogramPanel implements UserDisplayComponent, ThresholdOb
 			ThresholdHistrogramPlot dummyPlot = histogramPlots.get(0);
 			if (dummyPlot != null) {
 				plotsPanel.remove(dummyPlot.getComponent());
+				histogramPlots.remove(0);
 			}
 		}
 		if (histoPlot == null) {
+			int nPlot = histogramPlots.size();
+			gridLayout.setRows(nPlot+1);
 			histoPlot = new ThresholdHistrogramPlot();
 			histogramPlots.put(sonarId, histoPlot);
+//			System.out.println("Make histogram plot for sonar " + sonarId);
 			plotsPanel.add(histoPlot.getComponent());
 			plotsPanel.invalidate();
 			plotsPanel.doLayout();

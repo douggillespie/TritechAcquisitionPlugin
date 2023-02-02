@@ -17,6 +17,7 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 import PamView.ColourComboBox;
+import PamView.PamSlider;
 import PamView.dialog.PamCheckBox;
 import PamView.dialog.PamGridBagContraints;
 import PamView.dialog.PamLabel;
@@ -70,7 +71,7 @@ public class DisplayControlPanel {
 		
 //		colourComboBox = new ColourComboBox(200, 15);
 		
-		gainSlider = new JSlider(1, 10);
+		gainSlider = new PamSlider(1, 10);
 
 		c.gridwidth = 1;
 		mainPanel.add(gainText = new PamLabel("gain: x2 "), c);
@@ -121,7 +122,7 @@ public class DisplayControlPanel {
 		c.gridy++;
 		c.gridx = 0;
 		c.gridwidth = 2;
-		mainPanel.add(removeBackground = new JCheckBox("Cut background "), c);
+		mainPanel.add(removeBackground = new PamCheckBox("Cut background "), c);
 		c.gridx+= c.gridwidth;
 		c.gridwidth = 1;
 		mainPanel.add(new PamLabel(" Time"), c);
@@ -135,7 +136,7 @@ public class DisplayControlPanel {
 		c.gridy++;
 		c.gridx = 0;
 		c.gridwidth = 2;
-		mainPanel.add(usePersistence = new JCheckBox("Persistant image "), c);
+		mainPanel.add(usePersistence = new PamCheckBox("Persistant image "), c);
 		c.gridx+= c.gridwidth;
 		c.gridwidth = 1;
 		mainPanel.add(new PamLabel(" Time"), c);
@@ -144,7 +145,7 @@ public class DisplayControlPanel {
 		c.gridx++;
 		mainPanel.add(new PamLabel(" (frames)"), c);;
 		c.gridx++;
-		mainPanel.add(rescalePersistence = new JCheckBox("Rescale"), c);
+		mainPanel.add(rescalePersistence = new PamCheckBox("Rescale"), c);
 		
 		removeBackground.addActionListener(generalAction);
 		backgroundTimeFac.addActionListener(generalAction);

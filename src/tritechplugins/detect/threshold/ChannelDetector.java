@@ -76,7 +76,7 @@ public class ChannelDetector {
 		}
 		if (regions.size() > MAX_FRAME_REGIONS) {
 			regionWarning.setEndOfLife(6000);
-			String msg = String.format("High detection count: $d on sonar %d", regions.size(), sonarId);
+			String msg = String.format("High detection count: %d on sonar %d", regions.size(), sonarId);
 			regionWarning.setWarningMessage(msg);
 			regionWarning.setWarnignLevel(2);
 			WarningSystem.getWarningSystem().addWarning(regionWarning);

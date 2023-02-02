@@ -8,13 +8,18 @@ import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.border.TitledBorder;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
 import PamView.dialog.PamGridBagContraints;
+import geminisdk.Svs5Exception;
 import geminisdk.structures.ChirpMode;
 import geminisdk.structures.RangeFrequencyConfig;
 import tritechplugins.acquire.SonarDaqParams;
 import tritechplugins.acquire.TritechDaqParams;
 import tritechplugins.acquire.TritechDaqProcess;
+import tritechplugins.acquire.TritechDaqSystem;
+import tritechplugins.acquire.TritechJNADaq;
 
 public class SonarDialogPanel extends JPanel {
 
@@ -79,6 +84,13 @@ public class SonarDialogPanel extends JPanel {
 		for (int i = 0; i < modes.length; i++) {
 			rangeFreq.addItem(RangeFrequencyConfig.getModeName(modes[i]));
 		}
+
+		gainSlider.addChangeListener(new ChangeListener() {
+			@Override
+			public void stateChanged(ChangeEvent e) {
+				gainChanged();
+			}
+		});
 		
 	}
 
@@ -114,6 +126,22 @@ public class SonarDialogPanel extends JPanel {
 		sonarParams.setRangeConfig(rangeFreq.getSelectedIndex());
 		
 		return true;
+	}
+
+	protected void gainChanged() {
+		int gain = gainSlider.getValue();
+		TritechDaqSystem tritechDaq = daqProcess.getTritechDaqSystem();
+		if (tritechDaq instanceof TritechJNADaq == false) {
+			return;
+		}
+		TritechJNADaq jnaDaq = (TritechJNADaq) tritechDaq;
+		int id = sonarId == TritechDaqParams.DEFAULT_SONAR_PARAMETERSET ? 0 : sonarId; 
+		try {
+			jnaDaq.setGain(gain, id);
+		} catch (Svs5Exception e) {
+			e.printStackTrace();
+		}
+		
 	}
 
 	/**

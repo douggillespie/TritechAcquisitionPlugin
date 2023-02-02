@@ -126,6 +126,8 @@ public class TritechJNADaq extends Svs5JNADaqSystem {
 //			System.out.println("setRange returned " + err);
 			err = setRange(sonarParams.getRange(), deviceId);
 			
+			setGain(sonarParams.getGain(), deviceId);
+			
 //			PingMode pingMode = new PingMode(true, (short) 0);
 			err = svs5Commands.setPingMode(true, (short) 5000);
 //			System.out.println("setConfiguration pingMode returned " + err);
