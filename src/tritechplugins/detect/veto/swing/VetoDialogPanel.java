@@ -20,10 +20,12 @@ import PamView.component.PamSettingsIconButton;
 import PamView.dialog.PamDialogPanel;
 import PamView.dialog.PamGridBagContraints;
 import PamView.dialog.RemoveButton;
+import PamView.dialog.warn.WarnOnce;
 import PamView.panel.WestAlignedPanel;
 import tritechplugins.detect.veto.SpatialVeto;
 import tritechplugins.detect.veto.SpatialVetoManager;
 import tritechplugins.detect.veto.SpatialVetoProvider;
+import warnings.PamWarning;
 
 public class VetoDialogPanel implements PamDialogPanel {
 
@@ -118,8 +120,12 @@ public class VetoDialogPanel implements PamDialogPanel {
 	}
 
 	protected void removeVeto(SpatialVeto veto) {
-		vetoManager.removeVeto(veto);
-		updateCurrentPanel();
+		String str = String.format("Are you sure you want to remove the %s veto ?", veto.getName());
+		int ans = WarnOnce.showWarning("Veto Removal", str, WarnOnce.OK_CANCEL_OPTION);
+		if (ans == WarnOnce.OK_OPTION) {
+			vetoManager.removeVeto(veto);
+			updateCurrentPanel();
+		}
 	}
 
 	protected void editVeto(SpatialVeto veto) {

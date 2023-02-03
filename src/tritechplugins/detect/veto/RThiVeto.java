@@ -15,8 +15,15 @@ public class RThiVeto extends SpatialVeto {
 
 	@Override
 	public boolean isInVeto(double x, double y) {
-		// TODO Auto-generated method stub
-		return false;
+		double r = Math.sqrt(x*x+y+y);
+		if (r < rThiParams.rangeMin || r > rThiParams.rangeMax) {
+			return false;
+		}
+		double ang = Math.atan2(x,y);
+		if (ang < rThiParams.angleMin || ang > rThiParams.angleMax) {
+			return false;
+		}
+		return true;
 	}
 
 	@Override

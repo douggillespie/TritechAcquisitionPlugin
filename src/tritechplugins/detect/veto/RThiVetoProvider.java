@@ -8,7 +8,7 @@ public class RThiVetoProvider extends SpatialVetoProvider {
 
 	@Override
 	public String getName() {
-		return "Range/Angle";
+		return "Range/Angle Veto";
 	}
 
 	@Override

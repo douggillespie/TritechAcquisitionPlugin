@@ -3,10 +3,12 @@ package tritechplugins.detect.veto;
 import java.awt.Window;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.List;
 
 import PamController.PamControlledUnitSettings;
 import PamController.PamSettingManager;
 import PamController.PamSettings;
+import tritechgemini.detect.DetectedRegion;
 import tritechplugins.detect.threshold.ThresholdDetector;
 import tritechplugins.detect.veto.swing.VetoDialogPanel;
 
@@ -35,6 +37,7 @@ public class SpatialVetoManager implements PamSettings {
 		vetoProviders = new ArrayList<>();
 		currentVetos = new ArrayList<>();
 		vetoProviders.add(new RThiVetoProvider());
+		vetoProviders.add(new XYVetoProvider());
 		
 		PamSettingManager.getInstance().registerSettings(this);
 	}
@@ -126,6 +129,52 @@ public class SpatialVetoManager implements PamSettings {
 			}
 		}
 		return null;
+	}
+	
+	/**
+	 * Run the vetoes on the detected regions, making a new 
+	 * list. 
+	 * @param detectedRegions
+	 * @return
+	 */
+	public List<DetectedRegion> runVetos(List<DetectedRegion> detectedRegions) {
+		/*
+		 *  incoming data are in an array list, so it's inefficient to remove using 
+		 *  an iterator, so make a new list to return. 
+		 */
+		if (detectedRegions == null) {
+			return null;
+		}
+		if (currentVetos == null || currentVetos.size() == 0) {
+			return detectedRegions;
+		}
+		ArrayList<DetectedRegion> passed = new ArrayList(detectedRegions.size());
+		
+		for (DetectedRegion aRegion : detectedRegions) {
+			double x = aRegion.getPeakX();
+			double y = aRegion.getPeakY();
+			boolean want = true;
+			for (SpatialVeto aVeto : currentVetos) {
+				if (aVeto.doSonar(aRegion.getSonarId()) == false) {
+					continue;
+				}
+				if (aVeto.isInVeto(x, y)) {
+					want = false;
+					break; // no need to look at other vetos if it failes on one. 
+				}
+			}
+			if (want) {
+				passed.add(aRegion);
+//				System.out.printf("Keep region at %3.1f,%3.1f\n", x,y);
+			}
+//			else {
+//				System.out.printf("Veto region at %3.1f,%3.1f\n", x,y);
+//			}
+				
+		}
+		
+		passed.trimToSize();
+		return passed;
 	}
 
 }
