@@ -5,12 +5,19 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+import PamController.PamControlledUnit;
 import PamController.PamControlledUnitSettings;
+import PamController.PamController;
 import PamController.PamSettingManager;
 import PamController.PamSettings;
+import PamUtils.PamCalendar;
 import tritechgemini.detect.DetectedRegion;
 import tritechplugins.detect.threshold.ThresholdDetector;
+import tritechplugins.detect.veto.circle.CircleVetoProvider;
+import tritechplugins.detect.veto.rthi.RThiVetoProvider;
 import tritechplugins.detect.veto.swing.VetoDialogPanel;
+import tritechplugins.detect.veto.swing.VetoOverlayDraw;
+import tritechplugins.detect.veto.xy.XYVetoProvider;
 
 /**
  * Manager of spatial vetoes. Will have to 
@@ -31,6 +38,8 @@ public class SpatialVetoManager implements PamSettings {
 	private AllVetoParams allVetoParams = new AllVetoParams();
 
 	private ThresholdDetector thresholdDetector;
+	
+	private SpatialVetoDataBlock vetoDataBlock;
 
 	public SpatialVetoManager(ThresholdDetector thresholdDetector) {
 		this.thresholdDetector = thresholdDetector;
@@ -38,8 +47,15 @@ public class SpatialVetoManager implements PamSettings {
 		currentVetos = new ArrayList<>();
 		vetoProviders.add(new RThiVetoProvider());
 		vetoProviders.add(new XYVetoProvider());
+		vetoProviders.add(new CircleVetoProvider());
+		
+		vetoDataBlock = new SpatialVetoDataBlock(thresholdDetector.getThresholdProcess());
+		thresholdDetector.getThresholdProcess().addOutputDataBlock(vetoDataBlock);
+		vetoDataBlock.setOverlayDraw(new VetoOverlayDraw());
 		
 		PamSettingManager.getInstance().registerSettings(this);
+
+		checkExternalVetos();
 	}
 	
 	/**
@@ -119,7 +135,7 @@ public class SpatialVetoManager implements PamSettings {
 			SpatialVeto veto = addVeto(provider);
 			veto.setParams(params);
 		}
-		
+		makeVetoDataUnits();
 	}
 	
 	private SpatialVetoProvider findProvider(String providerName) {
@@ -129,6 +145,16 @@ public class SpatialVetoManager implements PamSettings {
 			}
 		}
 		return null;
+	}
+	
+	public void makeVetoDataUnits() {
+		vetoDataBlock.removeEverything();
+		if (currentVetos == null) {
+			return;
+		}
+		for (SpatialVeto veto : currentVetos) {
+			vetoDataBlock.addPamData(new SpatialVetoDataUnit(PamCalendar.getTimeInMillis(), veto));
+		}
 	}
 	
 	/**
@@ -175,6 +201,37 @@ public class SpatialVetoManager implements PamSettings {
 		
 		passed.trimToSize();
 		return passed;
+	}
+
+	private boolean initialisationComplete = false;
+	public void notifyModelChanged(int changeType) {
+		switch (changeType) {
+		case PamController.INITIALIZATION_COMPLETE:
+			initialisationComplete = true;
+			checkExternalVetos();
+			break;
+		case PamController.ADD_CONTROLLEDUNIT:
+			if (initialisationComplete) {
+				checkExternalVetos();
+			}
+		}
+	}
+
+	private void checkExternalVetos() {
+		/*
+		 * Look for controlled units which may be a veto provider 
+		 * and add them to the list of possibles. 
+		 */
+		int nUnits = PamController.getInstance().getNumControlledUnits();
+		for (int i = 0; i < nUnits; i++) {
+			PamControlledUnit pamUnit = PamController.getInstance().getControlledUnit(i);
+			if (pamUnit instanceof SpatialVetoProvider) {
+				SpatialVetoProvider svp = (SpatialVetoProvider) pamUnit;
+				if (findProvider(svp.getName()) == null) {
+					vetoProviders.add(svp);
+				}
+			}
+		}
 	}
 
 }

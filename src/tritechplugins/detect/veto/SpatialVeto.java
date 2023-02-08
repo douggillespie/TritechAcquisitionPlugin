@@ -42,6 +42,13 @@ public abstract class SpatialVeto {
 	abstract public SpatialVetoParams getParams();
 	
 	abstract public void setParams(SpatialVetoParams params);
+
+	/**
+	 * @return the vetoProvider
+	 */
+	public SpatialVetoProvider getVetoProvider() {
+		return vetoProvider;
+	}
 	
 	
 

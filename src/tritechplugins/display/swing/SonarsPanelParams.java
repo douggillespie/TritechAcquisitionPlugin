@@ -21,6 +21,10 @@ public class SonarsPanelParams implements Serializable, Cloneable {
 	public static final int OVERLAY_TAIL_NONE = 0;
 	public static final int OVERLAY_TAIL_TIME = 1;
 	public static final int OVERLAY_TAIL_ALL = 2;
+
+	public static final int TOOLTIP_TEXT = 0x1;
+	public static final int TOOLTIP_IMAGE = 0x2;
+	public static final int TOOLTIP_BOTH = 0x3;
 	
 	public static final long serialVersionUID = 1L;
 
@@ -57,6 +61,8 @@ public class SonarsPanelParams implements Serializable, Cloneable {
 	public int persistentFrames = 10;
 
 	public boolean rescalePersistence = true;
+	
+	private int toolTipType = TOOLTIP_BOTH;
 	
 	private HashMap<String, SonarOverlayData> overlayDatas = new HashMap<>();
 	
@@ -143,6 +149,44 @@ public class SonarsPanelParams implements Serializable, Cloneable {
 			lastKnownRange = Arrays.copyOf(lastKnownRange, imageIndex+1);
 		}
 		
+	}
+
+	/**
+	 * @return the toolTipType
+	 */
+	public int getToolTipType() {
+		if (toolTipType == 0) {
+			toolTipType = TOOLTIP_BOTH;
+		}
+		return toolTipType;
+	}
+
+	/**
+	 * @param toolTipType the toolTipType to set
+	 */
+	public void setToolTipType(int toolTipType) {
+		this.toolTipType = toolTipType;
+	}
+
+	// cycle around different tool tip styles
+	public void cycleTipType() {
+		toolTipType ++;
+		if (toolTipType > TOOLTIP_BOTH) {
+			toolTipType = TOOLTIP_TEXT;
+		}
+//		System.out.println("Set Tritech tool tip type to " + toolTipType);
+	}
+	
+	public String getTipDescription() {
+		switch (getToolTipType()) {
+		case TOOLTIP_TEXT:
+			return "Show text only";
+		case TOOLTIP_IMAGE:
+			return "Show image clip only";
+		case TOOLTIP_BOTH:
+			return "Show text and image";
+		}
+		return null;
 	}
 
 }

@@ -1,8 +1,10 @@
-package tritechplugins.detect.veto;
+package tritechplugins.detect.veto.rthi;
 
 import java.awt.Window;
 
-import PamView.dialog.GenericSwingDialog;
+import tritechplugins.detect.veto.SpatialVeto;
+import tritechplugins.detect.veto.SpatialVetoParams;
+import tritechplugins.detect.veto.VetoSettingsDialog;
 
 public class RThiVeto extends SpatialVeto {
 	

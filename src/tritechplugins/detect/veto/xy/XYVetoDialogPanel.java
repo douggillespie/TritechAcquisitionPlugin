@@ -1,4 +1,4 @@
-package tritechplugins.detect.veto;
+package tritechplugins.detect.veto.xy;
 
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;

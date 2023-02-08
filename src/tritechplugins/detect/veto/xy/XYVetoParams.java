@@ -1,4 +1,7 @@
-package tritechplugins.detect.veto;
+package tritechplugins.detect.veto.xy;
+
+import tritechplugins.detect.veto.SpatialVetoParams;
+import tritechplugins.detect.veto.SpatialVetoProvider;
 
 public class XYVetoParams extends SpatialVetoParams {
 

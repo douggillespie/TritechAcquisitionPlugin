@@ -6,9 +6,12 @@ import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
+import javax.swing.BoxLayout;
+import javax.swing.ButtonGroup;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JRadioButton;
 import javax.swing.border.TitledBorder;
 
 import PamController.PamController;
@@ -17,6 +20,8 @@ import PamView.dialog.PamDialog;
 import PamView.dialog.PamGridBagContraints;
 import PamView.dialog.PamLabel;
 import PamView.dialog.warn.WarnOnce;
+import PamView.panel.PamAlignmentPanel;
+import PamView.panel.WestAlignedPanel;
 
 public class MoreDisplayParamsDialog extends PamDialog{
 
@@ -29,6 +34,8 @@ public class MoreDisplayParamsDialog extends PamDialog{
 	private ColourComboBox colourComboBox;
 
 	private SonarsPanel sonarsPanel;
+	
+	private JRadioButton tipText, tipImage, tipBoth;
 	
 	private MoreDisplayParamsDialog(Window parentFrame) {
 		super(parentFrame, "Sonar display", false);
@@ -43,22 +50,25 @@ public class MoreDisplayParamsDialog extends PamDialog{
 			resolution.addItem(SonarsPanelParams.getResolutionName(ress[i]));
 		}
 		
-		JPanel mainPanel = new JPanel(new GridBagLayout());
+		JPanel mainPanel = new JPanel();
+		mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
+		
+		JPanel stylePanel = new JPanel(new GridBagLayout());
 		GridBagConstraints c = new PamGridBagContraints();
 		
-		mainPanel.setBorder(new TitledBorder("Image style"));
-		mainPanel.add(new JLabel("Image resolution", JLabel.RIGHT), c);
+		stylePanel.setBorder(new TitledBorder("Image style"));
+		stylePanel.add(new JLabel("Image resolution", JLabel.RIGHT), c);
 		c.gridx ++;
-		mainPanel.add(resolution, c);
+		stylePanel.add(resolution, c);
 
 		c.gridy++;
 		c.gridx = 0;
 		c.gridwidth = 1;
-		mainPanel.add(new PamLabel("Colour", JLabel.RIGHT), c);
+		stylePanel.add(new PamLabel("Colour", JLabel.RIGHT), c);
 		c.gridx++;
 		c.gridwidth = 2;
 		c.fill = GridBagConstraints.HORIZONTAL;
-		mainPanel.add(colourComboBox, c);
+		stylePanel.add(colourComboBox, c);
 		colourComboBox.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -66,6 +76,30 @@ public class MoreDisplayParamsDialog extends PamDialog{
 			}
 		});
 		
+		JPanel tipPanel = new WestAlignedPanel(new GridBagLayout());
+		tipPanel.setBorder(new TitledBorder("Tool Tip options"));
+		tipText = new JRadioButton("Show text");
+		tipImage = new JRadioButton("Show image");
+		tipBoth = new JRadioButton("Show both");
+		ButtonGroup bg = new ButtonGroup();
+		bg.add(tipText);
+		bg.add(tipImage);
+		bg.add(tipBoth);
+		c = new GridBagConstraints();
+		c.gridx = 0;
+		c.gridy = 0;
+		c.anchor = GridBagConstraints.WEST;
+		tipPanel.add(tipText, c);
+		c.gridy++;
+		tipPanel.add(tipImage, c);
+		c.gridy++;
+		tipPanel.add(tipBoth, c);
+		c.gridy++;
+		tipPanel.setToolTipText("When viewing, tap 't' to cycle through these options");
+		
+		
+		mainPanel.add(stylePanel);
+		mainPanel.add(tipPanel);
 		setDialogComponent(mainPanel);
 	}
 	
@@ -88,6 +122,10 @@ public class MoreDisplayParamsDialog extends PamDialog{
 				resolution.setSelectedIndex(i);
 			}
 		}
+		int tipType = sonarParams.getToolTipType();
+		tipText.setSelected(tipType == SonarsPanelParams.TOOLTIP_TEXT);
+		tipImage.setSelected(tipType == SonarsPanelParams.TOOLTIP_IMAGE);
+		tipBoth.setSelected(tipType == SonarsPanelParams.TOOLTIP_BOTH);
 
 		colourComboBox.setSelectedColourMap(sonarsPanel.getSonarsPanelParams().colourMap);
 	}
@@ -99,7 +137,7 @@ public class MoreDisplayParamsDialog extends PamDialog{
 			sonarsPanel.updateColourMap(sonarParams.colourMap);
 		}
 	}
-
+	
 	@Override
 	public boolean getParams() {
 		int[] ress = SonarsPanelParams.getResolutionValues();
@@ -114,6 +152,16 @@ public class MoreDisplayParamsDialog extends PamDialog{
 		sonarParams.resolution = res;
 
 		sonarParams.colourMap = colourComboBox.getSelectedColourMap();
+
+		if (tipText.isSelected()) {
+			sonarParams.setToolTipType(SonarsPanelParams.TOOLTIP_TEXT);
+		}
+		else if (tipImage.isSelected()) {
+			sonarParams.setToolTipType(SonarsPanelParams.TOOLTIP_IMAGE);
+		}
+		else if (tipBoth.isSelected()) {
+			sonarParams.setToolTipType(SonarsPanelParams.TOOLTIP_BOTH);
+		}
 		
 		return true;
 	}

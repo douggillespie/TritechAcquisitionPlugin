@@ -1,4 +1,7 @@
-package tritechplugins.detect.veto;
+package tritechplugins.detect.veto.rthi;
+
+import tritechplugins.detect.veto.SpatialVetoParams;
+import tritechplugins.detect.veto.SpatialVetoProvider;
 
 public class RThiVetoParams extends SpatialVetoParams {
 

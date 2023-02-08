@@ -11,6 +11,7 @@ import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseAdapter;
@@ -31,6 +32,7 @@ import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
+import javax.swing.Timer;
 
 import Layout.PamAxis;
 import PamController.PamController;
@@ -61,9 +63,13 @@ import tritechgemini.imagedata.FanPicksFromData;
 import tritechgemini.imagedata.GLFImageRecord;
 import tritechgemini.imagedata.GeminiImageRecordI;
 import tritechgemini.imagedata.ImageFanMaker;
+import tritechplugins.acquire.TritechAcquisition;
 import tritechplugins.acquire.offline.TritechOffline;
 import tritechplugins.detect.threshold.RegionDataUnit;
+import tritechplugins.detect.veto.SpatialVetoDataBlock;
 import tritechplugins.display.swing.overlays.SonarOverlayData;
+import warnings.PamWarning;
+import warnings.WarningSystem;
 
 /**
  * Put everything to do with each sonar image into subclass of JPanel.
@@ -156,6 +162,18 @@ public class SonarImagePanel extends JPanel {
 		this.addMouseMotionListener(sonarsPanelMouse);
 		this.addMouseWheelListener(sonarsPanelMouse);
 		setToolTipText("Sonar display panel. No data");
+
+		this.setFocusable(true);
+		this.addKeyListener(new KeyAdapter() {
+			
+			@Override
+			public void keyTyped(KeyEvent e) {
+				if (e.getKeyChar() == 't') {
+					cycleTipTypes();
+				}
+			}
+			
+		});
 	}
 
 
@@ -208,7 +226,9 @@ public class SonarImagePanel extends JPanel {
 			paintGrid(g);
 		}
 		
-		if (sonarsPanelParams.tailOption == SonarsPanelParams.OVERLAY_TAIL_ALL) {
+		paintVetos(g);
+		
+		if (isViewer && sonarsPanelParams.tailOption == SonarsPanelParams.OVERLAY_TAIL_ALL) {
 			BufferedImage image = getOverlayImage();
 			if (image != null) {
 				g2d.drawImage(image, 0, 0, getWidth(), getHeight(), 0, 0, image.getWidth(), image.getHeight(), null);
@@ -230,6 +250,12 @@ public class SonarImagePanel extends JPanel {
 		paintTextinformation(g, textPoint, imageRecord);
 	}
 	
+	private void paintVetos(Graphics g) {
+		Graphics2D g2d = (Graphics2D) g;
+		TritechAcquisition acquisition = sonarsPanel.getTritechAcquisition();
+	}
+
+
 	private void paintGrid(Graphics g) {
 		if (fanImage == null ||imageRecord == null) {
 			return;
@@ -371,6 +397,10 @@ public class SonarImagePanel extends JPanel {
 		case SonarsPanelParams.OVERLAY_TAIL_TIME:
 			tailStart = (long) (tailEnd - sonarsPanel.getSonarsPanelParams().tailTime * 1000.);
 			break;
+		}
+		if (dataBlock instanceof SpatialVetoDataBlock) {
+			tailStart = 0;
+			tailEnd = Long.MAX_VALUE;
 		}
 		synchronized (dataBlock.getSynchLock()) {
 			dataCopy = dataBlock.getDataCopy(tailStart, tailEnd, false, dataSelector);
@@ -557,7 +587,7 @@ public class SonarImagePanel extends JPanel {
 	}
 	
 	/**
-	 * Get the overlay image.Create if needed. 
+	 * Get the overlay image.Create if needed. Only applies in viewer
 	 * @return
 	 */
 	private BufferedImage getOverlayImage() {
@@ -575,7 +605,7 @@ public class SonarImagePanel extends JPanel {
 			overlayImage = new BufferedImage(getWidth(), getHeight(), BufferedImage.TYPE_4BYTE_ABGR);
 			synchedImage = overlayImage;
 		}
-			paintDetectorData(synchedImage.getGraphics(), sonarsPanel.getCurrentScrollTime());
+		paintDetectorData(synchedImage.getGraphics(), sonarsPanel.getCurrentScrollTime());
 	}
 	
 	public void clearOverlayImage() {
@@ -596,6 +626,7 @@ public class SonarImagePanel extends JPanel {
 	 */
 	public void setSonarId(int sonarId) {
 		this.sonarId = sonarId;
+		xyProjector.setSonarID(sonarId);
 	}
 
 	/**
@@ -684,12 +715,31 @@ public class SonarImagePanel extends JPanel {
 		clearOverlayImage();
 	}
 
+	private PamWarning tipWarning = new PamWarning("Tritech tool tips", "", 1);
+	private void cycleTipTypes() {
+		sonarsPanel.getSonarsPanelParams().cycleTipType();
+		String currType = sonarsPanel.getSonarsPanelParams().getTipDescription();
+		if (currType != null) {
+			tipWarning.setWarningMessage("Tooltip type set to " + currType);
+			WarningSystem.getWarningSystem().addWarning(tipWarning);
+			Timer stopTimer = new Timer(1000, new ActionListener() {
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					WarningSystem.getWarningSystem().removeWarning(tipWarning);
+				}
+			});
+			stopTimer.setRepeats(false);
+			stopTimer.start();
+		}
+	}
+	
 	@Override
 	public String getToolTipText(MouseEvent event) {
 		
-		if (System.currentTimeMillis() - lastEscape < 10000) {
-			return null;
-		}
+//		if (System.currentTimeMillis() - lastEscape < 10000) {
+//			return null;
+//		}
+
 		
 		String tip = findTextTip(event.getPoint());
 		if (tip != null) {
@@ -720,7 +770,7 @@ public class SonarImagePanel extends JPanel {
 		}
 		SonarsPanelParams panelParams = sonarsPanel.getSonarsPanelParams();
 
-		if (image != null) {
+		if (image != null && (panelParams.getToolTipType() & SonarsPanelParams.TOOLTIP_IMAGE) != 0) {
 			try {
 				if (toolTipImageFile == null) {
 					toolTipImageFile = File.createTempFile("littleimage", ".jpg");
@@ -748,11 +798,19 @@ public class SonarImagePanel extends JPanel {
 				}
 				ImageIO.write(toolTipImage, "jpg", toolTipImageFile);
 				
-				String newLine = String.format("<br><img src=\"%s\"><br>",  toolTipImageFile.toURI());
+				String newLine = String.format("<img src=\"%s\">",  toolTipImageFile.toURI());
 				// put after the first line. 
 				int firstBr = str.indexOf("<br>");
 				if (firstBr > 0) {
-					str = str.replaceFirst("<br>", newLine);
+					if (panelParams.getToolTipType() == SonarsPanelParams.TOOLTIP_BOTH) {
+						str = str.replaceFirst("<br>", "<br>" + newLine + "<br>");
+					}
+					else {
+						PamDataUnit hoverData = xyProjector.getHoveredDataUnit();
+						str = "<html>"+ PamCalendar.formatDBDateTime(hoverData.getTimeMilliseconds(), true) +
+								"<p>" + newLine  +  "<br></html>";
+						return str;
+					}
 				}
 				else {
 					str += newLine;

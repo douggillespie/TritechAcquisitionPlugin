@@ -1,4 +1,4 @@
-package tritechplugins.detect.veto;
+package tritechplugins.detect.veto.rthi;
 
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;

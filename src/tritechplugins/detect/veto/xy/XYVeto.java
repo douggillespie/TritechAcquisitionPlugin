@@ -1,6 +1,11 @@
-package tritechplugins.detect.veto;
+package tritechplugins.detect.veto.xy;
 
 import java.awt.Window;
+
+import tritechplugins.detect.veto.SpatialVeto;
+import tritechplugins.detect.veto.SpatialVetoParams;
+import tritechplugins.detect.veto.SpatialVetoProvider;
+import tritechplugins.detect.veto.VetoSettingsDialog;
 
 public class XYVeto extends SpatialVeto {
 	

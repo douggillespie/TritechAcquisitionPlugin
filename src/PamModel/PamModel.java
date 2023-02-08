@@ -526,6 +526,11 @@ final public class PamModel implements PamModelInterface, PamSettings {
 		mi.setModulesMenuGroup(tritechGroup);
 //		mi.setMaxNumber(1);
 		mi.setToolTipText("Basic detector for Tritech image data");
+
+//		mi = PamModuleInfo.registerControlledUnit(MeygenVetoControl.class.getName(), MeygenVetoControl.unitType);
+//		mi.setModulesMenuGroup(tritechGroup);
+//		mi.setMaxNumber(1);
+//		mi.setToolTipText("Tide related spatial veto for Meygen data");
 		
 		/*
 		 * ************* Start Displays  Group *******************

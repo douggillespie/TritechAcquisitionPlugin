@@ -57,10 +57,10 @@ public class ThresholdDetector extends PamControlledUnit implements PamSettings 
 	public ThresholdDetector(String unitName) {
 		super(unitType, unitName);
 		
-		spatialVetoManager = new SpatialVetoManager(this);
-		
 		thresholdProcess = new ThresholdProcess(this);
 		addPamProcess(thresholdProcess);
+
+		spatialVetoManager = new SpatialVetoManager(this);
 
 		trackLinkProcess = new TrackLinkProcess(this, thresholdProcess);
 		addPamProcess(trackLinkProcess);
@@ -80,6 +80,7 @@ public class ThresholdDetector extends PamControlledUnit implements PamSettings 
 			trackLinkProcess.prepareProcess();
 			break;
 		}
+		spatialVetoManager.notifyModelChanged(changeType);
 	}
 	
 	/**
@@ -131,6 +132,7 @@ public class ThresholdDetector extends PamControlledUnit implements PamSettings 
 			this.thresholdParams = newParams;
 			thresholdProcess.prepareProcess();
 			trackLinkProcess.prepareProcess();
+			getSpatialVetoManager().makeVetoDataUnits();
 //			sortLoggingAddons();
 		}
 	}

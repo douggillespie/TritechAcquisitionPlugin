@@ -132,4 +132,25 @@ public class SonarXYProjector extends GeneralProjector {
 		return requiredParams;
 	}
 
+	/**
+	 * @return the sonarID
+	 */
+	public int getSonarID() {
+		return sonarID;
+	}
+
+	/**
+	 * @param sonarID the sonarID to set
+	 */
+	public void setSonarID(int sonarID) {
+		this.sonarID = sonarID;
+	}
+
+	/**
+	 * @return the sonarZoomTransform
+	 */
+	public SonarZoomTransform getSonarZoomTransform() {
+		return sonarZoomTransform;
+	}
+
 }

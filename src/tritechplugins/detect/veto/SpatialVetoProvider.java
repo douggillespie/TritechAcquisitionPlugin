@@ -1,9 +1,11 @@
 package tritechplugins.detect.veto;
 
-public abstract class SpatialVetoProvider {
+import PamView.PanelOverlayDraw;
 
-	public SpatialVetoProvider() {
-	}
+public interface SpatialVetoProvider {
+
+//	public SpatialVetoProvider() {
+//	}
 
 	/**
 	 * Name for this veto. 
@@ -17,6 +19,12 @@ public abstract class SpatialVetoProvider {
 	 * @param sonarId sonar id to apply the veto to. Either the id of one sonar, or 0 for all sonars. 
 	 * @return a spatial veto 
 	 */
-	abstract SpatialVeto createVeto();
+	abstract public SpatialVeto createVeto();
+	
+	/**
+	 * Get an overlay draw for this type of veto for use on PAMGuard displays. 
+	 * @return overlay draw
+	 */
+	abstract public PanelOverlayDraw getVetoOverlayDraw();
 
 }
