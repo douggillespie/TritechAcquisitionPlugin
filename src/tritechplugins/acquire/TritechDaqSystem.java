@@ -182,5 +182,9 @@ public abstract class TritechDaqSystem {
 		return null;
 	}
 
-	protected abstract void rebootSonars();
+	/**
+	 * Reboot a sonar. 
+	 * @param sonarId sonar id or 0 for all sonars on system
+	 */
+	protected abstract void rebootSonar(int sonarId);
 }

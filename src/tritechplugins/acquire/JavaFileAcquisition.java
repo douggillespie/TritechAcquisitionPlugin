@@ -320,9 +320,8 @@ public class JavaFileAcquisition extends TritechDaqSystem  implements CatalogStr
 	}
 
 	@Override
-	protected void rebootSonars() {
-		// TODO Auto-generated method stub
-		
+	protected void rebootSonar(int deviceId) {
+		// nothing to do for file analysis
 	}
 
 	@Override

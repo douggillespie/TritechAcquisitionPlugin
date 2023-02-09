@@ -1,11 +1,16 @@
 package tritechplugins.acquire;
 
-import geminisdk.structures.GemStatusPacket;
 import tritechgemini.imagedata.GLFStatusData;
 
 public class SonarStatusData {
 		
 	protected int totalImages;
+	
+	protected int interStatusImages;
+	
+	protected int zeroPacketWarnings;
+	
+	protected long lastReboot = System.currentTimeMillis();
 
 	private GLFStatusData statusPacket;
 	

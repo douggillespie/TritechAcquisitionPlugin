@@ -122,6 +122,7 @@ abstract public class Svs5JNADaqSystem extends TritechDaqSystem {
 			SonarStatusData sonarData = findSonarStatusData(glfImage.genericHeader.tm_deviceId);
 			if (sonarData != null) {
 				sonarData.totalImages++;
+				sonarData.interStatusImages++;
 			}
 			else {
 //				System.out.printf("Unable to find sonar data for id %d\n", glfImage.genericHeader.tm_deviceId);
@@ -150,6 +151,8 @@ abstract public class Svs5JNADaqSystem extends TritechDaqSystem {
 			
 			if (sonarStatusData != null) {
 				tritechProcess.updateStatusData(sonarStatusData);
+				checkWatchdog(sonarStatusData);
+				sonarStatusData.interStatusImages = 0;
 			}
 		}
 
@@ -194,6 +197,25 @@ abstract public class Svs5JNADaqSystem extends TritechDaqSystem {
 		return sv5Inf;
 	}
 
+
+	/**
+	 * Check on each sonar whether packets have been received or not 
+	 * since the last sonar status data. If we get more than a 
+	 * few packets without any data, then take action !
+	 * @param sonarStatusData
+	 */
+	public void checkWatchdog(SonarStatusData sonarStatusData) {
+		if (sonarStatusData.interStatusImages > 0) {
+			sonarStatusData.zeroPacketWarnings = 0;
+			return;
+		}
+		if (++sonarStatusData.zeroPacketWarnings > 5 && System.currentTimeMillis() - sonarStatusData.lastReboot > 60000) {
+			// we've gone five seconds without receiving any data, so reboot and haven't rebooted for > 1 minute
+			System.out.printf("No data received from sonar %d in 5 seconds. Reboot it\n", sonarStatusData.getDeviceId());
+			sonarStatusData.lastReboot = System.currentTimeMillis();
+			rebootSonar(sonarStatusData.getDeviceId());
+		}
+	}
 
 	public void checkOutOfWater(GLFStatusData statusData) {
 		if (statusData == null) {
@@ -251,9 +273,9 @@ abstract public class Svs5JNADaqSystem extends TritechDaqSystem {
 		return ids;
 	}
 
-	public void rebootSonars() {
+	public void rebootSonar(int sonarId) {
 		try {
-			long ans  = svs5Commands.setConfiguration(GeminiStructure.SVS5_CONFIG_REBOOT_SONAR, null, 0);
+			long ans  = svs5Commands.setConfiguration(GeminiStructure.SVS5_CONFIG_REBOOT_SONAR, null, sonarId);
 //			System.out.println("Reboot returned : " + ans);
 		}
 		catch ( Svs5Exception e) {

@@ -47,4 +47,10 @@ public class XYVeto extends SpatialVeto {
 
 	}
 
+	@Override
+	public String getDescription() {
+		return String.format("xy veto %3.1f<x<%3.1f, %3.1f<y<%3.1f", 
+				xyVetoParams.xMin, xyVetoParams.xMax, xyVetoParams.yMin, xyVetoParams.yMax);
+	}
+
 }

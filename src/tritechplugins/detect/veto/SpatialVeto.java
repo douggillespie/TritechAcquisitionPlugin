@@ -50,6 +50,25 @@ public abstract class SpatialVeto {
 		return vetoProvider;
 	}
 	
+	abstract public String getDescription();
+
+	@Override
+	public String toString() {
+		String sonarString = getSonarSelString();
+		return getDescription() + " (" + sonarString + ")";
+	}
+
+	private String getSonarSelString() {
+		int sonar = getParams().sonarId;
+		if (sonar == 0) {
+			return "all sonars";
+		}
+		else {
+			return "sonar " + sonar;
+		}
+	}
+	
+	
 	
 
 }

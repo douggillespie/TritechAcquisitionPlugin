@@ -86,7 +86,9 @@ public class VetoDialogPanel implements PamDialogPanel {
 		ArrayList<SpatialVeto> currentVetos = vetoManager.getCurrentVetos();
 		for (SpatialVeto veto : currentVetos) {
 			c.gridx = 0;
-			currentPanel.add(new JLabel(veto.getName() + " "), c);
+			JLabel label;
+			currentPanel.add(label = new JLabel(veto.getName() + " "), c);
+			label.setToolTipText(veto.toString());
 			c.gridx++;
 			JButton settingsButton = new PamSettingsIconButton();
 			settingsButton.setToolTipText("Configure veto");
@@ -94,7 +96,7 @@ public class VetoDialogPanel implements PamDialogPanel {
 			settingsButton.addActionListener(new ActionListener() {
 				@Override
 				public void actionPerformed(ActionEvent e) {
-					editVeto(veto);
+					editVeto(veto, label);
 				}
 			});
 			c.gridx++;
@@ -128,8 +130,9 @@ public class VetoDialogPanel implements PamDialogPanel {
 		}
 	}
 
-	protected void editVeto(SpatialVeto veto) {
+	protected void editVeto(SpatialVeto veto, JLabel label) {
 		veto.configureVeto(owner);
+		label.setToolTipText(veto.toString());
 	}
 
 //	private class VetoSubPanel extends JPanel {

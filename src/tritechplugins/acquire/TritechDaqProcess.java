@@ -197,7 +197,7 @@ public class TritechDaqProcess extends PamProcess implements TritechRunMode {
 			
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				tritechDaqSystem.rebootSonars();
+				tritechDaqSystem.rebootSonar(0);
 			}
 		});
 		

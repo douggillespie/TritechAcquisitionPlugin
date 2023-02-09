@@ -26,8 +26,12 @@ public class CircleVeto extends SpatialVeto {
 	@Override
 	public boolean isInVeto(double x, double y) {
 		double r2 = Math.pow(x-circleParams.centreX, 2) + Math.pow(y-circleParams.centreY, 2);
-		boolean in = r2 <= Math.pow(circleParams.radius, 2);
-		
+		double r = Math.sqrt(r2);
+		boolean in = r <= circleParams.radius;
+//		if (in == false) {
+//			System.out.printf("Region r = %3.2f, inside  %s, veto inside is %s\n", r, 
+//					in ? "True" : "False", circleParams.vetoInside ? "True" : "False");
+//		}
 		return in == circleParams.vetoInside;
 	}
 
@@ -41,6 +45,13 @@ public class CircleVeto extends SpatialVeto {
 		if (params instanceof CircleVetoParams) {
 			circleParams = (CircleVetoParams) params;
 		}
+	}
+
+	@Override
+	public String getDescription() {
+		return String.format("Circle (%s) veto, centre %3.1f,%3.1fm radius %3.1fm",
+				circleParams.vetoInside ? "inside" : "outside",
+				circleParams.centreX, circleParams.centreY, circleParams.radius);
 	}
 
 }

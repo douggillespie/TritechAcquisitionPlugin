@@ -345,7 +345,7 @@ public class TritechJNADaq extends Svs5JNADaqSystem {
 				@Override
 				public void actionPerformed(ActionEvent e) {
 //					try {
-						rebootSonars();
+						rebootSonar(0);
 //					} catch (Svs5Exception e1) {
 //						e1.printStackTrace();
 //					}

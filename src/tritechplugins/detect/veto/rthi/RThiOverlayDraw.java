@@ -47,15 +47,31 @@ public class RThiOverlayDraw extends PanelOverlayDraw {
 		int[] y = {(int) c1.y, (int) c2.y, (int) c3.y, (int) c4.y};
 		Polygon polygon = new Polygon(x, y, np);
 		Graphics2D g2d = (Graphics2D) g;
-		g2d.draw(polygon);
-		PamSymbol symbol = getDefaultSymbol();
-		if (symbol.isFill()) {
-			Color fillCol = symbol.getFillColor();
-			fillCol = new Color(fillCol.getRed(), fillCol.getGreen(), fillCol.getBlue(), 128);
-			g2d.setColor(fillCol);
-			g2d.fill(polygon);
+		// draw two lines and two arcs. 
+		g2d.drawLine(x[0], y[0], x[1], y[1]);
+		g2d.drawLine(x[2], y[2], x[3], y[3]);
+		int deg1 = 90-(int) Math.toDegrees(params.angleMax);
+		int deg2 = (int) Math.toDegrees(params.angleMax-params.angleMin);
+		double r1 = (int) Math.round(Math.sqrt(Math.pow(c2.x-centre.x, 2) + Math.pow(c2.y-centre.y, 2)));
+		g2d.drawArc((int) (centre.x-r1), (int) (centre.y-r1), (int) (2*r1), (int) (2*r1), deg1, deg2);
+		r1 = (int) Math.sqrt(Math.pow(c1.x-centre.x, 2) + Math.pow(c1.y-centre.y, 2));
+		g2d.drawArc((int) (centre.x-r1), (int) (centre.y-r1), (int) (2*r1), (int) (2*r1), deg1, deg2);
+		
+		int cx = 0, cy = 0;
+		for (int i = 0; i < 4; i++) {
+			cx += x[i];
+			cy += y[i];
 		}
-		generalProjector.addHoverData(polygon, pamDataUnit);
+		cx/=4;
+		cy/=4;
+//		PamSymbol symbol = getDefaultSymbol();
+//		if (symbol.isFill()) {
+//			Color fillCol = symbol.getFillColor();
+//			fillCol = new Color(fillCol.getRed(), fillCol.getGreen(), fillCol.getBlue(), 128);
+//			g2d.setColor(fillCol);
+//			g2d.fill(polygon);
+//		}
+		generalProjector.addHoverData(new Coordinate3d(cx, cy, 0), pamDataUnit);
 //		if (edge == null || centre == null) {
 //			return null;
 //		}

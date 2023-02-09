@@ -2,6 +2,7 @@ package tritechplugins.detect.veto.rthi;
 
 import java.awt.Window;
 
+import PamUtils.LatLong;
 import tritechplugins.detect.veto.SpatialVeto;
 import tritechplugins.detect.veto.SpatialVetoParams;
 import tritechplugins.detect.veto.VetoSettingsDialog;
@@ -46,6 +47,13 @@ public class RThiVeto extends SpatialVeto {
 		if (params instanceof RThiVetoParams) {
 			rThiParams = (RThiVetoParams) params;
 		}
+	}
+
+	@Override
+	public String getDescription() {
+		return String.format("r/thi veto range %3.1f to %3.1fm, angles %3.1f%s to %3.1f%s",
+				rThiParams.rangeMin, rThiParams.rangeMax, Math.toDegrees(rThiParams.angleMin), LatLong.deg,
+				Math.toDegrees(rThiParams.angleMax), LatLong.deg);
 	}
 
 }
