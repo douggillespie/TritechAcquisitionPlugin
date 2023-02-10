@@ -70,8 +70,8 @@ public class CircleVetoDialogPanel implements PamDialogPanel {
 	@Override
 	public void setParams() {
 		CircleVetoParams circleParams = circleVeto.getParams();
-		centreX.setText(String.format("%3.1f", circleParams.centreX));
-		centreY.setText(String.format("%3.1f", circleParams.centreY));
+		centreX.setText(String.format("%3.2f", circleParams.centreX));
+		centreY.setText(String.format("%3.2f", circleParams.centreY));
 		radius.setText(String.format("%3.1f", circleParams.radius));
 		vetoInside.setSelected(circleParams.vetoInside);
 		vetoOutside.setSelected(!circleParams.vetoInside);

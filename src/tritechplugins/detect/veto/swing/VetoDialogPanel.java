@@ -135,15 +135,6 @@ public class VetoDialogPanel implements PamDialogPanel {
 		label.setToolTipText(veto.toString());
 	}
 
-//	private class VetoSubPanel extends JPanel {
-//		private SpatialVeto veto;
-//		
-//
-//		private VetoSubPanel(SpatialVeto veto) {
-//			this.veto = veto;
-//		}
-//	}
-
 	@Override
 	public JComponent getDialogComponent() {
 		return mainPanel;

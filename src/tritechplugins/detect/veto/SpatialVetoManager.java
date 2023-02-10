@@ -14,6 +14,7 @@ import PamUtils.PamCalendar;
 import tritechgemini.detect.DetectedRegion;
 import tritechplugins.detect.threshold.ThresholdDetector;
 import tritechplugins.detect.veto.circle.CircleVetoProvider;
+import tritechplugins.detect.veto.polygon.PolygonVetoProvider;
 import tritechplugins.detect.veto.rthi.RThiVetoProvider;
 import tritechplugins.detect.veto.swing.VetoDialogPanel;
 import tritechplugins.detect.veto.swing.VetoOverlayDraw;
@@ -48,6 +49,7 @@ public class SpatialVetoManager implements PamSettings {
 		vetoProviders.add(new RThiVetoProvider());
 		vetoProviders.add(new XYVetoProvider());
 		vetoProviders.add(new CircleVetoProvider());
+		vetoProviders.add(new PolygonVetoProvider());
 		
 		vetoDataBlock = new SpatialVetoDataBlock(thresholdDetector.getThresholdProcess());
 		thresholdDetector.getThresholdProcess().addOutputDataBlock(vetoDataBlock);
@@ -177,7 +179,7 @@ public class SpatialVetoManager implements PamSettings {
 		ArrayList<DetectedRegion> passed = new ArrayList(detectedRegions.size());
 		
 		for (DetectedRegion aRegion : detectedRegions) {
-			double x = aRegion.getPeakX();
+			double x = -aRegion.getPeakX(); // x and y wrong way around in data !!!
 			double y = aRegion.getPeakY();
 			boolean want = true;
 			for (SpatialVeto aVeto : currentVetos) {
