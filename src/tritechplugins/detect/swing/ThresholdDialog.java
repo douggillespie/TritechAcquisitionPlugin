@@ -40,6 +40,8 @@ public class ThresholdDialog extends PamDialog {
 
 	private JTextField backgroundTime, backgroundScale;
 	
+	private JTextField backgroundRecordS;
+	
 	private JTextField minObjectSize, maxObjectSize;
 
 	private JComboBox<String> connectionType;
@@ -67,6 +69,7 @@ public class ThresholdDialog extends PamDialog {
 		thresholdOff = new JTextField(3);
 		backgroundTime = new JTextField(3);
 		backgroundScale = new JTextField(3);
+		backgroundRecordS = new JTextField(3);
 		minObjectSize = new JTextField(3);
 		maxObjectSize = new JTextField(3);
 		connectionType = new JComboBox<String>();
@@ -89,7 +92,6 @@ public class ThresholdDialog extends PamDialog {
 		c.gridwidth = 2;
 		thresholdPanel.add(backgroundTime, c);
 		c.gridx+=c.gridwidth;
-//		c.gridwidth = 1;
 		thresholdPanel.add(new JLabel(" frames ", JLabel.LEFT), c);
 
 		c.gridy++;
@@ -100,8 +102,17 @@ public class ThresholdDialog extends PamDialog {
 		c.gridwidth = 2;
 		thresholdPanel.add(backgroundScale, c);
 		c.gridx+=c.gridwidth;
-//		c.gridwidth = 1;
 		thresholdPanel.add(new JLabel(" multiplier ", JLabel.LEFT), c);
+
+		c.gridy++;
+		c.gridx = 0;
+		c.gridwidth = 1;
+		thresholdPanel.add(new JLabel("Record background every ", JLabel.RIGHT), c);
+		c.gridx++;
+		c.gridwidth = 2;
+		thresholdPanel.add(backgroundRecordS, c);
+		c.gridx+=c.gridwidth;
+		thresholdPanel.add(new JLabel(" seconds ", JLabel.LEFT), c);
 
 		c.gridy++;
 		c.gridx = 0;
@@ -111,7 +122,6 @@ public class ThresholdDialog extends PamDialog {
 		c.gridwidth = 2;
 		thresholdPanel.add(thresholdOn, c);
 		c.gridx+=c.gridwidth;
-//		c.gridwidth = 1;
 		thresholdPanel.add(new JLabel(" counts ", JLabel.LEFT), c);
 
 		c.gridy++;
@@ -139,7 +149,6 @@ public class ThresholdDialog extends PamDialog {
 			connectionType.addItem(String.format("Connect %d", conTypes[i]));
 		}
 		
-
 		c.gridy++;
 		c.gridx = 0;
 		c.gridwidth = 1;
@@ -220,6 +229,7 @@ public class ThresholdDialog extends PamDialog {
 		sourcePanel.setSource(thresholdParams.imageDataSource);
 		backgroundTime.setText(String.format("%d", thresholdParams.backgroundTimeConst));
 		backgroundScale.setText(String.format("%3.2f", thresholdParams.backgroundScale));
+		backgroundRecordS.setText(String.format("%d", thresholdParams.backgroundIntervalSecs));
 		thresholdOn.setText(String.format("%d", thresholdParams.highThreshold));
 		thresholdOff.setText(String.format("%d", thresholdParams.lowThreshold));
 		minObjectSize.setText(String.format("%3.1f", thresholdParams.minSize));
@@ -252,6 +262,7 @@ public class ThresholdDialog extends PamDialog {
 		thresholdParams.imageDataSource = imSource.getLongDataName();
 		try {
 			thresholdParams.backgroundTimeConst = Integer.valueOf(backgroundTime.getText());
+			thresholdParams.backgroundIntervalSecs = Integer.valueOf(backgroundRecordS.getText());
 			thresholdParams.highThreshold = Integer.valueOf(thresholdOn.getText());
 			thresholdParams.lowThreshold = Integer.valueOf(thresholdOff.getText());
 		}

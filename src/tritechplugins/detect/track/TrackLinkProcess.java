@@ -18,6 +18,7 @@ import tritechplugins.detect.threshold.RegionDataBlock;
 import tritechplugins.detect.threshold.RegionDataUnit;
 import tritechplugins.detect.threshold.ThresholdDetector;
 import tritechplugins.detect.threshold.ThresholdProcess;
+import tritechplugins.detect.threshold.background.ThresholdBackgroundManager;
 import tritechplugins.detect.track.dataselect.TrackDataSelectCreator;
 import tritechplugins.display.swing.overlays.TrackSymbolManager;
 
@@ -86,6 +87,7 @@ public class TrackLinkProcess extends PamProcess implements PamSettings {
 //		annotationHandler = new ManualAnnotationHandler(thresholdDetector, trackLinkDataBlock);
 //		trackLinkDataBlock.setAnnotationHandler(annotationHandler);
 		trackLinkDataBlock.setPamSymbolManager(new TrackSymbolManager(trackLinkDataBlock));
+		trackLinkDataBlock.setBackgroundManager(new ThresholdBackgroundManager(this, trackLinkDataBlock));
 		addOutputDataBlock(trackLinkDataBlock);
 		
 		PamSettingManager.getInstance().registerSettings(this);

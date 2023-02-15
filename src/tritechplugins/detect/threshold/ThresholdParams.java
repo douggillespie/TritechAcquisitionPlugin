@@ -27,6 +27,11 @@ public class ThresholdParams implements Cloneable, Serializable {
 	 * Maximum object (diagonal) size in metres
 	 */
 	public double maxSize = 4.0;
+	
+	/**
+	 * time between writes of background data to binary files. 
+	 */
+	public int backgroundIntervalSecs = 60;
 
 	public ThresholdParams() {
 	}

@@ -54,6 +54,7 @@ public class ThresholdDetector extends PamControlledUnit implements PamSettings 
 	}
 	
 	public static final String unitType = "Gemini Threshold Detector";
+	
 	public ThresholdDetector(String unitName) {
 		super(unitType, unitName);
 		
@@ -166,6 +167,9 @@ public class ThresholdDetector extends PamControlledUnit implements PamSettings 
 	@Override
 	public boolean restoreSettings(PamControlledUnitSettings pamControlledUnitSettings) {
 		thresholdParams = (ThresholdParams) pamControlledUnitSettings.getSettings();
+		if (thresholdParams.backgroundIntervalSecs == 0) {
+			thresholdParams.backgroundIntervalSecs = 60;
+		}
 		return true;
 	}
 

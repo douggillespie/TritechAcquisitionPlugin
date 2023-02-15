@@ -1,6 +1,7 @@
 package tritechplugins.detect.threshold;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 
@@ -35,7 +36,6 @@ public class ThresholdProcess extends PamProcess {
 		return regionLogging;
 	}
 
-
 	public ThresholdProcess(ThresholdDetector thresholdDetector) {
 		super(thresholdDetector, null);
 		this.thresholdDetector = thresholdDetector;
@@ -44,13 +44,11 @@ public class ThresholdProcess extends PamProcess {
 		regionDataBlock.setDataSelectCreator(new RegionDataSelectorCreator(regionDataBlock));
 		addOutputDataBlock(regionDataBlock);
 		regionLogging = new RegionLogging(thresholdDetector, regionDataBlock);
-		// not sure I need this - logging function get called from the super detection clss. 
+		// not sure I need this - logging function get called from the super detection class. 
 //		regionDataBlock.SetLogging(regionLogging);
 		regionDataBlock.setPamSymbolManager(new SonarSymbolManager(regionDataBlock));
 		regionDataBlock.setOverlayDraw(new RegionOverlayDraw());
-		
 	}
-
 
 	@Override
 	public void newData(PamObservable o, PamDataUnit arg) {
@@ -63,7 +61,6 @@ public class ThresholdProcess extends PamProcess {
 			trackLinkProcess.newRegionsList(imageData.getGeminiImage().getDeviceId(), imageData.getTimeMilliseconds(), regions);
 		}
 	}
-
 
 	@Override
 	public void prepareProcess() {
@@ -97,7 +94,6 @@ public class ThresholdProcess extends PamProcess {
 
 	@Override
 	public void pamStart() {
-//		trackLinkProcess.startProcess();
 	}
 
 	@Override

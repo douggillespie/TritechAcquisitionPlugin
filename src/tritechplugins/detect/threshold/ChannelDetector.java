@@ -1,15 +1,22 @@
 package tritechplugins.detect.threshold;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.zip.Deflater;
 
+import PamController.PamController;
 import PamUtils.PamCalendar;
+import PamguardMVC.background.BackgroundManager;
 import generalDatabase.DBControlUnit;
 import tritechgemini.detect.DetectedRegion;
 import tritechgemini.detect.RegionDetector;
+import tritechgemini.imagedata.GLFImageRecord;
 import tritechgemini.imagedata.GeminiImageRecordI;
 import tritechplugins.acquire.ImageDataUnit;
+import tritechplugins.detect.threshold.background.ThresholdBackgroundDataUnit;
+import tritechplugins.detect.track.TrackLinkProcess;
 import warnings.PamWarning;
 import warnings.WarningSystem;
 
@@ -27,6 +34,8 @@ public class ChannelDetector {
 	private static final int MAX_FRAME_REGIONS = 100;
 	
 	private PamWarning regionWarning = new PamWarning("Tritech Detector", "Too many", 0);
+	
+	private long lastBackgroundWrite = 0;
 	
 	/**
 	 * Detector for a single sonar. 
@@ -49,6 +58,9 @@ public class ChannelDetector {
 	 * @param imageData
 	 */
 	public List<DetectedRegion> newData(ImageDataUnit imageDataUnit) {
+		if (lastBackgroundWrite == 0) {
+			lastBackgroundWrite = imageDataUnit.getTimeMilliseconds();
+		}
 		GeminiImageRecordI image = imageDataUnit.getGeminiImage();
 		byte[] imageData = image.getImageData();
 		if (imageData == null) {
@@ -60,6 +72,11 @@ public class ChannelDetector {
 		backgroundRemoval.setRemovalScale(1.5);
 				
 		byte[] noBackground = backgroundRemoval.removeBackground(imageData, image.getnBeam(), image.getnRange(), true);
+		
+		if (imageDataUnit.getTimeMilliseconds()-lastBackgroundWrite > params.backgroundIntervalSecs*1000) {
+			writeBackground(imageDataUnit, lastBackgroundWrite, imageDataUnit.getTimeMilliseconds());
+			lastBackgroundWrite = imageDataUnit.getTimeMilliseconds();
+		}
 		
 		thresholdDetector.notifyRawUpdate(sonarId, imageData);
 		thresholdDetector.notifyTreatedUpdate(sonarId, noBackground);
@@ -110,6 +127,50 @@ public class ChannelDetector {
 		
 //		System.out.printf("Detected %3d regions, retained %d on sonar %d at %s\n", nFound, regions.size(), sonarId, PamCalendar.formatDBDateTime(imageDataUnit.getTimeMilliseconds(), true));
 		
+	}
+
+	private void writeBackground(ImageDataUnit imageDataUnit, long lastBackgroundWrite2, long timeMilliseconds) {
+		GeminiImageRecordI geminiImage = imageDataUnit.getGeminiImage();
+		if (geminiImage instanceof GLFImageRecord == false) {
+			// this system only works with GLF data, not with ECD data
+			return;
+		}
+		geminiImage = geminiImage.clone(); // take a clone of latest image. 
+		byte[] bgnd = backgroundRemoval.getBackground();
+		/*
+		 *  check the size of the background array which shouldn't be smaller but may be 
+		 *  a bit larger than the current image.  
+		 */
+		int sz = geminiImage.getnRange()*geminiImage.getnBeam();
+		if (sz != bgnd.length) {
+			bgnd = Arrays.copyOf(bgnd, sz);
+		}
+		geminiImage.setImageData(bgnd);
+		
+		ThresholdBackgroundDataUnit dbdu = new ThresholdBackgroundDataUnit(lastBackgroundWrite2, imageDataUnit.getChannelBitmap(),
+				timeMilliseconds-lastBackgroundWrite2, (GLFImageRecord) geminiImage);
+		
+		// now try to find the datablock for the Tracks (not the regions) and add to that
+		TrackLinkProcess tlp = thresholdDetector.getTrackLinkProcess();
+		if (tlp == null) {
+			return;
+		}
+		BackgroundManager bgndManager = tlp.getTrackLinkDataBlock().getBackgroundManager();
+		if (bgndManager != null) {
+			if (PamController.getInstance().getPamStatus() == PamController.PAM_RUNNING) {
+				bgndManager.addData(dbdu);
+			}
+		}
+		
+		/*
+		 *  we now have an image with all the meta data of the last image, but with the
+		 *  background array instead of the raw data.  
+		 */
+		// see how well it compresses. 
+//		Deflater shrinker = new java.util.zip.Deflater();
+//		shrinker.setInput(bgnd);
+//		int nbytes = shrinker.deflate(bgnd);
+//		System.out.printf("Sonar %d Shrunk %d butes to %d = %3.2f%%\n", geminiImage.getDeviceId(), sz, nbytes, 100.*(double)nbytes/(double)sz);
 	}
 
 	private boolean wantRegion(GeminiImageRecordI image, DetectedRegion region, byte[] imageData) {

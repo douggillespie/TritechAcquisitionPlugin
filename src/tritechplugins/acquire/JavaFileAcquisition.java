@@ -26,7 +26,7 @@ import tritechplugins.display.swing.SonarDisplayDecorations;
  * @author dg50
  *
  */
-public class JavaFileAcquisition extends TritechDaqSystem  implements CatalogStreamObserver {
+public class JavaFileAcquisition extends TritechDaqSystem  implements CatalogStreamObserver, ConfigurationObserver {
 	
 	/**
 	 * will need a few changes to GeminiFileCatalog to enable two functions
@@ -53,6 +53,9 @@ public class JavaFileAcquisition extends TritechDaqSystem  implements CatalogStr
 	
 	private Object synchObject = new Object();
 
+	private int currentFile = 0;
+
+	private Long lastRecordTime;
 
 	private JavaFileDecorations javaFileDecorations;
 
@@ -60,7 +63,7 @@ public class JavaFileAcquisition extends TritechDaqSystem  implements CatalogStr
 	
 	public JavaFileAcquisition(TritechAcquisition tritechAcquisition, TritechDaqProcess tritechProcess) {
 		super(tritechAcquisition, tritechProcess);
-		// TODO Auto-generated constructor stub
+		tritechAcquisition.addConfigurationObserver(this);
 	}
 
 	@Override
@@ -72,16 +75,24 @@ public class JavaFileAcquisition extends TritechDaqSystem  implements CatalogStr
 		 * Need to get the time from the first file and set the calendar time from it. Will also need to do this from every stream !
 		 * this first one needs to be done right at start, before binary stores are created or all goes wrong. 
 		 */
-		for (int i = 0; i < allFiles.length; i++) {
+		for (int i = currentFile; i < allFiles.length; i++) {
 			/*
 			 * Chance that very first file may be corrupt for some reason, so be 
 			 * pragmatic and keep going until a file has a time. 
 			 */
 			if (extractStartTime(allFiles[i])) {
+				System.out.printf("Preparing Tritech File Acquisition on file %d start time %s\n", 
+						i, PamCalendar.formatDBDateTime(PamCalendar.getSessionStartTime()));
 				return true;
 			};
 		}
 		return allFiles.length>0;
+	}
+
+	@Override
+	public void configurationChanged() {
+		currentFile = 0;
+		lastRecordTime = null;
 	}
 
 	/**
@@ -175,8 +186,6 @@ public class JavaFileAcquisition extends TritechDaqSystem  implements CatalogStr
 
 		private String[] fileList;
 
-		private int currentFile = 0;
-
 		public StreamingThread(String[] allFiles) {
 			this.fileList = allFiles;
 		}
@@ -193,8 +202,13 @@ public class JavaFileAcquisition extends TritechDaqSystem  implements CatalogStr
 					synchronized (synchObject) {
 						currentCatalog = GeminiFileCatalog.getFileCatalog(fileList[currentFile], false);
 					}
+//					long firstRecordTime = currentCatalog.getFirstRecordTime();
 //					try {
-					currentCatalog.streamCatalog(JavaFileAcquisition.this);
+					boolean carryOn = currentCatalog.streamCatalog(JavaFileAcquisition.this);
+					if (carryOn == false) {
+						break;
+					}
+//					lastRecordTime = currentCatalog.getLastRecordTime();
 //					}
 					// don't need since outer catch changed from CatalogException to Exception
 //					catch (Exception e) {
@@ -228,7 +242,26 @@ public class JavaFileAcquisition extends TritechDaqSystem  implements CatalogStr
 	}
 
 	@Override
-	public void newImageRecord(GeminiImageRecordI glfImage) {
+	public boolean newImageRecord(GeminiImageRecordI glfImage) {
+		/*
+		 *  see if there is a bit gap between this and the last record which may be
+		 *  caused by a gap in file data, in which case we may want to nudge a restart
+		 *  to reset the binary store. 
+		 */
+		if (lastRecordTime != null) {
+			long gap = glfImage.getRecordTime() - lastRecordTime;
+			if (gap > 10000L) {
+				System.out.printf("GLF Cataloges have a %d day %s second gap between files\n", gap/(3600L*24L*1000L), PamCalendar.formatTime(gap));
+				// so tell pamguard to restart and return false to stop this catalogue. 
+				PamController.getInstance().pamStop();
+				restartLater();
+				lastRecordTime = null;
+				return false;
+			}
+		}
+		lastRecordTime = glfImage.getRecordTime();
+		
+		
 		ImageDataBlock datablock = tritechProcess.getImageDataBlock();
 		ImageDataUnit imageDataUnit = new ImageDataUnit(glfImage.getRecordTime(), 0, glfImage);
 		
@@ -236,6 +269,31 @@ public class JavaFileAcquisition extends TritechDaqSystem  implements CatalogStr
 		delayPlayback(glfImage.getRecordTime());
 		
 		datablock.addPamData(imageDataUnit);
+		return true;
+	}
+	
+	private void restartLater() {
+		Runnable r = new Runnable() {
+			
+			@Override
+			public void run() {
+				long t = System.currentTimeMillis();
+				while (System.currentTimeMillis() - t < 10000) {
+					if (PamController.getInstance().getPamStatus() != PamController.PAM_IDLE) {
+						try {
+							Thread.sleep(500);
+							continue;
+						} catch (InterruptedException e) {
+						}
+					}
+					System.out.printf("Tritch Acquisition issue restart after %dms wait\n", System.currentTimeMillis() - t);
+					PamController.getInstance().startLater();
+					break;
+				}
+			}
+		};
+		
+		new Thread(r).start();
 	}
 
 	/**
@@ -271,9 +329,10 @@ public class JavaFileAcquisition extends TritechDaqSystem  implements CatalogStr
 	}
 
 	@Override
-	public void newStatusData(GLFStatusData statusData) {
+	public boolean newStatusData(GLFStatusData statusData) {
 		// this will arrive in the swing worker thread - that's fine. 
 //		System.out.println("Status data");
+		return true;
 	}
 
 	@Override
