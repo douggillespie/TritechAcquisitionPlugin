@@ -31,7 +31,7 @@ public class ChannelDetector {
 	private BackgroundRemoval backgroundRemoval;
 	private RegionDataBlock regionDataBlock;
 	
-	private static final int MAX_FRAME_REGIONS = 100;
+	private static final int MAX_FRAME_REGIONS = 1000;
 	
 	private PamWarning regionWarning = new PamWarning("Tritech Detector", "Too many", 0);
 	

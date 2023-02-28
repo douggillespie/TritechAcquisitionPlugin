@@ -71,6 +71,8 @@ public class JavaFileAcquisition extends TritechDaqSystem  implements CatalogStr
 		TritechDaqParams params = tritechAcquisition.getDaqParams();
 		OfflineFileList fileList = new OfflineFileList(params.getOfflineFileFolder(), new TritechFileFilter(), params.isOfflineSubFolders() | true);
 		allFiles = fileList.asStringList();
+		// set this to null or it fires off every restart at line 254
+		lastRecordTime = null;
 		/*
 		 * Need to get the time from the first file and set the calendar time from it. Will also need to do this from every stream !
 		 * this first one needs to be done right at start, before binary stores are created or all goes wrong. 
@@ -253,9 +255,9 @@ public class JavaFileAcquisition extends TritechDaqSystem  implements CatalogStr
 			if (gap > 10000L) {
 				System.out.printf("GLF Cataloges have a %d day %s second gap between files\n", gap/(3600L*24L*1000L), PamCalendar.formatTime(gap));
 				// so tell pamguard to restart and return false to stop this catalogue. 
+				lastRecordTime = null;
 				PamController.getInstance().pamStop();
 				restartLater();
-				lastRecordTime = null;
 				return false;
 			}
 		}
