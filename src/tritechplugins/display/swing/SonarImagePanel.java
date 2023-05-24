@@ -957,7 +957,12 @@ public class SonarImagePanel extends JPanel {
 		double angle = Math
 				.toDegrees(Math.atan2(dragCoord.getY() - downCoord.getY(), dragCoord.getX() - downCoord.getX()));
 		double bearing = 90. - angle;
+		
+		if (sonarsPanel.getSonarsPanelParams().flipLeftRight) {
+			bearing = -bearing;
+		}
 		bearing = PamUtils.constrainedAngle(bearing);
+		
 		double range = Math.sqrt(
 				Math.pow(dragCoord.getY() - downCoord.getY(), 2) + Math.pow(dragCoord.getX() - downCoord.getX(), 2));
 		String txt = String.format("Bearing %3.1f%s, Distance %3.1fm", bearing, LatLong.deg, range);
