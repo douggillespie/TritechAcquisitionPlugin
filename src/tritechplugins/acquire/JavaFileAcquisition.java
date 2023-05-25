@@ -70,6 +70,7 @@ public class JavaFileAcquisition extends TritechDaqSystem  implements CatalogStr
 	public boolean prepareProcess() {
 		TritechDaqParams params = tritechAcquisition.getDaqParams();
 		OfflineFileList fileList = new OfflineFileList(params.getOfflineFileFolder(), new TritechFileFilter(), params.isOfflineSubFolders() | true);
+		fileList.sortByFileName();
 		allFiles = fileList.asStringList();
 		// set this to null or it fires off every restart at line 254
 		lastRecordTime = null;

@@ -41,6 +41,7 @@ public class TritechJNAPlayback extends Svs5JNADaqSystem {
 	public boolean start() {
 		TritechDaqParams params = tritechAcquisition.getDaqParams();
 		OfflineFileList fileList = new OfflineFileList(params.getOfflineFileFolder(), new TritechFileFilter(), params.isOfflineSubFolders());
+		fileList.sortByFileName();
 		String[] allFiles = fileList.asStringList();
 		int ans = gSerialiser.setInputFileList(allFiles, allFiles.length);
 //		System.out.println("Set list of files returned " + ans);

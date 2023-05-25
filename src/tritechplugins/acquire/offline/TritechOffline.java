@@ -143,6 +143,7 @@ public class TritechOffline implements TritechRunMode, OfflineDataStore {
 	public void updateCatalog() {
 		TritechDaqParams params = tritechAcquisition.getDaqParams();
 		offlineFileList = new OfflineFileList(params.getOfflineFileFolder(), new TritechFileFilter(), params.isOfflineSubFolders());
+		offlineFileList.sortByFileName();
 		String[] fileNames = offlineFileList.asStringList();
 		
 		stopCatalogWorker();
