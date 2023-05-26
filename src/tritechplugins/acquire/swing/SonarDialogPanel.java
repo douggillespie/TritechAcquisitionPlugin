@@ -2,15 +2,20 @@ package tritechplugins.acquire.swing;
 
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
+import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JTextField;
 import javax.swing.border.TitledBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
+import PamView.dialog.PamDialog;
 import PamView.dialog.PamGridBagContraints;
 import geminisdk.Svs5Exception;
 import geminisdk.structures.ChirpMode;
@@ -35,6 +40,10 @@ public class SonarDialogPanel extends JPanel {
 	private JComboBox<String> chirpMode;
 
 	private JComboBox<String> rangeFreq;
+	
+	private JCheckBox useFixedSoundSpeed;
+	
+	private JTextField fixedSoundSpeed;
 
 	public SonarDialogPanel(int sonarId, TritechDaqProcess daqProcess) {
 		super();
@@ -54,14 +63,14 @@ public class SonarDialogPanel extends JPanel {
 		c.gridwidth = 1;
 		mainPanel.add(new JLabel("Gain ", JLabel.RIGHT), c);
 		c.gridx++;
-		c.gridwidth = 3;
+		c.gridwidth = 5;
 		mainPanel.add(gainSlider.getComponent(), c);
 		c.gridy++;
 		c.gridx = 0;
 		c.gridwidth = 1;
 		mainPanel.add(new JLabel("Range ", JLabel.RIGHT), c);
 		c.gridx++;
-		c.gridwidth = 3;
+		c.gridwidth = 5;
 		mainPanel.add(rangeSlider.getComponent(), c);
 		c.gridwidth = 1;
 		c.gridx = 0;
@@ -69,11 +78,20 @@ public class SonarDialogPanel extends JPanel {
 		mainPanel.add(new JLabel("Chirp mode ", JLabel.RIGHT), c);
 		c.gridx++;
 		mainPanel.add(chirpMode, c);
-		c.gridx = 0;
-		c.gridy++;
+//		c.gridx = 0;
+//		c.gridy++;
+		c.gridx+=2;
+		c.gridwidth = 1;
 		mainPanel.add(new JLabel("Frequency mode ", JLabel.RIGHT), c);
 		c.gridx++;
 		mainPanel.add(rangeFreq, c);
+		c.gridx = 0;
+		c.gridy++;
+		c.gridwidth = 2;
+		mainPanel.add(useFixedSoundSpeed = new JCheckBox("Use fixed sound speed "), c);
+		c.gridx += c.gridwidth;
+		c.gridwidth = 1;
+		mainPanel.add(fixedSoundSpeed = new JTextField(5), c);
 
 		int[] modes = ChirpMode.getModes();
 		for (int i = 0; i < modes.length; i++) {
@@ -92,6 +110,17 @@ public class SonarDialogPanel extends JPanel {
 			}
 		});
 		
+		useFixedSoundSpeed.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				fixSoundSpeedAction();
+			}
+		});
+		
+	}
+
+	protected void fixSoundSpeedAction() {
+		fixedSoundSpeed.setEnabled(useFixedSoundSpeed.isSelected());
 	}
 
 	private void makeBorder(){
@@ -115,6 +144,8 @@ public class SonarDialogPanel extends JPanel {
 		gainSlider.setValue(sonarParams.getGain());
 		chirpMode.setSelectedIndex(sonarParams.getChirpMode());
 		rangeFreq.setSelectedIndex(sonarParams.getRangeConfig());
+		useFixedSoundSpeed.setSelected(sonarParams.isUseFixedSoundSpeed());
+		fixedSoundSpeed.setText(String.format("%3.1f", sonarParams.getFixedSoundSpeed()));
 	}
 
 	public boolean getParams(TritechDaqParams daqParams) {
@@ -124,6 +155,16 @@ public class SonarDialogPanel extends JPanel {
 		sonarParams.setGain(gainSlider.getValue());
 		sonarParams.setChirpMode(chirpMode.getSelectedIndex());
 		sonarParams.setRangeConfig(rangeFreq.getSelectedIndex());
+		sonarParams.setUseFixedSoundSpeed(useFixedSoundSpeed.isSelected());
+		if (useFixedSoundSpeed.isSelected()) {
+			try {
+				double fss = Double.valueOf(fixedSoundSpeed.getText());
+				sonarParams.setFixedSoundSpeed(fss);
+			}
+			catch (NumberFormatException e) {
+				return PamDialog.showWarning(null, "Invalid Parameter", "Invalid sound speed value");
+			}
+		}
 		
 		return true;
 	}

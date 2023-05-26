@@ -33,6 +33,10 @@ public class SonarDaqParams implements Serializable, Cloneable {
 	private double rangeRangeThreshold = 40;
 	
 	private boolean setOnline = true;
+	
+	private boolean useFixedSoundSpeed;
+	
+	private double fixedSoundSpeed;
 
 	/**
 	 * @return the range
@@ -126,6 +130,37 @@ public class SonarDaqParams implements Serializable, Cloneable {
 	 */
 	public void setSetOnline(boolean setOnline) {
 		this.setOnline = setOnline;
+	}
+
+	/**
+	 * @return the useFixedSoundSpeed
+	 */
+	public boolean isUseFixedSoundSpeed() {
+		return useFixedSoundSpeed;
+	}
+
+	/**
+	 * @param useFixedSoundSpeed the useFixedSoundSpeed to set
+	 */
+	public void setUseFixedSoundSpeed(boolean useFixedSoundSpeed) {
+		this.useFixedSoundSpeed = useFixedSoundSpeed;
+	}
+
+	/**
+	 * @return the fixedSoundSpeed
+	 */
+	public double getFixedSoundSpeed() {
+		if (fixedSoundSpeed == 0) {
+			fixedSoundSpeed = 1500;
+		}
+		return fixedSoundSpeed;
+	}
+
+	/**
+	 * @param fixedSoundSpeed the fixedSoundSpeed to set
+	 */
+	public void setFixedSoundSpeed(double fixedSoundSpeed) {
+		this.fixedSoundSpeed = fixedSoundSpeed;
 	}
 
 }
