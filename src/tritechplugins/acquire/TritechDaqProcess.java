@@ -146,11 +146,19 @@ public class TritechDaqProcess extends PamProcess implements TritechRunMode {
 		
 		TritechDaqParams daqParams = tritechAcquisition.getDaqParams();
 		if (daqParams.getRunMode() == TritechDaqParams.RUN_ACQUIRE) {
-			GeminiFileCatalog.setTimeZone(null);
+			/*
+			 * If acquiring, we always want to set the default time zone for 
+			 * this PC since that's what the Gemini data will be in, so this
+			 * will correctly convert Gemini times to UTC. 
+			 */
+			GeminiFileCatalog.setTimeZone(TimeZone.getDefault());
 		}
 		else {
 			String tzn = daqParams.getOfflinetimeZoneId();
 			TimeZone tz = TimeZone.getTimeZone(tzn);
+			if (tz == null) {
+				tz = TimeZone.getDefault();
+			}
 			GeminiFileCatalog.setTimeZone(tz);
 		}
 		

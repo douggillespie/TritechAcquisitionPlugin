@@ -292,6 +292,21 @@ public class TritechDaqParams implements Serializable, Cloneable{
 		}
 		return offlinetimeZoneId;
 	}
+	
+	/**
+	 * Get the time zone to use for offline files. 
+	 * @return time zone to use with offline files. 
+	 */
+	public TimeZone getOfflineTimeZone() {
+		/*
+		 * Note that TimeZone is not serializable, so we store the id which is a string and OK
+		 */
+		TimeZone tz = TimeZone.getTimeZone(getOfflinetimeZoneId());
+		if (tz == null) {
+			tz = TimeZone.getDefault();
+		}
+		return tz;
+	}
 
 	/**
 	 * @param offlinetimeZoneId the offlinetimeZoneId to set

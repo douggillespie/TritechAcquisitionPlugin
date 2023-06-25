@@ -115,6 +115,8 @@ public class CatalogCheckDialog extends PamDialog implements CancelObserver {
 		 * Start worker thread to go through data and send updates back 
 		 * to AWT for display. 
 		 */
+		TritechDaqParams daqParams = tritechOffline.getTritechAcquisition().getDaqParams();
+		GeminiFileCatalog.setTimeZone(daqParams.getOfflineTimeZone());
 		String path = selectFolder.getFolderName(false);
 		boolean subs = selectFolder.isIncludeSubFolders();
 		File folder = new File(path);

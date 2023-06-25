@@ -27,6 +27,7 @@ import dataMap.filemaps.OfflineFileServer;
 import fileOfflineData.OfflineFileList;
 import pamScrollSystem.ViewLoadObserver;
 import tritechgemini.fileio.CatalogObserver;
+import tritechgemini.fileio.GLFFileCatalog;
 import tritechgemini.fileio.GeminiFileCatalog;
 import tritechgemini.fileio.MultiFileCatalog;
 import tritechgemini.fileio.OfflineCatalogProgress;
@@ -142,6 +143,7 @@ public class TritechOffline implements TritechRunMode, OfflineDataStore {
 	 */
 	public void updateCatalog() {
 		TritechDaqParams params = tritechAcquisition.getDaqParams();
+		GLFFileCatalog.setTimeZone(params.getOfflineTimeZone());
 		offlineFileList = new OfflineFileList(params.getOfflineFileFolder(), new TritechFileFilter(), params.isOfflineSubFolders());
 		offlineFileList.sortByFileName();
 		String[] fileNames = offlineFileList.asStringList();

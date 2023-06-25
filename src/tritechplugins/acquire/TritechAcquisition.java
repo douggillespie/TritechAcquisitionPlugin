@@ -18,6 +18,7 @@ import PamguardMVC.dataOffline.OfflineDataLoadInfo;
 import dataGram.DatagramManager;
 import dataMap.OfflineDataMapPoint;
 import pamScrollSystem.ViewLoadObserver;
+import tritechgemini.fileio.GeminiFileCatalog;
 import tritechplugins.acquire.offline.TritechOffline;
 import tritechplugins.display.swing.SonarPanelProvider;
 import tritechplugins.display.swing.SonarsPanelParams;
@@ -74,6 +75,7 @@ public class TritechAcquisition extends PamControlledUnit implements PamSettings
 
 	public void setDaqParams(TritechDaqParams daqParams) {
 		this.daqParams = daqParams;
+		GeminiFileCatalog.setTimeZone(null);
 	}
 
 	public void configurationChanged() {
@@ -115,6 +117,7 @@ public class TritechAcquisition extends PamControlledUnit implements PamSettings
 	@Override
 	public boolean restoreSettings(PamControlledUnitSettings pamControlledUnitSettings) {
 		daqParams = (TritechDaqParams) pamControlledUnitSettings.getSettings();
+		setDaqParams(daqParams);
 		return true;
 	}
 
