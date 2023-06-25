@@ -168,6 +168,7 @@ abstract public class Svs5JNADaqSystem extends TritechDaqSystem {
 					}
 				}
 			}
+			
 			tritechProcess.updateFileName(outputFileInfo);
 		}
 

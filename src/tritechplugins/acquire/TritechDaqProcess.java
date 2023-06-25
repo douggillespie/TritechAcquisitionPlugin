@@ -9,6 +9,7 @@ import java.util.Observable;
 
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
+import javax.swing.Timer;
 
 import PamController.PamController;
 import PamguardMVC.PamProcess;
@@ -38,6 +39,10 @@ public class TritechDaqProcess extends PamProcess implements TritechRunMode {
 	 * to my own pure Java file reader. 
 	 */
 	private TritechDaqSystem tritechDaqSystem;
+	private boolean shouldLogGLF;
+	private OutputFileInfo lastFileInfo;
+	
+	private Timer logCheckTimer;
 	
 	/**
 	 * @return the tritechDaqSystem
@@ -57,6 +62,13 @@ public class TritechDaqProcess extends PamProcess implements TritechRunMode {
 		addOutputDataBlock(imageDataBlock);
 		
 		sortDaqSystem();
+		
+		logCheckTimer = new Timer(5000, new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				runLogFileCheck();
+			}
+		});
 	}
 	
 	/**
@@ -132,18 +144,25 @@ public class TritechDaqProcess extends PamProcess implements TritechRunMode {
 		sortDaqSystem();
 		if (tritechDaqSystem != null) {
 			tritechDaqSystem.prepareProcess();
+			if (PamController.getInstance().getPamStatus() == PamController.PAM_RUNNING) {
+				tritechDaqSystem.start();
+			}
 		}
 	}
 
 	@Override
 	public void pamStart() {
+		shouldLogGLF = true;
 		if (tritechDaqSystem != null) {
 			tritechDaqSystem.start();
 		}
+		logCheckTimer.start();
 	}
 
 	@Override
 	public void pamStop() {
+		shouldLogGLF = false;
+		logCheckTimer.stop();
 		if (tritechDaqSystem != null) {
 			tritechDaqSystem.stop();
 		}
@@ -250,9 +269,53 @@ public class TritechDaqProcess extends PamProcess implements TritechRunMode {
 	}
 	
 	public void updateFileName(OutputFileInfo outputFileInfo) {
+		
+		checkLogging(outputFileInfo);
+		
 		for (SonarStatusObserver obs : statusObservers) {
 			obs.updateOutputFileInfo(outputFileInfo);
 		}		
+	}
+
+	/**
+	 * check that the logging is going OK and if it isn't reset it. 
+	 * @param outputFileInfo
+	 */
+	private void checkLogging(OutputFileInfo outputFileInfo) {
+		if (shouldLogging() == false) {
+			return;
+		}
+		if (outputFileInfo == null) {
+			return;
+		}
+		if (outputFileInfo.equals(lastFileInfo)) {
+			// seems to have got stuck
+			System.out.println("Stuck file output " + outputFileInfo.toString());
+		}
+		lastFileInfo = outputFileInfo;
+	}
+	
+	/**
+	 * Check on a timer that something is updating. 
+	 */
+	private void runLogFileCheck() {
+		if (shouldLogging() == false) {
+			return;
+		}
+		
+		boolean logErr = (lastFileInfo == null || System.currentTimeMillis() - lastFileInfo.getCreationTime() > 5000);
+		if (logErr) {
+			long dt = (System.currentTimeMillis() - lastFileInfo.getCreationTime())/1000;
+			System.out.printf("Log file info has no tupdated for %d seconds: %s\n", dt, lastFileInfo);
+		}
+	}
+	
+	/**
+	 * check whether or not we should be logging data at this point. 
+	 * @return true if should be logging. 
+	 */
+	private boolean shouldLogging() {
+		return shouldLogGLF;
 	}
 
 	public void updateFrameRate(int frameRate, double trueFPS) {
