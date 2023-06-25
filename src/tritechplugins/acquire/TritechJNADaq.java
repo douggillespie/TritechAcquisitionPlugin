@@ -132,7 +132,8 @@ public class TritechJNADaq extends Svs5JNADaqSystem {
 			err = svs5Commands.setPingMode(true, (short) 5000);
 //			System.out.println("setConfiguration pingMode returned " + err);
 			
-
+			err = svs5Commands.setSoSConfig(sonarParams.isUseFixedSoundSpeed(), sonarParams.getFixedSoundSpeed(), deviceId);
+			
 			ChirpMode chirpMode = new ChirpMode(sonarParams.getChirpMode());
 			err = svs5Commands.setConfiguration(chirpMode, deviceId);
 //			System.out.println("setConfiguration chirpMode returned " + err);

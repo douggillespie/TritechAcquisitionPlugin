@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.TimeZone;
 
 import geminisdk.structures.ChirpMode;
 import geminisdk.structures.RangeFrequencyConfig;
@@ -46,6 +47,8 @@ public class TritechDaqParams implements Serializable, Cloneable{
 	 * All sonars use the same settings
 	 */
 	private boolean allTheSame = true;
+	
+	private String offlinetimeZoneId;
 	
 	private HashMap<Integer, SonarDaqParams> sonarSpecificParams;
 	
@@ -278,6 +281,23 @@ public class TritechDaqParams implements Serializable, Cloneable{
 			return iterator.next();
 		}
 		return null;
+	}
+
+	/**
+	 * @return the offlinetimeZoneId
+	 */
+	public String getOfflinetimeZoneId() {
+		if (offlinetimeZoneId == null) {
+			offlinetimeZoneId = TimeZone.getDefault().getID();
+		}
+		return offlinetimeZoneId;
+	}
+
+	/**
+	 * @param offlinetimeZoneId the offlinetimeZoneId to set
+	 */
+	public void setOfflinetimeZoneId(String offlinetimeZoneId) {
+		this.offlinetimeZoneId = offlinetimeZoneId;
 	}
 
 }

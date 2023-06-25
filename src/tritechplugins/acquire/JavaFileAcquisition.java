@@ -70,6 +70,7 @@ public class JavaFileAcquisition extends TritechDaqSystem  implements CatalogStr
 	public boolean prepareProcess() {
 		TritechDaqParams params = tritechAcquisition.getDaqParams();
 		OfflineFileList fileList = new OfflineFileList(params.getOfflineFileFolder(), new TritechFileFilter(), params.isOfflineSubFolders() | true);
+		fileList.sortByFileName();
 		allFiles = fileList.asStringList();
 		// set this to null or it fires off every restart at line 254
 		lastRecordTime = null;
@@ -250,18 +251,18 @@ public class JavaFileAcquisition extends TritechDaqSystem  implements CatalogStr
 		 *  caused by a gap in file data, in which case we may want to nudge a restart
 		 *  to reset the binary store. 
 		 */
-		if (lastRecordTime != null) {
-			long gap = glfImage.getRecordTime() - lastRecordTime;
-			if (gap > 10000L) {
-				System.out.printf("GLF Cataloges have a %d day %s second gap between files at %s\n", 
-						gap/(3600L*24L*1000L), PamCalendar.formatTime(gap), PamCalendar.formatDBDateTime(glfImage.getRecordTime()));
-				// so tell pamguard to restart and return false to stop this catalogue. 
-				lastRecordTime = null;
-				PamController.getInstance().pamStop();
-				restartLater();
-				return false;
-			}
-		}
+//		if (lastRecordTime != null) {
+//			long gap = glfImage.getRecordTime() - lastRecordTime;
+//			if (gap > 10000L) {
+//				System.out.printf("GLF Cataloges have a %d day %s second gap between files at %s\n", 
+//						gap/(3600L*24L*1000L), PamCalendar.formatTime(gap), PamCalendar.formatDBDateTime(glfImage.getRecordTime()));
+//				// so tell pamguard to restart and return false to stop this catalogue. 
+//				lastRecordTime = null;
+//				PamController.getInstance().pamStop();
+//				restartLater();
+//				return false;
+//			}
+//		}
 		lastRecordTime = glfImage.getRecordTime();
 		
 		

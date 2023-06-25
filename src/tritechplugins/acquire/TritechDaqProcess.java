@@ -6,6 +6,7 @@ import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Observable;
+import java.util.TimeZone;
 
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
@@ -16,6 +17,7 @@ import PamguardMVC.PamProcess;
 import geminisdk.OutputFileInfo;
 import geminisdk.Svs5Exception;
 import geminisdk.structures.LoggerPlaybackUpdate;
+import tritechgemini.fileio.GeminiFileCatalog;
 import tritechplugins.acquire.swing.DaqDialog;
 
 /**
@@ -141,6 +143,17 @@ public class TritechDaqProcess extends PamProcess implements TritechRunMode {
 	@Override
 	public void prepareProcess() {
 		super.prepareProcess();
+		
+		TritechDaqParams daqParams = tritechAcquisition.getDaqParams();
+		if (daqParams.getRunMode() == TritechDaqParams.RUN_ACQUIRE) {
+			GeminiFileCatalog.setTimeZone(null);
+		}
+		else {
+			String tzn = daqParams.getOfflinetimeZoneId();
+			TimeZone tz = TimeZone.getTimeZone(tzn);
+			GeminiFileCatalog.setTimeZone(tz);
+		}
+		
 		sortDaqSystem();
 		if (tritechDaqSystem != null) {
 			tritechDaqSystem.prepareProcess();
