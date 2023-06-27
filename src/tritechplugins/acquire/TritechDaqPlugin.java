@@ -41,12 +41,12 @@ public class TritechDaqPlugin implements PamPluginInterface {
 
 	@Override
 	public String getVersion() {
-		return "1.20";
+		return "1.22";
 	}
 
 	@Override
 	public String getPamVerDevelopedOn() {
-		return "2.02.07";
+		return "2.02.08";
 	}
 
 	@Override
@@ -96,13 +96,11 @@ public class TritechDaqPlugin implements PamPluginInterface {
 
 	@Override
 	public int getNInstances() {
-		// TODO Auto-generated method stub
 		return 0;
 	}
 
 	@Override
 	public boolean isItHidden() {
-		// TODO Auto-generated method stub
 		return false;
 	}
 
