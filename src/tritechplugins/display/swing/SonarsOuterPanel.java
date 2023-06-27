@@ -6,7 +6,6 @@ import java.util.List;
 
 import PamController.PamController;
 import PamController.SettingsNameProvider;
-import PamUtils.PamCalendar;
 import PamView.hidingpanel.HidingPanel;
 import PamView.panel.CornerLayoutContraint;
 import PamView.panel.PamPanel;

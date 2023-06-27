@@ -45,9 +45,10 @@ public class DaqDialog extends PamDialog {
 	
 	private JCheckBox allTheSame;
 	
-	private JComboBox<String> offlineTimeZone;
-	
-	private JButton defaultTimeZone;
+//	private JComboBox<String> offlineTimeZone;
+//	
+//	private JButton defaultTimeZone;
+	private TimeZonePanel timeZonePanel;
 	
 	private JPanel sonarsPanel;
 
@@ -61,12 +62,13 @@ public class DaqDialog extends PamDialog {
 //		chirpMode = new JComboBox<String>();
 //		rangeFreq = new JComboBox<String>();
 		allTheSame = new JCheckBox("Use same settings on all sonars");
-		offlineTimeZone = new JComboBox<String>();
-		defaultTimeZone = new JButton("Default");
-		fillTimeZones();
-		offlineTimeZone.setToolTipText("<html>Time zone for conversion of Tritech file times to UTC. <p>"
-				+ "This should be set to the time zone of the computer that collected the data.");
-		defaultTimeZone.setToolTipText("Use PC default");
+		timeZonePanel = new TimeZonePanel();
+//		offlineTimeZone = new JComboBox<String>();
+//		defaultTimeZone = new JButton("Default");
+//		fillTimeZones();
+//		offlineTimeZone.setToolTipText("<html>Time zone for conversion of Tritech file times to UTC. <p>"
+//				+ "This should be set to the time zone of the computer that collected the data.");
+//		defaultTimeZone.setToolTipText("Use PC default");
 		int[] rModes = TritechDaqParams.getRunModes();
 		runModes = new JRadioButton[rModes.length];
 		ButtonGroup bg = new ButtonGroup();
@@ -97,17 +99,21 @@ public class DaqDialog extends PamDialog {
 			mainPanel.add(runModes[i], c);
 			c.gridx++;
 		}
+//		c.gridx = 0;
+//		c.gridwidth = 1;
+//		c.gridy++;
+//		mainPanel.add(new JLabel("Zime zone for offline files ", JLabel.RIGHT), c);
+//		c.gridx+=c.gridwidth;
+//		c.gridwidth = 1;
+//		mainPanel.add(defaultTimeZone, c);
+//		c.gridx = 0;
+//		c.gridwidth = 3;
+//		c.gridy ++;
+//		mainPanel.add(offlineTimeZone, c);
 		c.gridx = 0;
-		c.gridwidth = 1;
-		c.gridy++;
-		mainPanel.add(new JLabel("Zime zone for offline files ", JLabel.RIGHT), c);
-		c.gridx+=c.gridwidth;
-		c.gridwidth = 1;
-		mainPanel.add(defaultTimeZone, c);
-		c.gridx = 0;
-		c.gridwidth = 3;
 		c.gridy ++;
-		mainPanel.add(offlineTimeZone, c);
+		c.gridwidth = 3;
+		mainPanel.add(timeZonePanel.getComponent(), c);
 		
 		c.gridx = 0;
 		c.gridwidth = 2;
@@ -140,13 +146,13 @@ public class DaqDialog extends PamDialog {
 				changeAllSame();
 			}
 		});
-		
-		defaultTimeZone.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				setDefaultTimeZone();
-			}
-		});
+//		
+//		defaultTimeZone.addActionListener(new ActionListener() {
+//			@Override
+//			public void actionPerformed(ActionEvent e) {
+//				setDefaultTimeZone();
+//			}
+//		});
 		
 //		setResizable(true);
 	}
@@ -176,7 +182,7 @@ public class DaqDialog extends PamDialog {
 		
 		setSonarsParams(daqParams);
 		
-		setTimeZone(daqParams.getOfflinetimeZoneId());
+		timeZonePanel.setTimeZone(daqParams.getOfflinetimeZoneId());
 
 		enableControls();
 	}
@@ -201,43 +207,45 @@ public class DaqDialog extends PamDialog {
 		setSonarsParams(daqParams);
 		
 		enableControls();
+		
+		pack();
 	}
 	
-	private void fillTimeZones() {
-		String[] zones = TimeZone.getAvailableIDs();	
-		String tzStr;
-		for (int i = 0; i < zones.length; i++) {
-			TimeZone tz = TimeZone.getTimeZone(zones[i]);
-//			offlineTimeZone.addItem(zones[i]);
-//			offlineTimeZone.addItem(tz.getDisplayName(true, 0));
-			tz = TimeZone.getTimeZone(zones[i]);
-			if (tz.getRawOffset() < 0) {
-				tzStr = String.format("UTC%3.1f %s (%s)", (double)tz.getRawOffset()/3600000., tz.getID(), tz.getDisplayName());
-			}
-			else {
-				tzStr = String.format("UTC+%3.1f %s (%s)", (double)tz.getRawOffset()/3600000., tz.getID(), tz.getDisplayName());
-			}
-			offlineTimeZone.addItem(tzStr);
-		}
-	}
-	
-	protected void setDefaultTimeZone() {
-		TimeZone dtz = TimeZone.getDefault();
-		if (dtz == null) {
-			return;
-		}
-		setTimeZone(dtz.getID());
-	}
-
-	private void setTimeZone(String id) {
-		String[] zones = TimeZone.getAvailableIDs();
-		for (int i = 0; i < zones.length; i++) {
-			if (zones[i].equals(id)) {
-				offlineTimeZone.setSelectedIndex(i);
-				break;
-			}
-		}
-	}
+//	private void fillTimeZones() {
+//		String[] zones = TimeZone.getAvailableIDs();	
+//		String tzStr;
+//		for (int i = 0; i < zones.length; i++) {
+//			TimeZone tz = TimeZone.getTimeZone(zones[i]);
+////			offlineTimeZone.addItem(zones[i]);
+////			offlineTimeZone.addItem(tz.getDisplayName(true, 0));
+//			tz = TimeZone.getTimeZone(zones[i]);
+//			if (tz.getRawOffset() < 0) {
+//				tzStr = String.format("UTC%3.1f %s (%s)", (double)tz.getRawOffset()/3600000., tz.getID(), tz.getDisplayName());
+//			}
+//			else {
+//				tzStr = String.format("UTC+%3.1f %s (%s)", (double)tz.getRawOffset()/3600000., tz.getID(), tz.getDisplayName());
+//			}
+//			offlineTimeZone.addItem(tzStr);
+//		}
+//	}
+//	
+//	protected void setDefaultTimeZone() {
+//		TimeZone dtz = TimeZone.getDefault();
+//		if (dtz == null) {
+//			return;
+//		}
+//		setTimeZone(dtz.getID());
+//	}
+//
+//	private void setTimeZone(String id) {
+//		String[] zones = TimeZone.getAvailableIDs();
+//		for (int i = 0; i < zones.length; i++) {
+//			if (zones[i].equals(id)) {
+//				offlineTimeZone.setSelectedIndex(i);
+//				break;
+//			}
+//		}
+//	}
 
 	private void enableControls() {
 		
@@ -247,8 +255,11 @@ public class DaqDialog extends PamDialog {
 		
 		outputFolder.setShowSubFolderOption(runModes[TritechDaqParams.RUN_REPROCESS].isSelected());
 		
-		offlineTimeZone.setEnabled(!acquire);
-		defaultTimeZone.setEnabled(!acquire);
+		timeZonePanel.getComponent().setVisible(!acquire);
+		
+		allTheSame.setVisible(acquire);
+//		offlineTimeZone.setEnabled(!acquire);
+//		defaultTimeZone.setEnabled(!acquire);
 	}
 
 	private void createSonarsPanel() {
@@ -329,7 +340,8 @@ public class DaqDialog extends PamDialog {
 		}
 
 		String[] zones = TimeZone.getAvailableIDs();
-		daqParams.setOfflinetimeZoneId(zones[offlineTimeZone.getSelectedIndex()]);
+		String selTZ = timeZonePanel.getTimeZoneId();
+		daqParams.setOfflinetimeZoneId(selTZ);
 		
 		return ok;
 	}

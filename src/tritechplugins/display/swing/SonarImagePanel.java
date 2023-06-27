@@ -490,7 +490,8 @@ public class SonarImagePanel extends JPanel {
 			paintTextLine(g2d, str, xt, yt, "Device Info");
 			yt += lineHeight;
 		}
-		str = PamCalendar.formatDBDateTime(geminiImageRecord.getRecordTime(), true);
+		str = PamCalendar.formatDBStyleTime(geminiImageRecord.getRecordTime(), true, true);
+		str += " " + PamCalendar.getShortDisplayTimeZoneString(true);
 		paintTextLine(g2d, str, xt, yt, "Record time (UTC)");
 		yt += lineHeight;
 //		if (isViewer) {

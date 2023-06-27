@@ -9,6 +9,7 @@ import javax.swing.border.TitledBorder;
 
 import PamUtils.SelectFolder;
 import PamView.dialog.PamDialog;
+import PamView.panel.WestAlignedPanel;
 import tritechplugins.acquire.TritechDaqParams;
 
 public class TritechOfflineDialog extends PamDialog {
@@ -17,20 +18,26 @@ public class TritechOfflineDialog extends PamDialog {
 	private TritechDaqParams daqParams;
 	private SelectFolder selectFolder;
 	
+	private TimeZonePanel timeZonePanel;
+	
 	private TritechOfflineDialog(Window parentFrame) {
 		super(parentFrame, "Tritech Files", false);
 		selectFolder = new SelectFolder("Tritech Offline Files", 60, true);
 		selectFolder.setCreateIfNeeded(false);
+		timeZonePanel = new TimeZonePanel();
 		JPanel mainPanel = new JPanel(new BorderLayout());
 		mainPanel.add(BorderLayout.CENTER, selectFolder.getFolderPanel());
-		mainPanel.setBorder(new TitledBorder("Source location for Tritech ecd and glf files"));
+		WestAlignedPanel wap = new WestAlignedPanel(timeZonePanel.getComponent());
+		mainPanel.add(BorderLayout.SOUTH, wap);
+		((JPanel)selectFolder.getFolderPanel()).setBorder(new TitledBorder("Source location for Tritech ecd and glf files"));
+		wap.setBorder(new TitledBorder("Offline Files Time Zone"));
 		setDialogComponent(mainPanel);
 	}
 	
 	public static TritechDaqParams showDialog(Window parent, TritechDaqParams tritechDaqParams) {
-		if (singleInstance == null || singleInstance.getOwner() != parent) {
+//		if (singleInstance == null || singleInstance.getOwner() != parent) {
 			singleInstance = new TritechOfflineDialog(parent);
-		}
+//		}
 		singleInstance.setParams(tritechDaqParams);
 		singleInstance.setVisible(true);
 		return singleInstance.daqParams;
@@ -40,6 +47,7 @@ public class TritechOfflineDialog extends PamDialog {
 		this.daqParams = tritechDaqParams;
 		selectFolder.setFolderName(daqParams.getOfflineFileFolder());
 		selectFolder.setIncludeSubFolders(daqParams.isOfflineSubFolders());
+		timeZonePanel.setTimeZone(daqParams.getOfflinetimeZoneId());
 		pack();
 	}
 
@@ -55,6 +63,7 @@ public class TritechOfflineDialog extends PamDialog {
 		}
 		daqParams.setOfflineFileFolder(folderName);
 		daqParams.setOfflineSubFolders(selectFolder.isIncludeSubFolders());
+		daqParams.setOfflinetimeZoneId(timeZonePanel.getTimeZoneId());
 		return true;
 	}
 

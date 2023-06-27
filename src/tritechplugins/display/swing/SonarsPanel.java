@@ -335,7 +335,9 @@ public class SonarsPanel extends PamPanel implements DataMenuParent {
 		if (currentScrollTime != 0) {
 			Font font = g2d.getFont();
 			g2d.setColor(getForeground());
-			String timeString = PamCalendar.formatDBDateTime(currentScrollTime, true);
+//			String timeString = PamCalendar.formatDBDateTime(currentScrollTime, true);
+			String timeString = PamCalendar.formatDBStyleTime(currentScrollTime, true, true);
+			timeString += " " + PamCalendar.getShortDisplayTimeZoneString(true);
 			int sz = font.getSize();
 			FontMetrics fm = g2d.getFontMetrics();
 			Rectangle2D stringRect = fm.getStringBounds(timeString, g2d);
