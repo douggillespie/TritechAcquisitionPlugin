@@ -1,11 +1,13 @@
 package tritechplugins.acquire.swing;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.util.HashMap;
 
 import javax.swing.BoxLayout;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
+import javax.swing.border.TitledBorder;
 
 import PamView.hidingpanel.HidingPanel;
 import PamView.panel.PamAlignmentPanel;
@@ -52,6 +54,8 @@ public class SonarsStatusPanel implements SonarStatusObserver, SonarDisplayDecor
 		sonarsPanel.setLayout(new BoxLayout(sonarsPanel, BoxLayout.X_AXIS));
 		PamAlignmentPanel lap = new PamAlignmentPanel(sonarsPanel, BorderLayout.WEST);
 		mainPanel.add(lap, BorderLayout.CENTER);
+//		mainPanel.setBackground(Color.RED);
+//		sonarsPanel.setBackground(Color.BLUE);
 		
 		topPanel = new StatusTopPanel(tritechAcquisition, svs5DaqSystem);
 		mainPanel.add(topPanel.getComponent(), BorderLayout.NORTH);
@@ -60,10 +64,14 @@ public class SonarsStatusPanel implements SonarStatusObserver, SonarDisplayDecor
 
 		hidingPanel = new HidingPanel(null, mainPanel,
 				HidingPanel.HORIZONTAL, false, "Sonar Online Status", tritechAcquisition.getUnitName() + " Controls");
-				
-		
-//		mainPanel.setOpaque(false);
-//		sonarsPanel.setOpaque(false);
+
+		/*
+		 * Set all these to transparent so that the main sonar
+		 * display can be seen through the overlays. 
+		 */
+		sonarsPanel.setOpaque(false);
+		lap.setOpaque(false);
+		hidingPanel.setOpaque(false);
 		
 //		addStatusPanel(678); used to test layout in absence of a sonar!
 	}

@@ -3,6 +3,7 @@ package tritechplugins.acquire;
 import java.awt.Frame;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Observable;
@@ -309,6 +310,14 @@ public class TritechDaqProcess extends PamProcess implements TritechRunMode {
 		if (outputFileInfo == null) {
 			return;
 		}
+		
+		if (tritechAcquisition.getDaqParams().isAutoCatalogue()) {
+			String completeFile = isFileComplete(lastFileInfo, outputFileInfo);
+			if (completeFile != null) {
+				catalogueOnlineFile(completeFile);
+			}
+		}
+		
 		if (outputFileInfo.equals(lastFileInfo)) {
 			// seems to have got stuck
 			System.out.println("Stuck file output " + outputFileInfo.toString());
@@ -316,6 +325,47 @@ public class TritechDaqProcess extends PamProcess implements TritechRunMode {
 		lastFileInfo = outputFileInfo;
 	}
 	
+	private void catalogueOnlineFile(String completeFile) {
+		String glfFileName = completeFile.replace("data_", "log_");
+		glfFileName = glfFileName.replace(".dat", ".glf");
+		System.out.println("Time to catalogue file " + glfFileName);
+		File glfFile = new File(glfFileName);
+		if (glfFile.exists() == false) {
+			System.out.println("But the file does not exist !!!!  " + glfFileName);
+			return;
+		}
+		if (OnlineGLFCataloguer.getCurrentJobs() > 2) {
+			System.out.println("Can't catalogue GLF file since too many jobs in queue");
+			return;
+		}
+		OnlineGLFCataloguer catWorker = new OnlineGLFCataloguer(tritechAcquisition, glfFile);
+		catWorker.execute();
+	}
+
+	/**
+	 * Check to see if the file in lastfileInfo has been completed. This 
+	 * is the case if the file in outputfileInfo is different or null. 
+	 * @param lastFileInfo
+	 * @param outputFileInfo
+	 * @return
+	 */
+	private String isFileComplete(OutputFileInfo lastFileInfo, OutputFileInfo outputFileInfo) {
+		if (lastFileInfo == null) {
+			return null;
+		}
+		String lastFile = lastFileInfo.getM_strFileName();
+		if (lastFile == null) {
+			return null;
+		}
+		if (outputFileInfo == null) {
+			return lastFile; // may happen at end
+		}
+		if (lastFile.equals(outputFileInfo.getM_strFileName()) == false) {
+			return lastFile;
+		}
+		return null;
+	}
+
 	/**
 	 * Check on a timer that something is updating. 
 	 */

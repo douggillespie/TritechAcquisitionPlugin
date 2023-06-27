@@ -73,6 +73,13 @@ public class SonarStatusPanel {
 	}
 
 	public void updateStatus(SonarStatusData sonarStatusData) {
+		
+		boolean isOnline = tritechAcquisition.getDaqParams().getSonarParams(sonarId).isSetOnline();
+		mainPanel.setVisible(isOnline);
+		if (isOnline == false) {
+			return;
+		}
+		
 		lastUpdate.setText(PamCalendar.formatDBDateTime(System.currentTimeMillis()));
 		GLFStatusData statusPacket = sonarStatusData.getStatusPacket();
 		/*
@@ -108,6 +115,9 @@ public class SonarStatusPanel {
 		}
 		else {
 			lq = String.format("%d%% %3.0f fps", statusPacket.m_linkQuality, badRate);
+		}
+		if (isOnline == false) {
+			lq = "Offline";
 		}
 		linkquality.setText(lq);
 //		subnetStrip.setIpAddr(statusPacket.m_subNetMask);

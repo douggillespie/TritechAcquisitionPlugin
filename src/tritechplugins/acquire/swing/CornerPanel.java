@@ -24,8 +24,8 @@ public class CornerPanel extends PamPanel {
 	}
 
 	private void setCols() {
-//		this.setOpaque(false);
-//		this.setBackground(backCol);		
+		this.setOpaque(false);
+		this.setBackground(backCol);		
 	}
 
 }

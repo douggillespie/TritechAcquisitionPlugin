@@ -15,10 +15,12 @@ import PamController.PamSettingManager;
 import PamController.PamSettings;
 import PamguardMVC.PamDataBlock;
 import PamguardMVC.dataOffline.OfflineDataLoadInfo;
+import backupmanager.BackupInformation;
 import dataGram.DatagramManager;
 import dataMap.OfflineDataMapPoint;
 import pamScrollSystem.ViewLoadObserver;
 import tritechgemini.fileio.GeminiFileCatalog;
+import tritechplugins.acquire.backup.GLFBackup;
 import tritechplugins.acquire.offline.TritechOffline;
 import tritechplugins.display.swing.SonarPanelProvider;
 import tritechplugins.display.swing.SonarsPanelParams;
@@ -42,6 +44,8 @@ public class TritechAcquisition extends PamControlledUnit implements PamSettings
 	
 	private TritechDaqProcess tritechDaqProcess;
 	
+	private BackupInformation backupInformation;
+	
 	public TritechDaqProcess getTritechDaqProcess() {
 		return tritechDaqProcess;
 	}
@@ -59,6 +63,8 @@ public class TritechAcquisition extends PamControlledUnit implements PamSettings
 		else {
 			tritechRunMode = tritechDaqProcess;
 		}
+		
+		backupInformation = new BackupInformation(new GLFBackup(this));
 		
 		UserDisplayControl.addUserDisplayProvider(new SonarPanelProvider(this));
 	}
@@ -207,6 +213,11 @@ public class TritechAcquisition extends PamControlledUnit implements PamSettings
 		for (ConfigurationObserver configObs : configurationObservers) {
 			configObs.configurationChanged();
 		}
+	}
+
+	@Override
+	public BackupInformation getBackupInformation() {
+		return backupInformation;
 	}
 
 }

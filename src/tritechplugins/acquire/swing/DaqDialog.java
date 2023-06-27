@@ -45,9 +45,11 @@ public class DaqDialog extends PamDialog {
 	
 	private JCheckBox allTheSame;
 	
-//	private JComboBox<String> offlineTimeZone;
-//	
-//	private JButton defaultTimeZone;
+	/**
+	 * Automatically catalogue GLF files when acquiring online
+	 */
+	private JCheckBox autoCatalogue;
+	
 	private TimeZonePanel timeZonePanel;
 	
 	private JPanel sonarsPanel;
@@ -62,13 +64,9 @@ public class DaqDialog extends PamDialog {
 //		chirpMode = new JComboBox<String>();
 //		rangeFreq = new JComboBox<String>();
 		allTheSame = new JCheckBox("Use same settings on all sonars");
+		autoCatalogue = new JCheckBox("Automatically catalogue complete GLF files");
+		autoCatalogue.setToolTipText("This will speed up viewing GLF files with the PAMGuard viewer");
 		timeZonePanel = new TimeZonePanel();
-//		offlineTimeZone = new JComboBox<String>();
-//		defaultTimeZone = new JButton("Default");
-//		fillTimeZones();
-//		offlineTimeZone.setToolTipText("<html>Time zone for conversion of Tritech file times to UTC. <p>"
-//				+ "This should be set to the time zone of the computer that collected the data.");
-//		defaultTimeZone.setToolTipText("Use PC default");
 		int[] rModes = TritechDaqParams.getRunModes();
 		runModes = new JRadioButton[rModes.length];
 		ButtonGroup bg = new ButtonGroup();
@@ -99,17 +97,6 @@ public class DaqDialog extends PamDialog {
 			mainPanel.add(runModes[i], c);
 			c.gridx++;
 		}
-//		c.gridx = 0;
-//		c.gridwidth = 1;
-//		c.gridy++;
-//		mainPanel.add(new JLabel("Zime zone for offline files ", JLabel.RIGHT), c);
-//		c.gridx+=c.gridwidth;
-//		c.gridwidth = 1;
-//		mainPanel.add(defaultTimeZone, c);
-//		c.gridx = 0;
-//		c.gridwidth = 3;
-//		c.gridy ++;
-//		mainPanel.add(offlineTimeZone, c);
 		c.gridx = 0;
 		c.gridy ++;
 		c.gridwidth = 3;
@@ -118,20 +105,12 @@ public class DaqDialog extends PamDialog {
 		c.gridx = 0;
 		c.gridwidth = 2;
 		c.gridy++;
+		mainPanel.add(autoCatalogue, c);
+		c.gridy++;
 		mainPanel.add(allTheSame, c);
 		
 		c.gridwidth = 1;
-		
-//		int[] modes = ChirpMode.getModes();
-//		for (int i = 0; i < modes.length; i++) {
-//			chirpMode.addItem(ChirpMode.getModeName(modes[i]));
-//		}
-//		
-//		modes = RangeFrequencyConfig.getModes();
-//		for (int i = 0; i < modes.length; i++) {
-//			rangeFreq.addItem(RangeFrequencyConfig.getModeName(modes[i]));
-//		}
-		
+				
 		outerPanel.add(BorderLayout.NORTH, mainPanel);
 		sonarsPanel = new JPanel();
 		sonarsPanel.setLayout(new GridBagLayout());
@@ -146,15 +125,7 @@ public class DaqDialog extends PamDialog {
 				changeAllSame();
 			}
 		});
-//		
-//		defaultTimeZone.addActionListener(new ActionListener() {
-//			@Override
-//			public void actionPerformed(ActionEvent e) {
-//				setDefaultTimeZone();
-//			}
-//		});
-		
-//		setResizable(true);
+
 	}
 
 	public static TritechDaqParams showDialog(Window parentFrame, TritechDaqProcess tritechDaqProcess, TritechDaqParams daqParams) {
@@ -174,9 +145,8 @@ public class DaqDialog extends PamDialog {
 		for (int i = 0; i < runModes.length; i++) {
 			runModes[i].setSelected(daqParams.getRunMode() == rModes[i]);
 		}
-//		chirpMode.setSelectedIndex(daqParams.getChirpMode());
-//		rangeFreq.setSelectedIndex(daqParams.getRangeConfig());
 		allTheSame.setSelected(daqParams.isAllTheSame());
+		autoCatalogue.setSelected(daqParams.isAutoCatalogue());
 		
 		createSonarsPanel();
 		
@@ -211,42 +181,6 @@ public class DaqDialog extends PamDialog {
 		pack();
 	}
 	
-//	private void fillTimeZones() {
-//		String[] zones = TimeZone.getAvailableIDs();	
-//		String tzStr;
-//		for (int i = 0; i < zones.length; i++) {
-//			TimeZone tz = TimeZone.getTimeZone(zones[i]);
-////			offlineTimeZone.addItem(zones[i]);
-////			offlineTimeZone.addItem(tz.getDisplayName(true, 0));
-//			tz = TimeZone.getTimeZone(zones[i]);
-//			if (tz.getRawOffset() < 0) {
-//				tzStr = String.format("UTC%3.1f %s (%s)", (double)tz.getRawOffset()/3600000., tz.getID(), tz.getDisplayName());
-//			}
-//			else {
-//				tzStr = String.format("UTC+%3.1f %s (%s)", (double)tz.getRawOffset()/3600000., tz.getID(), tz.getDisplayName());
-//			}
-//			offlineTimeZone.addItem(tzStr);
-//		}
-//	}
-//	
-//	protected void setDefaultTimeZone() {
-//		TimeZone dtz = TimeZone.getDefault();
-//		if (dtz == null) {
-//			return;
-//		}
-//		setTimeZone(dtz.getID());
-//	}
-//
-//	private void setTimeZone(String id) {
-//		String[] zones = TimeZone.getAvailableIDs();
-//		for (int i = 0; i < zones.length; i++) {
-//			if (zones[i].equals(id)) {
-//				offlineTimeZone.setSelectedIndex(i);
-//				break;
-//			}
-//		}
-//	}
-
 	private void enableControls() {
 		
 		boolean acquire = runModes[TritechDaqParams.RUN_ACQUIRE].isSelected();
@@ -258,8 +192,7 @@ public class DaqDialog extends PamDialog {
 		timeZonePanel.getComponent().setVisible(!acquire);
 		
 		allTheSame.setVisible(acquire);
-//		offlineTimeZone.setEnabled(!acquire);
-//		defaultTimeZone.setEnabled(!acquire);
+		autoCatalogue.setVisible(acquire);
 	}
 
 	private void createSonarsPanel() {
@@ -329,8 +262,6 @@ public class DaqDialog extends PamDialog {
 		}
 		daqParams.setOfflineFileFolder(outputFolder.getFolderName(daqParams.getRunMode() == TritechDaqParams.RUN_ACQUIRE));
 		daqParams.setOfflineSubFolders(outputFolder.isIncludeSubFolders());
-//		daqParams.setChirpMode(chirpMode.getSelectedIndex());
-//		daqParams.setRangeConfig(rangeFreq.getSelectedIndex());
 		daqParams.setAllTheSame(allTheSame.isSelected());
 		int n = sonarsPanel.getComponentCount();
 		boolean ok = true;
@@ -342,6 +273,10 @@ public class DaqDialog extends PamDialog {
 		String[] zones = TimeZone.getAvailableIDs();
 		String selTZ = timeZonePanel.getTimeZoneId();
 		daqParams.setOfflinetimeZoneId(selTZ);
+		
+		if (autoCatalogue.isVisible()) {
+			daqParams.setAutoCatalogue(autoCatalogue.isSelected());
+		}
 		
 		return ok;
 	}

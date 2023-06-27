@@ -306,6 +306,9 @@ public class SonarsOuterPanel implements ConfigurationObserver {
 	@Override
 	public void configurationChanged() {
 		sortCornerDecorations();
+		imageIndexes.clear();
+		sonarsPanel.setNumSonars(0);
+		sonarsPanel.repaint();
 	}
 
 	/**

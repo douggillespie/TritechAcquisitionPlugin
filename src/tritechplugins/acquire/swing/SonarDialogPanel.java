@@ -37,6 +37,8 @@ public class SonarDialogPanel extends JPanel {
 	private ValueSlider rangeSlider;
 	private TritechDaqProcess daqProcess;
 
+	private JCheckBox online;
+
 	private JComboBox<String> chirpMode;
 
 	private JComboBox<String> rangeFreq;
@@ -54,13 +56,22 @@ public class SonarDialogPanel extends JPanel {
 		makeBorder();
 		mainPanel.setLayout(new GridBagLayout());
 		GridBagConstraints c = new PamGridBagContraints();
+		
+		online = new JCheckBox("Online (use sonar)");
 
 		gainSlider = new ValueSlider("Gain", "%", daqProcess.getGainRange());
 		rangeSlider = new ValueSlider("Range", "m", daqProcess.getRangeRange());
 		chirpMode = new JComboBox<String>();
 		rangeFreq = new JComboBox<String>();
 		
+//		if (sonarId != 0) {
+			c.gridwidth = 2;
+			c.gridx = 1;
+			mainPanel.add(online, c);
+			c.gridy++;
+//		}
 		c.gridwidth = 1;
+		c.gridx = 0;
 		mainPanel.add(new JLabel("Gain ", JLabel.RIGHT), c);
 		c.gridx++;
 		c.gridwidth = 5;
@@ -146,6 +157,7 @@ public class SonarDialogPanel extends JPanel {
 		rangeFreq.setSelectedIndex(sonarParams.getRangeConfig());
 		useFixedSoundSpeed.setSelected(sonarParams.isUseFixedSoundSpeed());
 		fixedSoundSpeed.setText(String.format("%3.1f", sonarParams.getFixedSoundSpeed()));
+		online.setSelected(sonarParams.isSetOnline() || sonarId <= 0);
 	}
 
 	public boolean getParams(TritechDaqParams daqParams) {
@@ -165,6 +177,7 @@ public class SonarDialogPanel extends JPanel {
 				return PamDialog.showWarning(null, "Invalid Parameter", "Invalid sound speed value");
 			}
 		}
+		sonarParams.setSetOnline(online.isSelected() || sonarId <= 0);
 		
 		return true;
 	}
@@ -196,6 +209,12 @@ public class SonarDialogPanel extends JPanel {
 		this.sonarId = sonarId;
 		// and make the border ...
 		makeBorder();
+		enableControls();
+	}
+
+	private void enableControls() {
+		online.setEnabled(sonarId > 0);
+//		online.setVisible(sonarId > 0);
 	}
 
 }

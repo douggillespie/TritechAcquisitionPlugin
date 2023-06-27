@@ -35,6 +35,11 @@ public class TritechDaqParams implements Serializable, Cloneable{
 	
 	private boolean offlineSubFolders = false;
 	
+	/**
+	 * Automatically catalogue glf files as soon as they are complete. 
+	 */
+	private boolean autoCatalogue;
+	
 	private int range = 60;
 	
 	private int gain = 50;
@@ -313,6 +318,20 @@ public class TritechDaqParams implements Serializable, Cloneable{
 	 */
 	public void setOfflinetimeZoneId(String offlinetimeZoneId) {
 		this.offlinetimeZoneId = offlinetimeZoneId;
+	}
+
+	/**
+	 * @return the autoCatalogue
+	 */
+	public boolean isAutoCatalogue() {
+		return autoCatalogue;
+	}
+
+	/**
+	 * @param autoCatalogue the autoCatalogue to set
+	 */
+	public void setAutoCatalogue(boolean autoCatalogue) {
+		this.autoCatalogue = autoCatalogue;
 	}
 
 }

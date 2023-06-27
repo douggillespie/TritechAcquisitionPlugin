@@ -161,7 +161,7 @@ public class TritechJNADaq extends Svs5JNADaqSystem {
 			//		String fileLoc = getFileLocation();
 			//		System.out.printf("Gemini file location is \"%s\"\n", fileLoc);
 
-			ConfigOnline cOnline = new ConfigOnline(true);
+			ConfigOnline cOnline = new ConfigOnline(sonarParams.isSetOnline());
 			err = svs5Commands.setConfiguration(cOnline, deviceId);
 			//		cOnline.value = false;
 			//		err += svs5Commands.setConfiguration(cOnline, 0);

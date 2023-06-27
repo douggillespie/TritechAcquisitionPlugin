@@ -36,7 +36,7 @@ public class SonarDaqParams implements Serializable, Cloneable {
 	
 	private boolean useFixedSoundSpeed;
 	
-	private double fixedSoundSpeed;
+	private double fixedSoundSpeed = 1500;
 
 	/**
 	 * @return the range

@@ -101,7 +101,7 @@ public class SonarsPanel extends PamPanel implements DataMenuParent {
 	/**
 	 * Layout for the individual sonar panels. 
 	 */
-	SonarImageLayout sonarImageLayout;
+	protected SonarImageLayout sonarImageLayout;
 
 	private SonarsOuterPanel sonarsOuterPanel;
 
@@ -143,6 +143,9 @@ public class SonarsPanel extends PamPanel implements DataMenuParent {
 	}
 
 	public void setNumSonars(int numSonars) {
+		if (numSonars == 2) {
+			System.out.println("Set num sonars " + numSonars);
+		}
 		this.numSonars = numSonars;
 		while (imagesPanel.getComponentCount() < numSonars) {
 			imagesPanel.add(new SonarImagePanel(this, imagesPanel.getComponentCount()));
