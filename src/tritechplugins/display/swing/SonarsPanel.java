@@ -30,6 +30,7 @@ import PamController.PamSettings;
 import PamController.SettingsNameProvider;
 import PamUtils.Coordinate3d;
 import PamUtils.PamCalendar;
+import PamUtils.time.CalendarControl;
 import PamView.ColourArray;
 import PamView.ColourArray.ColourArrayType;
 import PamView.GeneralProjector;
@@ -340,7 +341,8 @@ public class SonarsPanel extends PamPanel implements DataMenuParent {
 			g2d.setColor(getForeground());
 //			String timeString = PamCalendar.formatDBDateTime(currentScrollTime, true);
 			String timeString = PamCalendar.formatDBStyleTime(currentScrollTime, true, true);
-			timeString += " " + PamCalendar.getShortDisplayTimeZoneString(true);
+//			timeString += " " + PamCalendar.getShortDisplayTimeZoneString(true);
+			timeString += " " + CalendarControl.getInstance().getTZCode(true);
 			int sz = font.getSize();
 			FontMetrics fm = g2d.getFontMetrics();
 			Rectangle2D stringRect = fm.getStringBounds(timeString, g2d);

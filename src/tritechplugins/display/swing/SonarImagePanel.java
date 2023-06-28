@@ -40,6 +40,7 @@ import PamUtils.Coordinate3d;
 import PamUtils.LatLong;
 import PamUtils.PamCalendar;
 import PamUtils.PamUtils;
+import PamUtils.time.CalendarControl;
 import PamView.GeneralProjector.ParameterType;
 import PamView.PamColors.PamColor;
 import PamView.PamColors;
@@ -491,7 +492,8 @@ public class SonarImagePanel extends JPanel {
 			yt += lineHeight;
 		}
 		str = PamCalendar.formatDBStyleTime(geminiImageRecord.getRecordTime(), true, true);
-		str += " " + PamCalendar.getShortDisplayTimeZoneString(true);
+//		str += " " + PamCalendar.getShortDisplayTimeZoneString(true);
+		str += CalendarControl.getInstance().getTZCode(true);
 		paintTextLine(g2d, str, xt, yt, "Record time (UTC)");
 		yt += lineHeight;
 //		if (isViewer) {
