@@ -17,6 +17,7 @@ public class SonarsPanelParams implements Serializable, Cloneable {
 	public static final int RESOLUTION_DEFAULT = 0;
 	public static final int RESOLUTION_HIGH = 1;
 	public static final int RESOLUTION_BEST = 2;
+	public static final int RESOLUTION_HIGHER = 3;
 	
 	public static final int OVERLAY_TAIL_NONE = 0;
 	public static final int OVERLAY_TAIL_TIME = 1;
@@ -83,18 +84,20 @@ public class SonarsPanelParams implements Serializable, Cloneable {
 	}
 
 	public static final int[] getResolutionValues() {
-		int[] vals = {RESOLUTION_DEFAULT, RESOLUTION_HIGH, RESOLUTION_BEST};
+		int[] vals = {RESOLUTION_DEFAULT, RESOLUTION_HIGH, RESOLUTION_BEST, RESOLUTION_HIGHER};
 		return vals;
 	}
 
 	public static String getResolutionName(int res) {
 		switch (res) {
 		case RESOLUTION_DEFAULT:
-			return "Normal";
+			return "Normal (xPixs = nBeams)";
 		case RESOLUTION_HIGH:
-			return "High";
+			return "High (xPixs = 2xnBeams)";
 		case RESOLUTION_BEST:
-			return "Best";
+			return "Best (xPixs = screen pixels)";
+		case RESOLUTION_HIGHER:
+			return "Higher (one pixel per range bin)";
 		default:
 			return "Unknown";
 		}

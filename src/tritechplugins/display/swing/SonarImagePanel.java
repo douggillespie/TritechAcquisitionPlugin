@@ -693,8 +693,9 @@ public class SonarImagePanel extends JPanel {
 		else {
 			long t1 = System.nanoTime();
 			int nBearing = imageRecord.getnBeam();
+			int nRange = imageRecord.getnRange();
 			int nXPix = getWidth();
-			int usePix = sonarsPanel.getImagePixels(nBearing, nXPix);
+			int usePix = sonarsPanel.getImagePixels(nBearing, nRange, nXPix);
 			SonarsPanelParams panelParams = sonarsPanel.getSonarsPanelParams();
 			fanImageData = imageFanMaker.createFanData(imageRecord, usePix);
 			FanImageData totallyFinalData = fanImageData;

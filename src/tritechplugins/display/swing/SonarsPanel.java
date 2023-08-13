@@ -312,9 +312,10 @@ public class SonarsPanel extends PamPanel implements DataMenuParent {
 	 * 
 	 * @param nBearing
 	 * @param nXPix
+	 * @param nXPix2 
 	 * @return pixels width of image
 	 */
-	protected int getImagePixels(int nBearing, int nXPix) {
+	protected int getImagePixels(int nBearing, int nRange, int nXPix) {
 		switch (sonarsPanelParams.resolution) {
 		case SonarsPanelParams.RESOLUTION_DEFAULT:
 			return nBearing;
@@ -322,6 +323,10 @@ public class SonarsPanel extends PamPanel implements DataMenuParent {
 			return Math.max(nBearing, nXPix / 2);
 		case SonarsPanelParams.RESOLUTION_BEST:
 			return Math.max(nBearing, nXPix);
+		case SonarsPanelParams.RESOLUTION_HIGHER:
+			double aspect = 1.73; // typical image aspect ratio 
+			int nXPixs = (int) Math.round(nRange * aspect);
+			return nXPixs;
 		}
 		return nBearing;
 	}
