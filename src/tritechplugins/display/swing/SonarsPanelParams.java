@@ -17,6 +17,7 @@ public class SonarsPanelParams implements Serializable, Cloneable {
 	public static final int RESOLUTION_DEFAULT = 0;
 	public static final int RESOLUTION_HIGH = 1;
 	public static final int RESOLUTION_BEST = 2;
+	public static final int RESOLUTION_HIGHER = 3;
 	
 	public static final int OVERLAY_TAIL_NONE = 0;
 	public static final int OVERLAY_TAIL_TIME = 1;
@@ -83,7 +84,7 @@ public class SonarsPanelParams implements Serializable, Cloneable {
 	}
 
 	public static final int[] getResolutionValues() {
-		int[] vals = {RESOLUTION_DEFAULT, RESOLUTION_HIGH, RESOLUTION_BEST};
+		int[] vals = {RESOLUTION_DEFAULT, RESOLUTION_HIGH, RESOLUTION_BEST, RESOLUTION_HIGHER};
 		return vals;
 	}
 
@@ -95,6 +96,8 @@ public class SonarsPanelParams implements Serializable, Cloneable {
 			return "High";
 		case RESOLUTION_BEST:
 			return "Best";
+		case RESOLUTION_HIGHER:
+			return "Even higher";
 		default:
 			return "Unknown";
 		}

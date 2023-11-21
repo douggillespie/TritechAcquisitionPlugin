@@ -691,8 +691,16 @@ public class SonarImagePanel extends JPanel {
 		else {
 			long t1 = System.nanoTime();
 			int nBearing = imageRecord.getnBeam();
+			int nRange = imageRecord.getnRange();
 			int nXPix = getWidth();
-			int usePix = sonarsPanel.getImagePixels(nBearing, nXPix);
+			int usePix = sonarsPanel.getImagePixels(nBearing, nRange, nXPix);
+			SonarZoomTransform zoomTrans = xyProjector.getSonarZoomTransform();
+			if (zoomTrans != null) {
+				double zoom = xyProjector.getSonarZoomTransform().getZoomFactor();
+				if (zoom > 1) {
+					usePix = (int) (usePix*Math.min(zoom, 2));
+				}
+			}
 			SonarsPanelParams panelParams = sonarsPanel.getSonarsPanelParams();
 			fanImageData = imageFanMaker.createFanData(imageRecord, usePix);
 			FanImageData totallyFinalData = fanImageData;
