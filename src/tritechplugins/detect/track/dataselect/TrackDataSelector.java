@@ -52,7 +52,11 @@ public class TrackDataSelector extends DataSelector {
 		TrackChain chain = trackDataUnit.getTrackChain();
 		TrackDataSelectorParams params = getParams();
 		double wobLen = chain.getWobblyLength();
-		if (chain.getEnd2EndMetres() < params.minLength || wobLen == 0) {
+//		if (pamDataUnit.getUID() == 89000015) {
+//			System.out.println("UID " + pamDataUnit.getUID());
+//		}
+		double e2eMetres = chain.getEnd2EndMetres();
+		if (e2eMetres < params.minLength || wobLen == 0) {
 			return 0.;
 		}
 		double strightness = chain.getEnd2EndMetres() / wobLen;

@@ -22,6 +22,7 @@ import pamScrollSystem.ViewLoadObserver;
 import tritechgemini.fileio.GeminiFileCatalog;
 import tritechplugins.acquire.backup.GLFBackup;
 import tritechplugins.acquire.offline.TritechOffline;
+import tritechplugins.acquire.swing.framerate.FrameRateDisplayProvider;
 import tritechplugins.display.swing.SonarPanelProvider;
 import tritechplugins.display.swing.SonarsPanelParams;
 import userDisplay.UserDisplayControl;
@@ -67,6 +68,7 @@ public class TritechAcquisition extends PamControlledUnit implements PamSettings
 		backupInformation = new BackupInformation(new GLFBackup(this));
 		
 		UserDisplayControl.addUserDisplayProvider(new SonarPanelProvider(this));
+		UserDisplayControl.addUserDisplayProvider(new FrameRateDisplayProvider(this));
 	}
 
 	@Override
