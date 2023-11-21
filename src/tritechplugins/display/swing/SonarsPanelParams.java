@@ -91,13 +91,13 @@ public class SonarsPanelParams implements Serializable, Cloneable {
 	public static String getResolutionName(int res) {
 		switch (res) {
 		case RESOLUTION_DEFAULT:
-			return "Normal";
+			return "Normal (xPixs = nBeams)";
 		case RESOLUTION_HIGH:
-			return "High";
+			return "High (xPixs = 2xnBeams)";
 		case RESOLUTION_BEST:
 			return "Best";
 		case RESOLUTION_HIGHER:
-			return "Even higher";
+			return "Higher (one pixel per range bin)";
 		default:
 			return "Unknown";
 		}

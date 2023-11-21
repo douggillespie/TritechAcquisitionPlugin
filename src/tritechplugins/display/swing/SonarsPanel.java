@@ -30,6 +30,7 @@ import PamController.PamSettings;
 import PamController.SettingsNameProvider;
 import PamUtils.Coordinate3d;
 import PamUtils.PamCalendar;
+import PamUtils.time.CalendarControl;
 import PamView.ColourArray;
 import PamView.ColourArray.ColourArrayType;
 import PamView.GeneralProjector;
@@ -323,7 +324,9 @@ public class SonarsPanel extends PamPanel implements DataMenuParent {
 		case SonarsPanelParams.RESOLUTION_BEST:
 			return Math.max(nBearing, nXPix);
 		case SonarsPanelParams.RESOLUTION_HIGHER:
-			return Math.max((int) (nRange*2*Math.sin(Math.toRadians(60))), nXPix);
+			double aspect = 1.73; // typical image aspect ratio 
+			int nXPixs = (int) Math.round(nRange * aspect);
+			return nXPixs;
 		}
 		return nBearing;
 	}
@@ -343,7 +346,8 @@ public class SonarsPanel extends PamPanel implements DataMenuParent {
 			g2d.setColor(getForeground());
 //			String timeString = PamCalendar.formatDBDateTime(currentScrollTime, true);
 			String timeString = PamCalendar.formatDBStyleTime(currentScrollTime, true, true);
-			timeString += " " + PamCalendar.getShortDisplayTimeZoneString(true);
+//			timeString += " " + PamCalendar.getShortDisplayTimeZoneString(true);
+			timeString += " " + CalendarControl.getInstance().getTZCode(true);
 			int sz = font.getSize();
 			FontMetrics fm = g2d.getFontMetrics();
 			Rectangle2D stringRect = fm.getStringBounds(timeString, g2d);
