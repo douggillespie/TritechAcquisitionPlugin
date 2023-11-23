@@ -286,4 +286,18 @@ public class TrackChain {
 			return getEnd2EndMetres() / wl;
 		}
 	}
+	
+	/**
+	 * Get the average number of points per second within the 
+	 * track. This is (the number of points in the track - 1) / track duration. 
+	 * @return point rate. 
+	 */
+	public double getPointRate() {
+		if (regions.size()<2) {
+			return 0;
+		}
+		double np = regions.size()-1;
+		double t = (double)(getLastTime()-getFirstTime())/1000.;
+		return np/t;
+	}
 }

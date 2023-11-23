@@ -19,7 +19,7 @@ public class TrackDataSelectorPanel implements PamDialogPanel {
 	
 	private TrackDataSelector trackDataSelector;
 	
-	private JTextField minLength, minStraightness, minDuration, minPoints, maxPerFrame;
+	private JTextField minLength, minStraightness, minDuration, minPoints, maxPerFrame, minPointRate;
 	private JCheckBox vetoX0;
 	
 	public TrackDataSelectorPanel(TrackDataSelector trackDataSelector) {
@@ -39,6 +39,8 @@ public class TrackDataSelectorPanel implements PamDialogPanel {
 		maxPerFrame.setToolTipText("Maximum number of detected regions per frame");
 		vetoX0 = new JCheckBox("Veto 'tracks' only on x = 0 centre line");
 		vetoX0.setToolTipText("Veto tracks caused by additional noise on x=0 centre line");
+		minPointRate = new JTextField(4);
+		minPointRate.setToolTipText("Minimum average rate of points within track (per second)");
 		
 		mainPanel.add(new JLabel("Minimum length "), c);
 		c.gridx++;
@@ -66,6 +68,13 @@ public class TrackDataSelectorPanel implements PamDialogPanel {
 		mainPanel.add(new JLabel(" s"), c);
 		c.gridx = 0;
 		c.gridy++;
+		mainPanel.add(new JLabel("Minimum point rate "), c);
+		c.gridx++;
+		mainPanel.add(minPointRate, c);
+		c.gridx++;
+		mainPanel.add(new JLabel(" /s"), c);
+		c.gridx = 0;
+		c.gridy++;
 		mainPanel.add(new JLabel("Maximum points per frame "), c);
 		c.gridx++;
 		mainPanel.add(maxPerFrame, c);
@@ -89,6 +98,7 @@ public class TrackDataSelectorPanel implements PamDialogPanel {
 		minDuration.setText(String.format("%3.1f", params.minDuration));
 		minPoints.setText(String.format("%d", params.minPoints));
 		maxPerFrame.setText(String.format("%d", params.maxPointsPerFrame));
+		minPointRate.setText(String.format("%3.2f", params.minPointRate));
 		vetoX0.setSelected(params.vetoXzero);		
 	}
 
@@ -101,6 +111,7 @@ public class TrackDataSelectorPanel implements PamDialogPanel {
 			params.minDuration = Double.valueOf(minDuration.getText());
 			params.minPoints = Integer.valueOf(minPoints.getText());
 			params.maxPointsPerFrame = Integer.valueOf(maxPerFrame.getText());
+			params.minPointRate = Double.valueOf(minPointRate.getText());
 			params.vetoXzero = vetoX0.isSelected();
 		}
 		catch (NumberFormatException e) {

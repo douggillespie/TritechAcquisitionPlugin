@@ -69,6 +69,9 @@ public class TrackDataSelector extends DataSelector {
 		if (trackDataUnit.getDurationInMilliseconds() < params.minDuration*1000) {
 			return 0.;
 		}
+		if (chain.getPointRate() < params.minPointRate) {
+			return 0;
+		}
 		if (params.maxPointsPerFrame > 0 && trackDataUnit.getMaxFrameDetectionCount() > params.maxPointsPerFrame) {
 			return 0;
 		}

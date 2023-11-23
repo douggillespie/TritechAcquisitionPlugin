@@ -38,6 +38,12 @@ public class TrackDataSelectorParams extends DataSelectParams implements Cloneab
 	 */
 	public int maxPointsPerFrame = 100;
 	
+	/**
+	 * Minimum average rate of data frames within track. i.e. 
+	 * (total number of frames in track -1) / track duration. 
+	 */
+	public double minPointRate = 2;
+	
 
 	@Override
 	protected TrackDataSelectorParams clone() {
