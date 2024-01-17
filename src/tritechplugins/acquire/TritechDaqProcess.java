@@ -89,8 +89,11 @@ public class TritechDaqProcess extends PamProcess implements TritechRunMode {
 			tritechDaqSystem = null;
 		}
 		if (tritechDaqSystem == null) {
-			if (want == TritechJNADaq.class) {
-				tritechDaqSystem = new TritechJNADaq(tritechAcquisition, this);
+			if (want == TritechJNADaqS.class) {
+				tritechDaqSystem = new TritechJNADaqS(tritechAcquisition, this);
+			}
+			if (want == TritechJNADaqG.class) {
+				tritechDaqSystem = new TritechJNADaqG(tritechAcquisition, this);
 			}
 			if (want == TritechJNAPlayback.class) {
 				tritechDaqSystem = new TritechJNAPlayback(tritechAcquisition, this);
@@ -110,7 +113,7 @@ public class TritechDaqProcess extends PamProcess implements TritechRunMode {
 		isAcquire = PamController.getInstance().getRunMode() == PamController.RUN_NORMAL;
 		TritechDaqParams params = tritechAcquisition.getDaqParams();
 		if (params.getRunMode() == TritechDaqParams.RUN_ACQUIRE) {
-			return TritechJNADaq.class;
+			return TritechJNADaqG.class;
 		}
 		else {
 			return JavaFileAcquisition.class;

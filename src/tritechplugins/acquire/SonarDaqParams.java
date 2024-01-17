@@ -38,6 +38,8 @@ public class SonarDaqParams implements Serializable, Cloneable {
 	
 	private double fixedSoundSpeed = 1500;
 
+	private boolean highResolution = true;
+
 	/**
 	 * @return the range
 	 */
@@ -161,6 +163,22 @@ public class SonarDaqParams implements Serializable, Cloneable {
 	 */
 	public void setFixedSoundSpeed(double fixedSoundSpeed) {
 		this.fixedSoundSpeed = fixedSoundSpeed;
+	}
+
+	/**
+	 * 
+	 * Get value for SVS5 SVS5_CONFIG_HIGH_RESOLUTION command
+	 * @param high true for high resolution
+	 */
+	public void setHighResolution(boolean high) {
+		this.highResolution = high;
+	}
+	/**
+	 * Get value for SVS5 SVS5_CONFIG_HIGH_RESOLUTION command
+	 * @return true for high resolution
+	 */
+	public boolean isHighResolution() {
+		return highResolution;
 	}
 
 }

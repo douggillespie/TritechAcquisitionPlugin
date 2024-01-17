@@ -4,6 +4,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map.Entry;
@@ -14,6 +15,9 @@ import java.util.Set;
 
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
+import javax.swing.Timer;
+
+import com.sun.jna.Pointer;
 
 import geminisdk.GenesisSerialiser;
 import geminisdk.GenesisSerialiser.GlfLib;
@@ -22,6 +26,7 @@ import geminisdk.OutputFileInfo;
 import geminisdk.Svs5Commands;
 import geminisdk.Svs5ErrorType;
 import geminisdk.Svs5Exception;
+import geminisdk.Svs5MessageType;
 import geminisdk.Svs5StandardCallback;
 import geminisdk.structures.ChirpMode;
 import geminisdk.structures.ConfigOnline;
@@ -44,23 +49,22 @@ import tritechplugins.acquire.swing.SonarsStatusPanel;
 import tritechplugins.display.swing.SonarDisplayDecoration;
 import tritechplugins.display.swing.SonarDisplayDecorations;
 
-public class TritechJNADaq extends Svs5JNADaqSystem {
+public abstract class TritechJNADaq extends Svs5JNADaqSystem {
 
-	private int cuurrentRunMode;
 	private JNADecorations swingDecorations;
+	
+	protected int[] activeSonarList;
+	
+	protected Object pingSynch = new Object();
 
 	public TritechJNADaq(TritechAcquisition tritechAcquisition, TritechDaqProcess tritechProcess) {
 		super(tritechAcquisition, tritechProcess);
-	}
-
-	public boolean prepareProcess() {
 		
-		unprepareProcess();
-
-		return prepareAcquisition();
 	}
 
-	private boolean prepareAcquisition() {
+
+
+	protected boolean prepareAcquisition() {
 
 		geminiCallback.setPlaybackMode(false);
 
@@ -102,88 +106,44 @@ public class TritechJNADaq extends Svs5JNADaqSystem {
 //		return prepareDevice(0);
 		
 	}
-	private boolean prepareAllDevices(int[] sonars) {
+	
+	protected boolean prepareAllDevices(int[] sonars) {
 		if (sonars == null) {
 			return true;
 		}
 		boolean ok = true;
+		activeSonarList = makeActiveList();
 		for (int i = 0; i < sonars.length; i++) {
 			ok |= prepareDevice(sonars[i]);
 		}
+//		pingNextSonar(null);
 		return ok;
 	}
-
-	private boolean prepareDevice(int deviceId) {
-		int err = 0;
-//		if (1>0) return false;
-		try {
-			
-			SonarDaqParams sonarParams = tritechAcquisition.getDaqParams().getSonarParams(deviceId);
-
-			GeminiRange range = new GeminiRange(sonarParams.getRange());
-			err = svs5Commands.setConfiguration(range, deviceId);
-			//		err += svs5Commands.setConfiguration(range, 1);
-//			System.out.println("setRange returned " + err);
-			err = setRange(sonarParams.getRange(), deviceId);
-			
-			setGain(sonarParams.getGain(), deviceId);
-			
-//			PingMode pingMode = new PingMode(true, (short) 0);
-			err = svs5Commands.setPingMode(true, (short) 5000);
-//			System.out.println("setConfiguration pingMode returned " + err);
-			
-			err = svs5Commands.setSoSConfig(sonarParams.isUseFixedSoundSpeed(), sonarParams.getFixedSoundSpeed(), deviceId);
-			
-			ChirpMode chirpMode = new ChirpMode(sonarParams.getChirpMode());
-			err = svs5Commands.setConfiguration(chirpMode, deviceId);
-//			System.out.println("setConfiguration chirpMode returned " + err);
-
-
-			RangeFrequencyConfig rfConfig = new RangeFrequencyConfig();
-			rfConfig.m_frequency = sonarParams.getRangeConfig();
-			err = svs5Commands.setConfiguration(rfConfig);
-//			System.out.println("setConfiguration returned " + err);
-			//		
-			//	
-			////		SimulateADC simADC = new SimulateADC(true);
-			////		err = svs5Commands.setConfiguration(simADC);
-			////		System.out.println("Simulate returned " + err);
-			//
-			//		PingMode pingMode = new PingMode();
-			//		pingMode.m_bFreeRun = false;
-			//		pingMode.m_msInterval = 250;
-			//		err += svs5Commands.setConfiguration(pingMode, 0);
-			//		err = svs5Commands.setConfiguration(pingMode, 1);
-			//		System.out.println("setConfiguration pingMode returned " + err);
-
-
-			//		err = setFileLocation("C:\\GeminiData");
-			//		String fileLoc = getFileLocation();
-			//		System.out.printf("Gemini file location is \"%s\"\n", fileLoc);
-
-			ConfigOnline cOnline = new ConfigOnline(sonarParams.isSetOnline());
-			err = svs5Commands.setConfiguration(cOnline, deviceId);
-			//		cOnline.value = false;
-			//		err += svs5Commands.setConfiguration(cOnline, 0);
-//			System.out.println("setOnline returned " + err);
-
-
-
-		} catch (Svs5Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			return false;
-		} catch (Error e) {
-			System.out.println("Error calling SvS5 startup functions:" + e.getMessage());
-			e.printStackTrace();
+	
+	/**
+	 * Make a list of active sonars. 
+	 * @return active sonar list. 
+	 */
+	protected int[] makeActiveList() {
+		int[] sonars = getSonarIds();
+		if (sonars == null) {
+			return null;
 		}
-		return true;
+		int[] usedSonars = Arrays.copyOf(sonars, sonars.length);
+		int nUsed = 0;
+		for (int i = 0; i < sonars.length; i++) {
+			SonarDaqParams sonarParams = tritechAcquisition.getDaqParams().getSonarParams(sonars[i]);
+			if (sonarParams.isSetOnline()) {
+				usedSonars[nUsed++] = sonars[i];
+			}
+		}
+		usedSonars = Arrays.copyOf(usedSonars, nUsed);
+		return usedSonars;
 	}
 
-	@Override
-	public void unprepareProcess() {
-		stop();
-	}
+	public abstract boolean prepareDevice(int deviceId);
+	
+	
 
 	@Override
 	public boolean isRealTime() {
@@ -192,7 +152,6 @@ public class TritechJNADaq extends Svs5JNADaqSystem {
 
 	public boolean start() {
 		TritechDaqParams params = tritechAcquisition.getDaqParams();
-		cuurrentRunMode = params.getRunMode();
 
 		totalFrames = 0;
 

@@ -71,8 +71,16 @@ public class ThresholdHistrogramPlot {
 		}
 
 		@Override
-		public void paint(Graphics g) {
-			super.paint(g);
+		public void paintComponent(Graphics g) {
+			try {
+				paintHistograms(g);
+			}
+			catch (Exception e) {
+				
+			}
+		}
+		private void paintHistograms(Graphics g) {
+			super.paintComponent(g);
 			setLogXScale(false);
 			logY = true;
 			

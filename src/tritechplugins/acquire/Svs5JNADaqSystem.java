@@ -3,6 +3,8 @@ package tritechplugins.acquire;
 import java.util.Collection;
 import java.util.HashMap;
 
+import com.sun.jna.Pointer;
+
 import geminisdk.GenesisSerialiser;
 import geminisdk.LoggerStatusInfo;
 import geminisdk.OutputFileInfo;
@@ -101,6 +103,13 @@ abstract public class Svs5JNADaqSystem extends TritechDaqSystem {
 		}
 	}
 	
+	public void preProcessSv5Callback(int msgType, long size, Pointer pointer) {
+		
+	}
+	public void postProcessSv5Callback(int msgType, long size, Pointer pointer) {
+		
+	}
+	
 	public class GeminiCallback extends Svs5StandardCallback {
 
 		public GeminiCallback() {
@@ -110,6 +119,8 @@ abstract public class Svs5JNADaqSystem extends TritechDaqSystem {
 
 		int frameCalls = 0;
 		
+		
+		
 		@Override
 		public void setFrameRate(int framesPerSecond, double trueFPS) {
 			tritechProcess.updateFrameRate(framesPerSecond, trueFPS);
@@ -117,6 +128,14 @@ abstract public class Svs5JNADaqSystem extends TritechDaqSystem {
 		}
 
 		int nImages = 0;
+		
+		@Override
+		public void processSv5Callback(int msgType, long size, Pointer pointer) {
+			preProcessSv5Callback(msgType, size, pointer);
+			super.processSv5Callback(msgType, size, pointer);
+			postProcessSv5Callback(msgType, size, pointer);
+		}
+
 		@Override
 		public void newGLFLiveImage(GLFImageRecord glfImage) {
 			SonarStatusData sonarData = findSonarStatusData(glfImage.genericHeader.tm_deviceId);
@@ -135,10 +154,6 @@ abstract public class Svs5JNADaqSystem extends TritechDaqSystem {
 				ImageDataUnit imageDataUnit = new ImageDataUnit(timeMS, 1<<(chan-1), (GeminiImageRecordI) glfImage);
 				tritechProcess.getImageDataBlock().addPamData(imageDataUnit);
 			}
-//			if (nImages++ % 20 == 0) {
-//				summariseAllSonarData();
-//				//			guiControl.getTritechDisplayPanel().showLiveImage(glfImage);
-//			}
 		}
 
 		@Override

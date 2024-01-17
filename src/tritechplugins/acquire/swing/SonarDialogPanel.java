@@ -43,6 +43,8 @@ public class SonarDialogPanel extends JPanel {
 
 	private JComboBox<String> rangeFreq;
 	
+	private JCheckBox highRangeResolution;
+	
 	private JCheckBox useFixedSoundSpeed;
 	
 	private JTextField fixedSoundSpeed;
@@ -96,6 +98,10 @@ public class SonarDialogPanel extends JPanel {
 		mainPanel.add(new JLabel("Frequency mode ", JLabel.RIGHT), c);
 		c.gridx++;
 		mainPanel.add(rangeFreq, c);
+		c.gridx = 0;
+		c.gridy++;
+		c.gridwidth = 3;
+		mainPanel.add(highRangeResolution = new JCheckBox("Use high range resolution"), c);
 		c.gridx = 0;
 		c.gridy++;
 		c.gridwidth = 2;
@@ -155,6 +161,7 @@ public class SonarDialogPanel extends JPanel {
 		gainSlider.setValue(sonarParams.getGain());
 		chirpMode.setSelectedIndex(sonarParams.getChirpMode());
 		rangeFreq.setSelectedIndex(sonarParams.getRangeConfig());
+		highRangeResolution.setSelected(sonarParams.isHighResolution());
 		useFixedSoundSpeed.setSelected(sonarParams.isUseFixedSoundSpeed());
 		fixedSoundSpeed.setText(String.format("%3.1f", sonarParams.getFixedSoundSpeed()));
 		online.setSelected(sonarParams.isSetOnline() || sonarId <= 0);
@@ -167,6 +174,7 @@ public class SonarDialogPanel extends JPanel {
 		sonarParams.setGain(gainSlider.getValue());
 		sonarParams.setChirpMode(chirpMode.getSelectedIndex());
 		sonarParams.setRangeConfig(rangeFreq.getSelectedIndex());
+		sonarParams.setHighResolution(highRangeResolution.isSelected());
 		sonarParams.setUseFixedSoundSpeed(useFixedSoundSpeed.isSelected());
 		if (useFixedSoundSpeed.isSelected()) {
 			try {

@@ -386,6 +386,11 @@ public class TritechOffline implements TritechRunMode, OfflineDataStore {
 		return tritechAcquisition;
 	}
 
+	@Override
+	public String getDataLocation() {
+		return tritechAcquisition.getDataLocation();
+	}
+
 
 
 	/**

@@ -24,7 +24,7 @@ import tritechplugins.acquire.TritechAcquisition;
 
 public class FrameRateGraph {
 
-	private FrameRateHistogramPanel histPanel;
+	private FrameRateDisplayPanel histPanel;
 
 	private TritechAcquisition tritechAcquisition;
 	
@@ -36,7 +36,7 @@ public class FrameRateGraph {
 	
 	private PamAxis xAxis, yAxis;
 
-	public FrameRateGraph(FrameRateHistogramPanel histPanel, TritechAcquisition tritechAcquisition) {
+	public FrameRateGraph(FrameRateDisplayPanel histPanel, TritechAcquisition tritechAcquisition) {
 		super();
 		this.histPanel = histPanel;
 		this.tritechAcquisition = tritechAcquisition;
@@ -86,7 +86,7 @@ public class FrameRateGraph {
 		@Override
 		public String getToolTipText(MouseEvent event) {
 			double val = yAxis.getDataValue(event.getY());
-			return String.format("%5.2fs", val);
+			return String.format("%5.2fs (%3.1f fps)", val, 1./val);
 		}
 
 		@Override
@@ -124,9 +124,10 @@ public class FrameRateGraph {
 			
 			int iCol = 0;
 			for (Integer sId : sonarIdVals) {
-				prevX = prevY = -1;			
+				prevX = prevY = -1000;
+				prevT = 0;
 				g.setColor(PamColors.getInstance().getChannelColor(++iCol));
-				for (int i = 1; i < dataCopy.size(); i++) {
+				for (int i = 0; i < dataCopy.size(); i++) {
 					if (dataCopy.get(i).getSonarId() != sId) {
 						continue;
 					}
@@ -134,7 +135,7 @@ public class FrameRateGraph {
 					int x = (int) xAxis.getPosition((t-lastT)/1000.);
 					double dt = (t-prevT)/1000.;
 					int y = (int) yAxis.getPosition(dt);
-					if (prevX >= 0) {
+					if (prevX >= -100 & prevY > -getHeight()) {
 						g.drawLine(prevX, prevY, x, y);
 					}
 					prevX = x;

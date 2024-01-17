@@ -3,7 +3,10 @@ package tritechplugins.acquire.swing.framerate;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.GridLayout;
+import java.util.ArrayList;
+import java.util.HashMap;
 
+import javax.swing.BoxLayout;
 import javax.swing.JPanel;
 import javax.swing.JSplitPane;
 import javax.swing.SwingUtilities;
@@ -20,7 +23,7 @@ import tritechplugins.acquire.TritechAcquisition;
 import userDisplay.UserDisplayComponent;
 import userDisplay.UserDisplayControl;
 
-public class FrameRateHistogramPanel implements UserDisplayComponent, ConfigurationObserver {
+public class FrameRateDisplayPanel implements UserDisplayComponent, ConfigurationObserver {
 	
 	private FrameRateDisplayProvider frameRateDisplayProvider;
 	
@@ -28,13 +31,13 @@ public class FrameRateHistogramPanel implements UserDisplayComponent, Configurat
 
 	private JPanel mainPanel;
 
-//	private PamPanel plotsPanel;
-	HistogramDisplay histogramDisplay;
 
 	private String panelName;
+
+	private ArrayList<FrameRateHistogram> frameRateHistrograms = new ArrayList();
 	
-	private PamHistogram rateHistogram;
-	
+	private JPanel histogramHolder;
+//	private HashMap<Integer, PamHistogram> rateHistograms = new HashMap();
 	private FrameRateGraph rateGraph;
 	
 	private long lastFrameTime;
@@ -47,7 +50,7 @@ public class FrameRateHistogramPanel implements UserDisplayComponent, Configurat
 	
 	private JSplitPane splitPane;
 
-	public FrameRateHistogramPanel(FrameRateDisplayProvider frameRateDisplayProvider,
+	public FrameRateDisplayPanel(FrameRateDisplayProvider frameRateDisplayProvider,
 			UserDisplayControl userDisplayControl, String uniqueDisplayName, TritechAcquisition tritechAcquisition) {
 		super();
 		this.frameRateDisplayProvider = frameRateDisplayProvider;
@@ -55,22 +58,26 @@ public class FrameRateHistogramPanel implements UserDisplayComponent, Configurat
 		this.panelName = uniqueDisplayName;
 
 		frameRateDataBlock = new FrameRateDataBlock(tritechAcquisition.getTritechDaqProcess());
-		frameRateDataBlock.setNaturalLifetime(plotLifeTime);
+		frameRateDataBlock.setNaturalLifetime(plotLifeTime+2);
 		
-		rateHistogram = new PamHistogram(0, 12, 100);
+//		rateHistogram = new PamHistogram(0, 12, 100);
 		
 		mainPanel = new PamPanel(new BorderLayout());
 		
 		
-		histogramDisplay = new HistogramDisplay();
-		histogramDisplay.addHistogram(rateHistogram);
-		histogramDisplay.setXLabel("Frame rate (fps)");
+//		histogramDisplay = new HistogramDisplay();
+//		histogramDisplay.setSelectedStats(0);
+//		histogramDisplay.setXLabel("Frame rate (fps)");
+//		histogramDisplay.addHistogram(singleHistogram);
+//		
+		histogramHolder = new PamPanel();
+		histogramHolder.setLayout(new BoxLayout(histogramHolder, BoxLayout.X_AXIS));
 		
 		rateGraph = new FrameRateGraph(this, tritechAcquisition);
 		
 		
 		splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
-		splitPane.add(histogramDisplay.getGraphicComponent());
+		splitPane.add(histogramHolder);
 		splitPane.add(rateGraph.getComponent());
 		mainPanel.add(splitPane);
 		
@@ -84,6 +91,27 @@ public class FrameRateHistogramPanel implements UserDisplayComponent, Configurat
 				splitPane.setDividerLocation(0.5);
 			}
 		});
+	}
+	
+	FrameRateHistogram findSonarHistogram(int sonarId) {
+		for (FrameRateHistogram rh : frameRateHistrograms) {
+			if (rh.getSonarId() == sonarId) {
+				return rh;
+			}
+		}
+		FrameRateHistogram rateHisto = new FrameRateHistogram(this, tritechAcquisition, sonarId);
+		frameRateHistrograms.add(rateHisto);
+		histogramHolder.add(rateHisto.getComponent());
+		histogramHolder.invalidate();
+		return rateHisto;
+		
+//		PamHistogram hist = rateHistograms.get(0);
+//		if (hist == null) {
+//			hist = new PamHistogram(0, 12, 100);
+//			rateHistograms.put(sonarId, hist);
+//			histogramDisplay.addHistogram(hist);
+//		}
+//		return hist;
 	}
 	
 	private class ImageObserver implements PamObserver {
@@ -151,18 +179,10 @@ public class FrameRateHistogramPanel implements UserDisplayComponent, Configurat
 		frameRateDataBlock.addPamData(fdu);
 		rateGraph.update();
 		
-		if (pamDataUnit.getTimeMilliseconds()-lastScaleTime > 1000) {
-			rateHistogram.scaleData(.99);
-			lastScaleTime = pamDataUnit.getTimeMilliseconds();
-		}
-		double dt = (pamDataUnit.getTimeMilliseconds()-lastFrameTime)/1000.;
-//		if (dt < rateHistogram.getMaxVal()) {
-		if (dt >0)
-			rateHistogram.addData(1./dt);
+		FrameRateHistogram rateHistogram = findSonarHistogram(idu.getGeminiImage().getDeviceId());
 		
-//		}
-		lastFrameTime = pamDataUnit.getTimeMilliseconds();
-		histogramDisplay.repaint();
+		rateHistogram.newData(pamDataUnit.getTimeMilliseconds());
+		
 	}
 
 	@Override
@@ -204,7 +224,8 @@ public class FrameRateHistogramPanel implements UserDisplayComponent, Configurat
 
 	@Override
 	public void configurationChanged() {
-		rateHistogram.clear();
+//		histogramDisplay.removeAllHistograms(null);
+//		rateHistograms.clear();
 	}
 	
 	

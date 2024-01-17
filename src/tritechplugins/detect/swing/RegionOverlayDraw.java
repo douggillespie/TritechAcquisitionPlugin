@@ -21,6 +21,7 @@ import PamView.symbol.PamSymbolChooser;
 import PamguardMVC.PamDataUnit;
 import tritechgemini.detect.DetectedRegion;
 import tritechplugins.detect.threshold.RegionDataUnit;
+import tritechplugins.display.swing.SonarRThiProjector;
 import tritechplugins.display.swing.overlays.SonarSymbolChooser;
 import tritechplugins.display.swing.overlays.SonarSymbolOptions;
 
@@ -53,8 +54,17 @@ public class RegionOverlayDraw extends PanelOverlayDraw {
 		else {
 			symbolOptions = new SonarSymbolOptions();
 		}
+		boolean useRThi = false;
+		if (generalProjector.getClass() == SonarRThiProjector.class) {
+			useRThi = true;
+		}
 		if (symbolOptions.symbolType == SonarSymbolOptions.DRAW_BOX) {
-			return drawBox(g, regionDataUnit, generalProjector);
+			if (useRThi) {
+				return drawRThiBox(g, regionDataUnit, generalProjector);
+			}
+			else {
+				return drawBox(g, regionDataUnit, generalProjector);
+			}
 		}
 		else {
 			return drawSymbol(g, regionDataUnit, generalProjector);
@@ -82,7 +92,68 @@ public class RegionOverlayDraw extends PanelOverlayDraw {
 		
 		return symbol.draw(g, pos.getXYPoint());
 	}
-	
+
+	public Rectangle drawRThiBox(Graphics g, RegionDataUnit regionDataUnit, GeneralProjector generalProjector) {
+DetectedRegion region = regionDataUnit.getRegion();
+		
+		double maxAng = region.getMaxBearing();
+		double minAng = region.getMinBearing();
+		double minR = region.getMinRange();
+		double maxR = region.getMaxRange();
+		double[] x = new double[4];
+		double[] y = new double[4];
+		x[0] = minR;// -minR*Math.sin(minAng);
+		y[0] = minAng;// minR*Math.cos(minAng);
+		x[1] = maxR;// -maxR*Math.sin(minAng);
+		y[1] = minAng;// maxR*Math.cos(minAng);
+		x[2] = maxR;// -maxR*Math.sin(maxAng);
+		y[2] = maxAng;// maxR*Math.cos(maxAng);
+		x[3] = minR;// -minR*Math.sin(maxAng);
+		y[3] = maxAng;// minR*Math.cos(maxAng);
+		int[] xp = new int[4];
+		int[] yp = new int[4];
+		int minx = Integer.MAX_VALUE;
+		int maxx = Integer.MIN_VALUE;
+		int miny = Integer.MAX_VALUE;
+		int maxy = Integer.MIN_VALUE;
+		for (int i = 0; i < 4; i++) {
+			Coordinate3d pos = generalProjector.getCoord3d(x[i], y[i], 0);
+			if (pos == null) {
+				// at least one corner is outside the plot rectangle, so don't draw. 
+				return null; 
+			}
+			xp[i] = (int) Math.round(pos.x);
+			yp[i] = (int) Math.round(pos.y);
+			minx = Math.min(minx, xp[i]);
+			maxx = Math.max(maxx, xp[i]);
+			miny = Math.min(miny, yp[i]);
+			maxy = Math.max(maxy, yp[i]);
+		}
+		
+		PamSymbol symbol = getPamSymbol(regionDataUnit, generalProjector);
+		Graphics2D g2d = (Graphics2D) g;
+		g2d.setStroke(new BasicStroke(2));
+		
+//		if it's tiny,  plot the symbol
+		if (maxx-minx <= 2 || maxy-miny <=2) {
+			symbol.draw(g, new Point((minx+maxx)/2, (miny+maxy)/2));
+		}
+		
+		if (symbol != null && symbol.isFill()) {
+			g.setColor(symbol.getFillColor());
+			g.fillPolygon(xp, yp, 4);
+		}
+		if (symbol != null) {
+			g.setColor(symbol.getLineColor());
+		}
+		g.drawPolygon(xp, yp, 4);
+		
+		Shape shape = new Polygon(xp, yp, 4);
+		
+		generalProjector.addHoverData(shape, regionDataUnit);
+		
+		return null;
+	}
 	public Rectangle drawBox(Graphics g, RegionDataUnit regionDataUnit, GeneralProjector generalProjector) {
 
 		DetectedRegion region = regionDataUnit.getRegion();
@@ -149,11 +220,17 @@ public class RegionOverlayDraw extends PanelOverlayDraw {
 	@Override
 	public boolean canDraw(ParameterType[] parameterTypes, ParameterUnits[] parameterUnits) {
 		try {
-			return parameterTypes[0] == ParameterType.X && parameterTypes[1] == ParameterType.Y;
+			if (parameterTypes[0] == ParameterType.BEARING) {
+				return true;
+			}
+			if (parameterTypes.length >= 2) {
+				return parameterTypes[0] == ParameterType.X && parameterTypes[1] == ParameterType.Y;
+			}
 		}
 		catch (Exception e) {
 			return false;
 		}
+		return false;
 	}
 
 	@Override

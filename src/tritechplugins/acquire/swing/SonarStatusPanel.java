@@ -46,7 +46,7 @@ public class SonarStatusPanel {
 		this.sonarId = sonarId;
 		mainPanel = new PamPanel(new GridBagLayout());
 
-//		mainPanel.setOpaque(false);
+		mainPanel.setOpaque(false);
 //		mainPanel.seto
 		
 		mainPanel.setBorder(new TitledBorder("Sonar " + sonarId));
@@ -95,6 +95,9 @@ public class SonarStatusPanel {
 		if (lastUpdateTime == 0) {
 			lastUpdateTime = System.currentTimeMillis();
 		}
+		if (now-lastUpdateTime < 1000) {
+			return;
+		}
 		else {// if (now - lastUpdateTime > 100) {
 			int newFrames = sonarStatusData.getTotalImages() - totalFrameCount;
 //			if (newFrames < 2) {
@@ -110,11 +113,11 @@ public class SonarStatusPanel {
 		rxPackets.setText(pxtText);
 		ipStrip.setIpAddr(statusPacket.m_sonarAltIp);
 		String lq;
-		if (badRate < 2) {
-			lq = String.format("%d%% ERROR: %3.0f fps", statusPacket.m_linkQuality, badRate);
+		if (badRate < .5) {
+			lq = String.format("%d%% ERROR: %3.1f fps", statusPacket.m_linkQuality, badRate);
 		}
 		else {
-			lq = String.format("%d%% %3.0f fps", statusPacket.m_linkQuality, badRate);
+			lq = String.format("%d%% %3.1f fps", statusPacket.m_linkQuality, badRate);
 		}
 		if (isOnline == false) {
 			lq = "Offline";

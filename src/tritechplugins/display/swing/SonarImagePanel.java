@@ -17,6 +17,7 @@ import java.awt.event.KeyListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
+import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -36,6 +37,7 @@ import javax.swing.Timer;
 
 import Layout.PamAxis;
 import PamController.PamController;
+import PamDetection.AbstractLocalisation;
 import PamUtils.Coordinate3d;
 import PamUtils.LatLong;
 import PamUtils.PamCalendar;
@@ -43,6 +45,7 @@ import PamUtils.PamUtils;
 import PamUtils.time.CalendarControl;
 import PamView.GeneralProjector.ParameterType;
 import PamView.PamColors.PamColor;
+import PamView.PamSymbol;
 import PamView.PamColors;
 import PamView.PanelOverlayDraw;
 import PamView.paneloverlay.overlaymark.ExtMapMouseHandler;
@@ -57,6 +60,7 @@ import PamguardMVC.dataSelector.DataSelector;
 import annotation.handler.AnnotationHandler;
 import detectiongrouplocaliser.DetectionGroupSummary;
 import javafx.scene.control.MenuItem;
+import pamMaths.PamVector;
 import tritechgemini.detect.DetectedRegion;
 import tritechgemini.fileio.MultiFileCatalog;
 import tritechgemini.imagedata.FanImageData;
@@ -148,7 +152,8 @@ public class SonarImagePanel extends JPanel {
 		isViewer = (PamController.getInstance().getRunMode() == PamController.RUN_PAMVIEW);
 		imageFanMaker = new FanPicksFromData(4);
 		persistentFanMaker = new PersistentFanImageMaker();
-		xyProjector = new SonarXYProjector(sonarsPanel, sonarId, sonarId);
+//		xyProjector = new SonarXYProjector(sonarsPanel, sonarId, sonarId);
+		xyProjector = new SonarRThiProjector(sonarsPanel, sonarId, sonarId);
 		
 		externalMouseHandler = new ExtMapMouseHandler(PamController.getMainFrame(), false);
 		sonarPanelMarker = new SonarsPanelMarker(sonarsPanel, xyProjector, panelIndex);
@@ -376,6 +381,7 @@ public class SonarImagePanel extends JPanel {
 		} else {
 			xyProjector.setPamSymbolChooser(null);
 		}
+		
 		PanelOverlayDraw overlayDraw = dataBlock.getOverlayDraw();
 		if (overlayDraw == null) {
 			return;
@@ -407,6 +413,7 @@ public class SonarImagePanel extends JPanel {
 			dataCopy = dataBlock.getDataCopy(tailStart, tailEnd, false, dataSelector);
 		}
 //		System.out.printf("Paint tail from %s to %s\n", PamCalendar.formatDBDateTime(tailStart), PamCalendar.formatDBDateTime(tailEnd));
+		boolean drawSpecial = overlayDraw.canDraw(xyProjector) == false;
 		for (PamDataUnit aUnit : dataCopy) {
 			if (aUnit instanceof RegionDataUnit) {
 				if (((RegionDataUnit) aUnit).getSonarId() != sonarId) {
@@ -416,10 +423,50 @@ public class SonarImagePanel extends JPanel {
 			if (aUnit.getTimeMilliseconds() < tailStart || aUnit.getTimeMilliseconds() > tailEnd) {
 				continue;
 			}
-			overlayDraw.drawDataUnit(g, aUnit, xyProjector);
+			if (drawSpecial) {
+				drawHere(g, overlayDraw, aUnit, xyProjector);
+			}
+			else {
+				overlayDraw.drawDataUnit(g, aUnit, xyProjector);
+			}
 		}
 		
 	}
+	private void drawHere(Graphics g, PanelOverlayDraw overlayDraw, PamDataUnit aUnit, SonarXYProjector xyProjector) {
+		// assume that all we have is a bearing. 
+		PamSymbol symbol = overlayDraw.getPamSymbol(aUnit, xyProjector);
+		AbstractLocalisation loc = aUnit.getLocalisation();
+		if (loc == null) {
+			return;
+		}
+		PamVector[] vecs = loc.getWorldVectors();
+		double[] angles = loc.getAngles();
+		if (vecs == null) {
+			return;
+		}
+		if (symbol != null) {
+			g.setColor(symbol.getLineColor());
+		}
+		try {
+		for (int i = 0; i < vecs.length; i++) {
+			double angle = vecs[i].getHeading();
+//			angle = 0;
+			Coordinate3d zero = xyProjector.getCoord3d(new Coordinate3d(0,0,0), false);
+			if (zero == null) return;
+			Point p1 = zero.getXYPoint();
+			Coordinate3d end = xyProjector.getCoord3d(new Coordinate3d(55, angle, 0), false);
+			if (end == null) return;
+			Point p2 = end.getXYPoint();
+			g.drawLine(p1.x, p1.y, p2.x, p2.y);
+			xyProjector.addHoverData(end, aUnit);
+		}
+		}
+		catch (Exception e) {
+			
+		}
+	}
+
+
 	private void paintMouseDragLine(Graphics g) {
 		// txt will be null if line is outside the image.
 		Color baseCol = g.getColor();
@@ -506,7 +553,15 @@ public class SonarImagePanel extends JPanel {
 //		}
 		paintTextLine(g2d, str, xt, yt, "Sonar ID, record index and chirp mode");
 		yt += lineHeight;
-		str = String.format("nRange %d, nAngle %d", geminiImageRecord.getnRange(), geminiImageRecord.getnBeam());
+		if (geminiImageRecord instanceof GLFImageRecord) {
+			GLFImageRecord glfRecord = (GLFImageRecord) geminiImageRecord;
+		str = String.format("nRange %d, nAngle %d, comp %d", geminiImageRecord.getnRange(), 
+				geminiImageRecord.getnBeam(), glfRecord.rangeCompression);
+		}
+		else {
+			str = String.format("nRange %d, nAngle %d", geminiImageRecord.getnRange(), 
+					geminiImageRecord.getnBeam());
+		}
 		paintTextLine(g2d, str, xt, yt, "Number of range and bearing bins");
 		yt += lineHeight;
 		long paintTime = System.nanoTime()-paintStart;

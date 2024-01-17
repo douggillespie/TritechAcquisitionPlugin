@@ -222,4 +222,9 @@ public class TritechAcquisition extends PamControlledUnit implements PamSettings
 		return backupInformation;
 	}
 
+	@Override
+	public String getDataLocation() {
+		return daqParams.getOfflineFileFolder();
+	}
+
 }

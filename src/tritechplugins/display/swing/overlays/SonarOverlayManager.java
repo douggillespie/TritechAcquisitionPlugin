@@ -14,8 +14,10 @@ import tritechplugins.display.swing.SonarsPanel;
 
 public class SonarOverlayManager extends OverlayDataManager<SonarOverlayData> {
 
-	private static ParameterType[] paramTypes = {ParameterType.X, ParameterType.Y};
-	private static ParameterUnits[] paramUnits = {ParameterUnits.METERS, ParameterUnits.METERS};
+//	private static ParameterType[] paramTypes = {ParameterType.X, ParameterType.Y};
+//	private static ParameterUnits[] paramUnits = {ParameterUnits.METERS, ParameterUnits.METERS};
+	private static ParameterType[] paramTypes = {ParameterType.BEARING, ParameterType.AMPLITUDE};
+	private static ParameterUnits[] paramUnits = {ParameterUnits.RADIANS, ParameterUnits.DB};
 	
 	private SonarsPanel sonarsPanel;
 	
