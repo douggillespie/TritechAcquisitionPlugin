@@ -38,7 +38,7 @@ public class TritechDaqParams implements Serializable, Cloneable{
 	/**
 	 * Automatically catalogue glf files as soon as they are complete. 
 	 */
-	private boolean autoCatalogue;
+	private boolean autoCatalogue = true;
 	
 	private int range = 60;
 	
@@ -47,6 +47,15 @@ public class TritechDaqParams implements Serializable, Cloneable{
 	private int chirpMode = ChirpMode.CHIRP_ENABLED;
 	
 	private double playSpeed = 1.0;
+
+	/**
+	 * Use a manual ping rate (i.e. not free run)
+	 * doing the logic this way so that it defaults to 
+	 * false in older configurations. 
+	 */
+	private boolean manualPingRate = false;
+	
+	private int manualPingInterval = 200;
 	
 	/**
 	 * All sonars use the same settings
@@ -332,6 +341,42 @@ public class TritechDaqParams implements Serializable, Cloneable{
 	 */
 	public void setAutoCatalogue(boolean autoCatalogue) {
 		this.autoCatalogue = autoCatalogue;
+	}
+
+	/**
+	 * Use a manual ping rate (i.e. not free run)
+	 * doing the logic this way so that it defaults to 
+	 * false in older configurations. 
+	 * @return the manualPingRate
+	 */
+	public boolean isManualPingRate() {
+		return manualPingRate;
+	}
+
+	/**
+	 * Use a manual ping rate (i.e. not free run)
+	 * doing the logic this way so that it defaults to 
+	 * false in older configurations. 
+	 * @param manualPingRate the manualPingRate to set
+	 */
+	public void setManualPingRate(boolean manualPingRate) {
+		this.manualPingRate = manualPingRate;
+	}
+
+	/**
+	 * Manually set ping interval in milliseconds. 
+	 * @return the manualPingInterval
+	 */
+	public int getManualPingInterval() {
+		return manualPingInterval;
+	}
+
+	/**
+	 * Manually set ping interval in milliseconds. 
+	 * @param manualPingInterval the manualPingInterval to set
+	 */
+	public void setManualPingInterval(int manualPingInterval) {
+		this.manualPingInterval = manualPingInterval;
 	}
 
 }

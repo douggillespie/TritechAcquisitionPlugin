@@ -5,6 +5,7 @@ import java.util.HashMap;
 
 import com.sun.jna.Pointer;
 
+import PamUtils.PamCalendar;
 import geminisdk.GenesisSerialiser;
 import geminisdk.LoggerStatusInfo;
 import geminisdk.OutputFileInfo;
@@ -141,6 +142,7 @@ abstract public class Svs5JNADaqSystem extends TritechDaqSystem {
 			SonarStatusData sonarData = findSonarStatusData(glfImage.genericHeader.tm_deviceId);
 			if (sonarData != null) {
 				sonarData.totalImages++;
+				sonarData.lastImageTime = glfImage.getRecordTime();
 				sonarData.interStatusImages++;
 			}
 			else {
@@ -225,9 +227,22 @@ abstract public class Svs5JNADaqSystem extends TritechDaqSystem {
 			sonarStatusData.zeroPacketWarnings = 0;
 			return;
 		}
-		if (++sonarStatusData.zeroPacketWarnings > 5 && System.currentTimeMillis() - sonarStatusData.lastReboot > 60000) {
+		/*
+		 *  check that this sonar is actually enabled.
+		 *  If a sonar is not online, it still sends status messages
+		 *  though no data.  
+		 */
+		SonarDaqParams sonarParams = tritechAcquisition.getDaqParams().getSonarParams(sonarStatusData.getDeviceId());
+		if (sonarParams.isSetOnline() == false) {
+//			System.out.println("No need to reboot sonar " + sonarStatusData.getDeviceId());
+			return;
+		}
+		long gapTime = System.currentTimeMillis() - sonarStatusData.lastImageTime;
+		if (gapTime > 5000 && System.currentTimeMillis() - sonarStatusData.lastReboot > 60000) {
 			// we've gone five seconds without receiving any data, so reboot and haven't rebooted for > 1 minute
-			System.out.printf("No data received from sonar %d in 5 seconds. Reboot it\n", sonarStatusData.getDeviceId());
+			System.out.printf("%s: No data received from sonar %d in %3.1f seconds. Reboot it\n", 
+					PamCalendar.formatDBDateTime(System.currentTimeMillis()),
+					sonarStatusData.getDeviceId(), (double) gapTime/1000.);
 			sonarStatusData.lastReboot = System.currentTimeMillis();
 			rebootSonar(sonarStatusData.getDeviceId());
 		}

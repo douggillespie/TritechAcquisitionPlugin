@@ -50,6 +50,10 @@ public class FrameRateDisplayPanel implements UserDisplayComponent, Configuratio
 	
 	private JSplitPane splitPane;
 
+//	private BoxLayout histoLayout;
+
+	private GridLayout gridLayout;
+
 	public FrameRateDisplayPanel(FrameRateDisplayProvider frameRateDisplayProvider,
 			UserDisplayControl userDisplayControl, String uniqueDisplayName, TritechAcquisition tritechAcquisition) {
 		super();
@@ -71,7 +75,10 @@ public class FrameRateDisplayPanel implements UserDisplayComponent, Configuratio
 //		histogramDisplay.addHistogram(singleHistogram);
 //		
 		histogramHolder = new PamPanel();
-		histogramHolder.setLayout(new BoxLayout(histogramHolder, BoxLayout.X_AXIS));
+//		histogramHolder.setLayout(histoLayout = new BoxLayout(histogramHolder, BoxLayout.X_AXIS));
+		histogramHolder.setLayout(gridLayout = new GridLayout(1, 1));
+//		GridLayout gl = new GridLayout(2, 1);
+//		gl.g
 		
 		rateGraph = new FrameRateGraph(this, tritechAcquisition);
 		
@@ -101,8 +108,16 @@ public class FrameRateDisplayPanel implements UserDisplayComponent, Configuratio
 		}
 		FrameRateHistogram rateHisto = new FrameRateHistogram(this, tritechAcquisition, sonarId);
 		frameRateHistrograms.add(rateHisto);
+		gridLayout.setColumns(frameRateHistrograms.size());
 		histogramHolder.add(rateHisto.getComponent());
-		histogramHolder.invalidate();
+		SwingUtilities.invokeLater(new Runnable() {
+			@Override
+			public void run() {
+//				histoLayout.layoutContainer(histoLayout.getTarget());
+//				histogramHolder.invalidate();
+				mainPanel.invalidate();				
+			}
+		});
 		return rateHisto;
 		
 //		PamHistogram hist = rateHistograms.get(0);

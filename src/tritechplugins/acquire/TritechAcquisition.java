@@ -11,6 +11,7 @@ import PamController.OfflineDataStore;
 import PamController.OfflineFileDataStore;
 import PamController.PamControlledUnit;
 import PamController.PamControlledUnitSettings;
+import PamController.PamController;
 import PamController.PamSettingManager;
 import PamController.PamSettings;
 import PamguardMVC.PamDataBlock;
@@ -97,9 +98,10 @@ public class TritechAcquisition extends PamControlledUnit implements PamSettings
 			tritechOffline.notifyModelChanged(changeType);
 		}
 		if (tritechDaqProcess != null && isViewer() == false) {
-			tritechDaqProcess.prepareProcess();
+			if (changeType == PamController.INITIALIZATION_COMPLETE) {
+				tritechDaqProcess.prepareProcess();
+			}
 		}
-		
 	}
 
 	@Override

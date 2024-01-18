@@ -7,12 +7,15 @@ import javax.swing.Timer;
 
 import com.sun.jna.Pointer;
 
+import PamUtils.PamCalendar;
 import geminisdk.Svs5Exception;
 import geminisdk.Svs5MessageType;
 import geminisdk.structures.ChirpMode;
 import geminisdk.structures.ConfigOnline;
 import geminisdk.structures.GeminiRange;
 import geminisdk.structures.RangeFrequencyConfig;
+import warnings.PamWarning;
+import warnings.WarningSystem;
 
 /**
  * Implementation of Tritech JNA daq that uses a mix of SVS5 and GEMX functions
@@ -27,6 +30,13 @@ public class TritechJNADaqG extends TritechJNADaq {
 	private Timer pingTimer;
 	
 	private int maxPingReports = 0;
+	
+	/**
+	 * Min time before gaps are reported after program start. 
+	 */
+	private long minGapReportTime = 10000;
+	
+	private long creationTime = System.currentTimeMillis();
 
 	volatile private int lastSonarIndex = -1;
 
@@ -37,9 +47,12 @@ public class TritechJNADaqG extends TritechJNADaq {
 	private boolean pingActive = false;
 
 	private Thread pingThread;
+	
+	private PamWarning pingWarning;
 
 	public TritechJNADaqG(TritechAcquisition tritechAcquisition, TritechDaqProcess tritechProcess) {
 		super(tritechAcquisition, tritechProcess);
+		pingWarning = new PamWarning("Tritech Acquisition", "Ping warning", 2);
 //		pingTimer = new Timer(1000, new ActionListener() {
 //			
 //			@Override
@@ -105,9 +118,26 @@ public class TritechJNADaqG extends TritechJNADaq {
 	 * next sonar soon after the previous ping was received. 
 	 */
 	private void pingLoop() {
-		System.out.println("Enter continuous ping loop");
+//		System.out.println("Enter continuous ping loop");
 		while (keepPinging) {
 			if (doPingNow()) {
+				// still need to see if we need a delay
+				long delay = 1;
+				while (delay > 0) {
+					/*
+					 * Bit silly, but the interrupt of the other sleep can 
+					 * hit this one, so need to stay in the loop 
+					 * until we're genuinely ready to ping.
+					 */
+					delay = getPingDelay();
+					if (delay > 0) {
+						try {
+							Thread.sleep(delay);
+						} catch (InterruptedException e) {
+							//						e.printStackTrace();
+						}
+					}
+				}
 				pingActive = true;
 				pingNextSonar();
 			}
@@ -119,9 +149,22 @@ public class TritechJNADaqG extends TritechJNADaq {
 				}
 			}
 		}
-		System.out.println("Leave continuous ping loop");
+//		System.out.println("Leave continuous ping loop");
 	}
 	
+	/**
+	 * Do we need to wait before the next ping ? 
+	 * @return
+	 */
+	private long getPingDelay() {
+		TritechDaqParams daqParams = tritechAcquisition.getDaqParams();
+		if (daqParams.isManualPingRate() == false) {
+			return 0;
+		}
+		long wait = daqParams.getManualPingInterval() - (System.currentTimeMillis()-lastPingTime);
+		return wait;
+	}
+
 	/**
 	 * Is it time to ping ? Will be true if there isn't a currently
 	 * active ping request in the system or if a sonar hasn't sent data
@@ -140,8 +183,20 @@ public class TritechJNADaqG extends TritechJNADaq {
 					sonarID = activeSonarList[lastSonarIndex];
 				}
 			}
-			System.out.printf("%dms passed since last sonar %d was pinged\n", pingGap, sonarID);
+			if (System.currentTimeMillis() - creationTime > minGapReportTime) {
+				/*
+				 * This happens quite a lot at startup while thing settle, so 
+				 * don't report these for at least 10s 
+				 */
+				String msg = String.format("%s: %dms passed since last sonar %d was pinged\n", 
+						PamCalendar.formatDBDateTime(System.currentTimeMillis()), pingGap, sonarID);
+				pingWarning.setWarningMessage(msg);
+				WarningSystem.getWarningSystem().addWarning(pingWarning);
+			}
 			return true;
+		}
+		else {
+			WarningSystem.getWarningSystem().removeWarning(pingWarning);
 		}
 		
 		return false;

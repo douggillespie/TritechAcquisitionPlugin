@@ -11,6 +11,8 @@ public class SonarStatusData {
 	protected int zeroPacketWarnings;
 	
 	protected long lastReboot = System.currentTimeMillis();
+	
+	protected long lastImageTime = System.currentTimeMillis();
 
 	private GLFStatusData statusPacket;
 	

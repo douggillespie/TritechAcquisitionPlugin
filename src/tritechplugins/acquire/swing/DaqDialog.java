@@ -16,6 +16,7 @@ import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
+import javax.swing.JTextField;
 import javax.swing.border.TitledBorder;
 
 import PamUtils.SelectFolder;
@@ -45,6 +46,10 @@ public class DaqDialog extends PamDialog {
 	
 	private JCheckBox allTheSame;
 	
+	private JCheckBox freePingRate;
+	
+	private JTextField manualPingInterval;
+	
 	/**
 	 * Automatically catalogue GLF files when acquiring online
 	 */
@@ -63,6 +68,10 @@ public class DaqDialog extends PamDialog {
 		outputFolder = new SelectFolder("Output folder", 40, true);
 //		chirpMode = new JComboBox<String>();
 //		rangeFreq = new JComboBox<String>();
+		freePingRate = new JCheckBox("Free run");
+		freePingRate.setToolTipText("Sonar(s) ping as fast as they are able");
+		manualPingInterval = new JTextField(4);
+		manualPingInterval.setToolTipText("Minimum ping interval milliseconds");
 		allTheSame = new JCheckBox("Use same settings on all sonars");
 		autoCatalogue = new JCheckBox("Automatically catalogue complete GLF files");
 		autoCatalogue.setToolTipText("This will speed up viewing GLF files with the PAMGuard viewer");
@@ -88,22 +97,34 @@ public class DaqDialog extends PamDialog {
 		
 		mainPanel.add(new JLabel("File Location"), c);
 		c.gridy++;
-		c.gridwidth = 3;
+		c.gridwidth = 5;
 		mainPanel.add(outputFolder.getFolderPanel(), c);
-		c.gridwidth = 1;
+		c.gridwidth = 2;
 		c.gridx = 0;
 		c.gridy ++;
 		for (int i = 0; i < runModes.length; i++) {
 			mainPanel.add(runModes[i], c);
-			c.gridx++;
+			c.gridx+= c.gridwidth;
 		}
 		c.gridx = 0;
 		c.gridy ++;
-		c.gridwidth = 3;
+		c.gridwidth = 5;
 		mainPanel.add(timeZonePanel.getComponent(), c);
 		
+		c.gridy++;
 		c.gridx = 0;
-		c.gridwidth = 2;
+		c.gridwidth = 1;
+		mainPanel.add(freePingRate, c);
+		c.gridx++;
+		mainPanel.add(new JLabel(" Interval", JLabel.RIGHT), c);
+		c.gridx++;
+		mainPanel.add(manualPingInterval, c);
+		c.gridx++;
+		mainPanel.add(new JLabel("ms", JLabel.LEFT), c);
+		
+		
+		c.gridx = 0;
+		c.gridwidth = 4;
 		c.gridy++;
 		mainPanel.add(autoCatalogue, c);
 		c.gridy++;
@@ -123,6 +144,14 @@ public class DaqDialog extends PamDialog {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				changeAllSame();
+			}
+		});
+		
+		freePingRate.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				enableControls();
 			}
 		});
 
@@ -147,6 +176,8 @@ public class DaqDialog extends PamDialog {
 		}
 		allTheSame.setSelected(daqParams.isAllTheSame());
 		autoCatalogue.setSelected(daqParams.isAutoCatalogue());
+		freePingRate.setSelected(daqParams.isManualPingRate() == false);
+		manualPingInterval.setText(String.format("%d", daqParams.getManualPingInterval()));
 		
 		createSonarsPanel();
 		
@@ -193,6 +224,9 @@ public class DaqDialog extends PamDialog {
 		
 		allTheSame.setVisible(acquire);
 		autoCatalogue.setVisible(acquire);
+		
+		freePingRate.setEnabled(acquire);
+		manualPingInterval.setEnabled(acquire & freePingRate.isSelected()==false);
 	}
 
 	private void createSonarsPanel() {
@@ -263,6 +297,17 @@ public class DaqDialog extends PamDialog {
 		daqParams.setOfflineFileFolder(outputFolder.getFolderName(daqParams.getRunMode() == TritechDaqParams.RUN_ACQUIRE));
 		daqParams.setOfflineSubFolders(outputFolder.isIncludeSubFolders());
 		daqParams.setAllTheSame(allTheSame.isSelected());
+		daqParams.setManualPingRate(freePingRate.isSelected() == false);
+		try {
+			int pingInt = Integer.valueOf(manualPingInterval.getText());
+			daqParams.setManualPingInterval(pingInt);
+		}
+		catch (NumberFormatException ex) {
+			if (freePingRate.isSelected()) {
+				return showWarning("Invalid ping interval");
+			}
+		}
+		
 		int n = sonarsPanel.getComponentCount();
 		boolean ok = true;
 		for (int i = 0; i < n; i++) {

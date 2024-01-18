@@ -69,9 +69,9 @@ public class SonarsStatusPanel implements SonarStatusObserver, SonarDisplayDecor
 		 * Set all these to transparent so that the main sonar
 		 * display can be seen through the overlays. 
 		 */
-		sonarsPanel.setOpaque(false);
-		lap.setOpaque(false);
-		hidingPanel.setOpaque(false);
+//		sonarsPanel.setOpaque(false);
+//		lap.setOpaque(false);
+//		hidingPanel.setOpaque(false);
 		
 //		addStatusPanel(678); used to test layout in absence of a sonar!
 	}
