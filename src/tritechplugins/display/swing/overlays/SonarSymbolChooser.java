@@ -5,6 +5,7 @@ import PamView.symbol.PamSymbolOptions;
 import PamView.symbol.StandardSymbolChooser;
 import PamView.symbol.SwingSymbolOptionsPanel;
 import PamView.symbol.SymbolData;
+import PamView.symbol.modifier.SymbolModType;
 import PamguardMVC.PamDataBlock;
 import PamguardMVC.PamDataUnit;
 
@@ -15,7 +16,7 @@ public class SonarSymbolChooser extends StandardSymbolChooser{
 	public SonarSymbolChooser(SonarSymbolManager sonarSymbolManager, PamDataBlock pamDataBlock,
 			String displayName, SymbolData defaultSymbol, GeneralProjector projector) {
 		super(sonarSymbolManager, pamDataBlock, displayName, defaultSymbol, projector);
-		
+		addSymbolModifier(new SequenceSymbolModifier("Sequence (blue to red)", this, SymbolModType.FILLCOLOUR | SymbolModType.LINECOLOUR));
 	}
 
 	@Override
