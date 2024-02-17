@@ -13,6 +13,7 @@ import PamguardMVC.PamDataBlock;
 public class TrackSymbolManager extends StandardSymbolManager {
 
 	private static final SymbolData defaultSymbol = new SymbolData(PamSymbolType.SYMBOL_CROSS, 6, 6, false, Color.RED, Color.RED);
+	
 	public TrackSymbolManager(PamDataBlock pamDataBlock) {
 		super(pamDataBlock, defaultSymbol);
 	}
@@ -21,6 +22,7 @@ public class TrackSymbolManager extends StandardSymbolManager {
 	public void addSymbolModifiers(PamSymbolChooser psc) {
 		super.addSymbolModifiers(psc);
 		psc.addSymbolModifier(new RotateColoursModifier("Colour randomly", psc, SymbolModType.FILLCOLOUR | SymbolModType.LINECOLOUR));
+//		psc.addSymbolModifier(new SequenceSymbolModifier("Colour Sequentially", psc, SymbolModType.FILLCOLOUR | SymbolModType.LINECOLOUR));
 	}
 
 }
