@@ -2,13 +2,17 @@ package tritechplugins.display.swing;
 
 import PamUtils.Coordinate3d;
 import PamUtils.PamCoordinate;
+import tritechplugins.display.swing.overlays.SonarOverlayManager;
 
 public class SonarRThiProjector extends SonarXYProjector {
 
-	public static final ParameterType[] requiredParams = {ParameterType.BEARING, ParameterType.RANGE};
+	public static final ParameterType[] requiredParams = SonarOverlayManager.paramTypes;
 	
 	public SonarRThiProjector(SonarsPanel sonarsPanel, int imageIndex, int sonarID) {
 		super(sonarsPanel, imageIndex, sonarID);
+		for (int i = 0; i < requiredParams.length; i++) {
+			setParmeterType(i, requiredParams[i]);
+		}
 	}
 
 	@Override

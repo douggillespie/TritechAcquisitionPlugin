@@ -94,7 +94,7 @@ public class RegionOverlayDraw extends PanelOverlayDraw {
 	}
 
 	public Rectangle drawRThiBox(Graphics g, RegionDataUnit regionDataUnit, GeneralProjector generalProjector) {
-DetectedRegion region = regionDataUnit.getRegion();
+		DetectedRegion region = regionDataUnit.getRegion();
 		
 		double maxAng = region.getMaxBearing();
 		double minAng = region.getMinBearing();
@@ -138,6 +138,8 @@ DetectedRegion region = regionDataUnit.getRegion();
 		if (maxx-minx <= 2 || maxy-miny <=2) {
 			symbol.draw(g, new Point((minx+maxx)/2, (miny+maxy)/2));
 		}
+
+		Rectangle clipRect = g.getClipBounds();
 		
 		if (symbol != null && symbol.isFill()) {
 			g.setColor(symbol.getFillColor());
@@ -147,6 +149,9 @@ DetectedRegion region = regionDataUnit.getRegion();
 			g.setColor(symbol.getLineColor());
 		}
 		g.drawPolygon(xp, yp, 4);
+//		for (int i = 0; i < xp.length; i++) {
+//			g.drawLine(0, 0, xp[i], yp[i]);
+//		}
 		
 		Shape shape = new Polygon(xp, yp, 4);
 		
@@ -224,7 +229,8 @@ DetectedRegion region = regionDataUnit.getRegion();
 				return true;
 			}
 			if (parameterTypes.length >= 2) {
-				return parameterTypes[0] == ParameterType.X && parameterTypes[1] == ParameterType.Y;
+				return (parameterTypes[0] == ParameterType.RANGE && parameterTypes[1] == ParameterType.BEARING)
+				|| (parameterTypes[0] == ParameterType.X && parameterTypes[1] == ParameterType.Y);
 			}
 		}
 		catch (Exception e) {

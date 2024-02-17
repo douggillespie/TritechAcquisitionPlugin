@@ -33,8 +33,13 @@ public class CircleOverlayDraw extends PanelOverlayDraw {
 		CircleVeto circleVeto = (CircleVeto) spatialVeto;
 		CircleVetoParams params = circleVeto.getParams();
 		SonarXYProjector sonarProjector = (SonarXYProjector) generalProjector;
-		Coordinate3d centre = sonarProjector.getCoord3d(params.centreX, params.centreY, false);
-		Coordinate3d edge = sonarProjector.getCoord3d(params.centreX+params.radius, params.centreY, false);
+		double centR = Math.sqrt(params.centreX*params.centreX + params.centreY*params.centreY);
+		double centA = -Math.atan2(params.centreX, params.centreY);
+		double edgeR = Math.sqrt(Math.pow(params.centreX+params.radius,2) + 
+				Math.pow(params.centreY,2));
+		double edgeA = -Math.atan2(params.centreX+params.radius, params.centreY);
+		Coordinate3d centre = sonarProjector.getCoord3d(centR, centA, false);
+		Coordinate3d edge = sonarProjector.getCoord3d(edgeR, edgeA, false);
 		if (edge == null || centre == null) {
 			return null;
 		}
@@ -42,16 +47,7 @@ public class CircleOverlayDraw extends PanelOverlayDraw {
 		g.drawArc((int) (centre.x-r), (int) (centre.y-r), (int) (2*r), (int) (2*r), 0, 359);
 		
 		generalProjector.addHoverData(centre, pamDataUnit);
-
-//		Graphics2D g2d = (Graphics2D) g;
-//		PamSymbol symbol = getDefaultSymbol();
-//		if (symbol.isFill()) {
-//			Color fillCol = symbol.getFillColor();
-//			fillCol = new Color(fillCol.getRed(), fillCol.getGreen(), fillCol.getBlue(), 128);
-//			g2d.setColor(fillCol);
-//			g2d.fill(polygon);
-//		}
-		
+	
 		return null;
 	}
 
