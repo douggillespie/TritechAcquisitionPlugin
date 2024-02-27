@@ -16,7 +16,7 @@ import PamView.dialog.PamDialogPanel;
 import PamView.dialog.PamGridBagContraints;
 import PamView.dialog.SourcePanel;
 import PamguardMVC.PamDataBlock;
-import tritechgemini.detect.RegionDetector;
+import tritechgemini.detect.TwoThresholdDetector;
 import tritechplugins.acquire.ImageDataUnit;
 import tritechplugins.detect.threshold.RegionDataUnit;
 import tritechplugins.detect.threshold.ThresholdDetector;
@@ -144,7 +144,7 @@ public class ThresholdDialog extends PamDialog {
 		c.gridwidth = 3;
 		thresholdPanel.add(connectionType, c);
 		
-		int[] conTypes = RegionDetector.getConnectionTypes();
+		int[] conTypes = TwoThresholdDetector.getConnectionTypes();
 		for (int i = 0; i < conTypes.length; i++) {
 			connectionType.addItem(String.format("Connect %d", conTypes[i]));
 		}
@@ -235,7 +235,7 @@ public class ThresholdDialog extends PamDialog {
 		minObjectSize.setText(String.format("%3.1f", thresholdParams.minSize));
 		maxObjectSize.setText(String.format("%3.1f", thresholdParams.maxSize));
 
-		int[] conTypes = RegionDetector.getConnectionTypes();
+		int[] conTypes = TwoThresholdDetector.getConnectionTypes();
 		for (int i = 0; i < conTypes.length; i++) {
 			if (thresholdParams.connectionType == conTypes[i]) {
 				connectionType.setSelectedIndex(i);

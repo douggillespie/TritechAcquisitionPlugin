@@ -12,6 +12,7 @@ import PamguardMVC.background.BackgroundManager;
 import generalDatabase.DBControlUnit;
 import tritechgemini.detect.DetectedRegion;
 import tritechgemini.detect.RegionDetector;
+import tritechgemini.detect.TwoThresholdDetector;
 import tritechgemini.imagedata.GLFImageRecord;
 import tritechgemini.imagedata.GeminiImageRecordI;
 import tritechplugins.acquire.ImageDataUnit;
@@ -48,7 +49,7 @@ public class ChannelDetector {
 		this.sonarId = sonarId;
 		
 		backgroundRemoval = new BackgroundRemoval();
-		regionDetector = new RegionDetector();
+		regionDetector = new TwoThresholdDetector();
 		
 		regionDataBlock = thresholdProcess.getRegionDataBlock();
 	}
@@ -69,7 +70,7 @@ public class ChannelDetector {
 		ThresholdParams params = thresholdDetector.getThresholdParams();
 		backgroundRemoval.setTimeConstant(params.backgroundTimeConst);
 		backgroundRemoval.setRemovalScale(params.backgroundScale);
-		backgroundRemoval.setRemovalScale(1.5);
+//		backgroundRemoval.setRemovalScale(1.5); // WTF is this doing here ? Was it there for all processing ? 
 				
 		byte[] noBackground = backgroundRemoval.removeBackground(imageData, image.getnBeam(), image.getnRange(), true);
 		
@@ -86,7 +87,7 @@ public class ChannelDetector {
 		
 		regionDetector.setMinObjectSize(params.minSize);
 		regionDetector.setMaxObjectSize(params.maxSize);
-		ArrayList<DetectedRegion> regions = regionDetector.detectRegions(clonedImage, params.highThreshold, params.lowThreshold, params.connectionType);
+		ArrayList<DetectedRegion> regions = regionDetector.detectRegions(image, clonedImage, params.highThreshold, params.lowThreshold, params.connectionType);
 		
 		if (regions == null || regions.size() == 0 ) {
 			return null;
