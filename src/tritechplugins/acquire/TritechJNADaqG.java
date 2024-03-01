@@ -364,7 +364,10 @@ public class TritechJNADaqG extends TritechJNADaq {
 		System.out.printf("Frame Received in thread %s Id %d\n", currentThread.getName(), currentThread.getId());
 		}
 		pingActive = false;
-		pingThread.interrupt();
+		if (pingThread != null) {
+			pingThread.interrupt();
+			pingThread = null;
+		}
 	}
 
 	@Override

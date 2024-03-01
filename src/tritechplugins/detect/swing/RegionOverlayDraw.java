@@ -77,11 +77,8 @@ public class RegionOverlayDraw extends PanelOverlayDraw {
 		// above not yest stored in database 
 		double ang = (region.getMaxBearing()+region.getMinBearing())/2.;
 		double range = (region.getMinRange()+region.getMaxRange())/2.;
-				
-		double x = -range*Math.sin(ang);
-		double y = range*Math.cos(ang);
-		
-		Coordinate3d pos = generalProjector.getCoord3d(x,  y,  0);
+						
+		Coordinate3d pos = generalProjector.getCoord3d(range, ang,  0);
 		if (pos == null) {
 			return null;
 		}

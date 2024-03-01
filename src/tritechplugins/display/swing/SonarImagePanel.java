@@ -43,7 +43,9 @@ import PamUtils.LatLong;
 import PamUtils.PamCalendar;
 import PamUtils.PamUtils;
 import PamUtils.time.CalendarControl;
+import PamView.GeneralProjector;
 import PamView.GeneralProjector.ParameterType;
+import PamView.HoverData;
 import PamView.PamColors.PamColor;
 import PamView.PamSymbol;
 import PamView.PamColors;
@@ -71,6 +73,8 @@ import tritechgemini.imagedata.ImageFanMaker;
 import tritechplugins.acquire.TritechAcquisition;
 import tritechplugins.acquire.offline.TritechOffline;
 import tritechplugins.detect.threshold.RegionDataUnit;
+import tritechplugins.detect.track.TrackLinkDataBlock;
+import tritechplugins.detect.track.TrackLinkDataUnit;
 import tritechplugins.detect.veto.SpatialVetoDataBlock;
 import tritechplugins.display.swing.overlays.SonarOverlayData;
 import warnings.PamWarning;
@@ -128,6 +132,8 @@ public class SonarImagePanel extends JPanel {
 	private File toolTipImageFile;
 	
 	private BufferedImage toolTipImage;
+	
+	private TrackLinkDataUnit clickedOnTrack;
 	
 	/**
 	 * Overlay image which get's used when all data are displayed 
@@ -1093,6 +1099,20 @@ public class SonarImagePanel extends JPanel {
 			if (externalMouseHandler.mouseClicked(e)) {
 				return;
 			}
+			clickedOnTrack = null;
+			try {
+				int dataUnitInd = xyProjector.findClosestDataUnitIndex(new Coordinate3d(e.getX(), e.getY(), 0));
+				if (dataUnitInd >= 0) {
+					HoverData hoverData = (HoverData) xyProjector.getHoverDataList().get(dataUnitInd);
+					PamDataUnit dataUnit = hoverData.getDataUnit();
+					clickedOnTrack = (TrackLinkDataUnit) dataUnit.getSuperDetection(TrackLinkDataUnit.class);
+				}
+			}
+			catch (Exception exp) {
+				
+			}
+//			sonarsPanel.get
+			
 		}
 
 		@Override

@@ -251,18 +251,24 @@ public class JavaFileAcquisition extends TritechDaqSystem  implements CatalogStr
 		 *  caused by a gap in file data, in which case we may want to nudge a restart
 		 *  to reset the binary store. 
 		 */
-//		if (lastRecordTime != null) {
-//			long gap = glfImage.getRecordTime() - lastRecordTime;
-//			if (gap > 10000L) {
-//				System.out.printf("GLF Cataloges have a %d day %s second gap between files at %s\n", 
-//						gap/(3600L*24L*1000L), PamCalendar.formatTime(gap), PamCalendar.formatDBDateTime(glfImage.getRecordTime()));
-//				// so tell pamguard to restart and return false to stop this catalogue. 
-//				lastRecordTime = null;
-//				PamController.getInstance().pamStop();
-//				restartLater();
-//				return false;
-//			}
-//		}
+		if (lastRecordTime != null) {
+			long gap = glfImage.getRecordTime() - lastRecordTime;
+			if (gap > 10000L) {
+				System.out.printf("GLF Cataloges have a %d day %s second gap between files at %s\n", 
+						gap/(3600L*24L*1000L), PamCalendar.formatTime(gap), PamCalendar.formatDBDateTime(glfImage.getRecordTime()));
+				System.out.printf("Record time %s, current PAM time %s\n", PamCalendar.formatDBDateTime(glfImage.getRecordTime()),
+						PamCalendar.formatDBDateTime(PamCalendar.getTimeInMillis()));
+				// so tell pamguard to restart and return false to stop this catalogue. 
+				lastRecordTime = null;
+				PamController.getInstance().pamStop();
+				restartLater();
+				return false;
+			}
+			else if (gap < -10000L) {
+				System.out.printf("GLF Cataloges going backwards in time %d day %s second gap between files at %s\n", 
+						gap/(3600L*24L*1000L), PamCalendar.formatTime(gap), PamCalendar.formatDBDateTime(glfImage.getRecordTime()));
+			}
+		}
 		lastRecordTime = glfImage.getRecordTime();
 		
 		
@@ -277,23 +283,27 @@ public class JavaFileAcquisition extends TritechDaqSystem  implements CatalogStr
 	}
 	
 	private void restartLater() {
+
+		System.out.println("Tritch Acquisition launch restart thread at " + PamCalendar.formatDBDateTime(System.currentTimeMillis()));
+		System.out.println("Current PAMGuard status is " + PamController.getInstance().getPamStatus());
 		Runnable r = new Runnable() {
 			
 			@Override
 			public void run() {
 				long t = System.currentTimeMillis();
-				while (System.currentTimeMillis() - t < 10000) {
-					if (PamController.getInstance().getPamStatus() != PamController.PAM_IDLE) {
-						try {
-							Thread.sleep(500);
-							continue;
-						} catch (InterruptedException e) {
-						}
+				while (System.currentTimeMillis() - t < 20000) {
+					try {
+						Thread.sleep(500);
+						continue;
+					} catch (InterruptedException e) {
 					}
-					System.out.printf("Tritch Acquisition issue restart after %dms wait\n", System.currentTimeMillis() - t);
-					PamController.getInstance().startLater();
-					break;
+					if (PamController.getInstance().getPamStatus() == PamController.PAM_IDLE) {
+						// not fully stopped, so wait half a second. 
+						break;
+					}
 				}
+				System.out.printf("Tritch Acquisition issue restart after %dms wait\n", System.currentTimeMillis() - t);
+				PamController.getInstance().startLater();
 			}
 		};
 		

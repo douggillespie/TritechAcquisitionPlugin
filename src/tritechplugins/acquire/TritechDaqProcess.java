@@ -167,9 +167,17 @@ public class TritechDaqProcess extends PamProcess implements TritechRunMode {
 		}
 		
 		sortDaqSystem();
+		TritechDaqParams params = tritechAcquisition.getDaqParams();
+		boolean realTime =  (params.getRunMode() == TritechDaqParams.RUN_ACQUIRE);
 		if (tritechDaqSystem != null) {
 			tritechDaqSystem.prepareProcess();
-			if (PamController.getInstance().getPamStatus() == PamController.PAM_RUNNING) {
+			/*
+			 * If it's a real time system then start immediately so that the sonar
+			 * shows on the display. 
+			 * however, DON't do this when processing files or it reads every 
+			 * file twice (which is annoying!)
+			 */
+			if (PamController.getInstance().getPamStatus() == PamController.PAM_RUNNING  & realTime) {
 				tritechDaqSystem.start();
 			}
 		}

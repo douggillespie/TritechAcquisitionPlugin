@@ -14,9 +14,11 @@ public class ThresholdParams implements Cloneable, Serializable {
 	
 	public int backgroundTimeConst = 20;
 	
-	public double backgroundScale = 1.0;
+	public double backgroundScale = 1.5; // a reasonabl default, that used to be hard wired. 
 	
 	public int connectionType = 8; // 4 or 8 for connect 4 or connect 8. 
+	
+	public boolean filterRange;
 	
 	/**
 	 * Minimum object (diagonal) size in metres

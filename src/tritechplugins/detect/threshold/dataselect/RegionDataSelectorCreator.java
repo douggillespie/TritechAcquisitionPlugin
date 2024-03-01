@@ -1,5 +1,8 @@
 package tritechplugins.detect.threshold.dataselect;
 
+import java.io.Serializable;
+
+import PamController.PamControlledUnitSettings;
 import PamguardMVC.dataSelector.DataSelectParams;
 import PamguardMVC.dataSelector.DataSelector;
 import PamguardMVC.dataSelector.DataSelectorCreator;
@@ -23,6 +26,18 @@ public class RegionDataSelectorCreator extends DataSelectorCreator {
 	public DataSelectParams createNewParams(String name) {
 		// TODO Auto-generated method stub
 		return null;
+	}
+
+	@Override
+	public synchronized Serializable getSettingsReference() {
+		// TODO Auto-generated method stub
+		return super.getSettingsReference();
+	}
+
+	@Override
+	public boolean restoreSettings(PamControlledUnitSettings pamControlledUnitSettings) {
+		// TODO Auto-generated method stub
+		return super.restoreSettings(pamControlledUnitSettings);
 	}
 
 }

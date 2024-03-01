@@ -2,6 +2,7 @@ package tritechplugins.detect.threshold;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.zip.Deflater;
@@ -17,6 +18,7 @@ import tritechgemini.imagedata.GLFImageRecord;
 import tritechgemini.imagedata.GeminiImageRecordI;
 import tritechplugins.acquire.ImageDataUnit;
 import tritechplugins.detect.threshold.background.ThresholdBackgroundDataUnit;
+import tritechplugins.detect.threshold.rangefilter.ImageRangeFilter;
 import tritechplugins.detect.track.TrackLinkProcess;
 import warnings.PamWarning;
 import warnings.WarningSystem;
@@ -38,6 +40,8 @@ public class ChannelDetector {
 	
 	private long lastBackgroundWrite = 0;
 	
+	private ImageRangeFilter imageRangeFilter;
+	
 	/**
 	 * Detector for a single sonar. 
 	 * @param thresholdDetector
@@ -52,6 +56,8 @@ public class ChannelDetector {
 		regionDetector = new TwoThresholdDetector();
 		
 		regionDataBlock = thresholdProcess.getRegionDataBlock();
+		
+		imageRangeFilter = new ImageRangeFilter();
 	}
 
 	/**
@@ -71,8 +77,14 @@ public class ChannelDetector {
 		backgroundRemoval.setTimeConstant(params.backgroundTimeConst);
 		backgroundRemoval.setRemovalScale(params.backgroundScale);
 //		backgroundRemoval.setRemovalScale(1.5); // WTF is this doing here ? Was it there for all processing ? 
-				
-		byte[] noBackground = backgroundRemoval.removeBackground(imageData, image.getnBeam(), image.getnRange(), true);
+		byte[] filteredData;
+		if (params.filterRange) {
+			filteredData = imageRangeFilter.filterImage(imageData, image.getnBeam(), image.getnRange());
+		}
+		else {
+			filteredData = imageData;
+		}
+		byte[] noBackground = backgroundRemoval.removeBackground(filteredData, image.getnBeam(), image.getnRange(), true);
 		
 		if (imageDataUnit.getTimeMilliseconds()-lastBackgroundWrite > params.backgroundIntervalSecs*1000) {
 			writeBackground(imageDataUnit, lastBackgroundWrite, imageDataUnit.getTimeMilliseconds());
@@ -81,6 +93,9 @@ public class ChannelDetector {
 		
 		thresholdDetector.notifyRawUpdate(sonarId, imageData);
 		thresholdDetector.notifyTreatedUpdate(sonarId, noBackground);
+		
+//		byte[] std = backgroundRemoval.getBackground();
+//		thresholdDetector.notifyBackgroundUpdate(sonarId, std);
 		
 		GeminiImageRecordI clonedImage = image.clone();
 		clonedImage.setImageData(noBackground);
@@ -100,6 +115,7 @@ public class ChannelDetector {
 			WarningSystem.getWarningSystem().addWarning(regionWarning);
 			return null;
 		}
+		
 				
 		/*
 		 * Filter the regions somehow ...
@@ -113,6 +129,8 @@ public class ChannelDetector {
 				it.remove();
 			}
 		}
+
+//		mergeOverlaps(regions);
 		
 		return regions;
 		/*
@@ -128,6 +146,45 @@ public class ChannelDetector {
 		
 //		System.out.printf("Detected %3d regions, retained %d on sonar %d at %s\n", nFound, regions.size(), sonarId, PamCalendar.formatDBDateTime(imageDataUnit.getTimeMilliseconds(), true));
 		
+	}
+
+	/**
+	 * Merge any overlapping regions. 
+	 * @param regions
+	 */
+	private void mergeOverlaps(ArrayList<DetectedRegion> regions) {
+		int n = regions.size();
+//		boolean[] merged = new boolean() 
+		for (int i = 0; i < n; i++) {
+			DetectedRegion r1 = regions.get(i);
+			if (r1 == null) {
+				continue;
+			}
+			for (int j = i+1; j < n; j++) {
+				DetectedRegion r2 = regions.get(j);
+				if (r2 == null) {
+					continue;
+				}
+				if (r1.overlaps(r2)) {
+//					System.out.printf("%s, Region %s overlaps %s\n", 
+//							PamCalendar.formatDBDateTime(r1.getTimeMilliseconds(), true), r1, r2);
+//					if (r2.getObjectSize() > r1.getObjectSize()) {
+////						keep the biggest. 
+//						regions.set(i,  r2);
+//						r1 = r2;
+//					}
+					r1.merge(r2);
+					regions.set(j, null);
+				}
+			}
+		}
+		Iterator<DetectedRegion> it = regions.iterator();
+		while (it.hasNext()) {
+			DetectedRegion region = it.next();
+			if (region == null) {
+				it.remove();
+			}
+		}
 	}
 
 	private void writeBackground(ImageDataUnit imageDataUnit, long lastBackgroundWrite2, long timeMilliseconds) {
@@ -175,6 +232,9 @@ public class ChannelDetector {
 	}
 
 	private boolean wantRegion(GeminiImageRecordI image, DetectedRegion region, byte[] imageData) {
+		if (region == null) {
+			return false; // case for regions that were merged into others. 
+		}
 		// get rough coordinates of the corners in x,y
 		int minPix = 10;
 		int minArea = 0;
