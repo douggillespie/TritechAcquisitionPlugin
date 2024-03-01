@@ -294,15 +294,14 @@ public class JavaFileAcquisition extends TritechDaqSystem  implements CatalogStr
 				while (System.currentTimeMillis() - t < 20000) {
 					try {
 						Thread.sleep(500);
-						continue;
 					} catch (InterruptedException e) {
 					}
 					if (PamController.getInstance().getPamStatus() == PamController.PAM_IDLE) {
-						// not fully stopped, so wait half a second. 
 						break;
 					}
+//					System.out.println("Current PAMGuard status is still  " + PamController.getInstance().getPamStatus());
 				}
-				System.out.printf("Tritch Acquisition issue restart after %dms wait\n", System.currentTimeMillis() - t);
+				System.out.printf("Tritch Acquisition issue restart after %dms\n", System.currentTimeMillis() - t);
 				PamController.getInstance().startLater();
 			}
 		};
