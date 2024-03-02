@@ -21,6 +21,7 @@ import PamView.symbol.PamSymbolChooser;
 import PamguardMVC.PamDataUnit;
 import tritechgemini.detect.DetectedRegion;
 import tritechplugins.detect.threshold.RegionDataUnit;
+import tritechplugins.detect.track.TrackLinkDataUnit;
 import tritechplugins.display.swing.SonarRThiProjector;
 import tritechplugins.display.swing.overlays.SonarSymbolChooser;
 import tritechplugins.display.swing.overlays.SonarSymbolOptions;
@@ -33,6 +34,8 @@ import tritechplugins.display.swing.overlays.SonarSymbolOptions;
 public class RegionOverlayDraw extends PanelOverlayDraw {
 
 	public static PamSymbol defaultSymbol = new PamSymbol(PamSymbolType.SYMBOL_CROSS, 2, 2, false, Color.BLUE, Color.BLUE);
+	
+	private Color highlightCol = Color.YELLOW;
 	
 	public RegionOverlayDraw() {
 		super(defaultSymbol);
@@ -54,6 +57,7 @@ public class RegionOverlayDraw extends PanelOverlayDraw {
 		else {
 			symbolOptions = new SonarSymbolOptions();
 		}
+		
 		boolean useRThi = false;
 		if (generalProjector.getClass() == SonarRThiProjector.class) {
 			useRThi = true;
@@ -129,7 +133,22 @@ public class RegionOverlayDraw extends PanelOverlayDraw {
 		
 		PamSymbol symbol = getPamSymbol(regionDataUnit, generalProjector);
 		Graphics2D g2d = (Graphics2D) g;
-		g2d.setStroke(new BasicStroke(2));
+		g2d.setStroke(new BasicStroke(symbol.getLineThickness()));
+		boolean highlight = false;
+		// try to work out if it's a clicked on track, in which case we'll colour it differently. 
+		if (generalProjector instanceof SonarRThiProjector) {
+			SonarRThiProjector rtProj = (SonarRThiProjector) generalProjector;
+			TrackLinkDataUnit clickedTrack = rtProj.getSonarImagePanel().getClickedOnTrack();
+			if (clickedTrack != null && regionDataUnit.getSuperDetection(TrackLinkDataUnit.class)== clickedTrack) {
+				highlight = true;
+			}
+		}
+		if (highlight) {
+			symbol = symbol.clone();
+			symbol.setFillColor(highlightCol);
+			symbol.setLineColor(highlightCol);
+//			g2d.setStroke(new BasicStroke(symbol.getLineThickness()+1));
+		}
 		
 //		if it's tiny,  plot the symbol
 		if (maxx-minx <= 2 || maxy-miny <=2) {

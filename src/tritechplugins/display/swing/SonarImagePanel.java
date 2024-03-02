@@ -148,6 +148,8 @@ public class SonarImagePanel extends JPanel {
 	public long lastEscape;
 	
 	private PersistentFanImageMaker persistentFanMaker;
+
+	private TrackLinkDataUnit lastHighlightTrack;
 	
 	public SonarImagePanel(SonarsPanel sonarsPanel, int panelIndex) {
 		this.panelIndex = panelIndex;
@@ -159,7 +161,7 @@ public class SonarImagePanel extends JPanel {
 		imageFanMaker = new FanPicksFromData(4);
 		persistentFanMaker = new PersistentFanImageMaker();
 //		xyProjector = new SonarXYProjector(sonarsPanel, sonarId, sonarId);
-		xyProjector = new SonarRThiProjector(sonarsPanel, sonarId, sonarId);
+		xyProjector = new SonarRThiProjector(sonarsPanel, this, sonarId, sonarId);
 		
 		externalMouseHandler = new ExtMapMouseHandler(PamController.getMainFrame(), false);
 		sonarPanelMarker = new SonarsPanelMarker(sonarsPanel, xyProjector, panelIndex);
@@ -420,15 +422,28 @@ public class SonarImagePanel extends JPanel {
 		}
 //		System.out.printf("Paint tail from %s to %s\n", PamCalendar.formatDBDateTime(tailStart), PamCalendar.formatDBDateTime(tailEnd));
 		boolean drawSpecial = overlayDraw.canDraw(xyProjector) == false;
+		ArrayList<PamDataUnit> laterList = new ArrayList();
 		for (PamDataUnit aUnit : dataCopy) {
+			if (aUnit.getTimeMilliseconds() < tailStart || aUnit.getTimeMilliseconds() > tailEnd) {
+				continue;
+			}
 			if (aUnit instanceof RegionDataUnit) {
 				if (((RegionDataUnit) aUnit).getSonarId() != sonarId) {
 					continue;
 				}
+				if (clickedOnTrack != null && aUnit.getSuperDetection(TrackLinkDataUnit.class) == clickedOnTrack) {
+					laterList.add(aUnit);
+					continue;
+				}
 			}
-			if (aUnit.getTimeMilliseconds() < tailStart || aUnit.getTimeMilliseconds() > tailEnd) {
-				continue;
+			if (drawSpecial) {
+				drawHere(g, overlayDraw, aUnit, xyProjector);
 			}
+			else {
+				overlayDraw.drawDataUnit(g, aUnit, xyProjector);
+			}
+		}
+		for (PamDataUnit aUnit : laterList) {
 			if (drawSpecial) {
 				drawHere(g, overlayDraw, aUnit, xyProjector);
 			}
@@ -645,6 +660,10 @@ public class SonarImagePanel extends JPanel {
 			return true;
 		}
 		if (overlayImage.getWidth() != getWidth() || overlayImage.getHeight() != getHeight()) {
+			return true;
+		}
+		if (lastHighlightTrack != clickedOnTrack) {
+			lastHighlightTrack = clickedOnTrack;
 			return true;
 		}
 		return false;
@@ -1099,6 +1118,7 @@ public class SonarImagePanel extends JPanel {
 			if (externalMouseHandler.mouseClicked(e)) {
 				return;
 			}
+			TrackLinkDataUnit oldClickedOn = clickedOnTrack;
 			clickedOnTrack = null;
 			try {
 				int dataUnitInd = xyProjector.findClosestDataUnitIndex(new Coordinate3d(e.getX(), e.getY(), 0));
@@ -1110,6 +1130,9 @@ public class SonarImagePanel extends JPanel {
 			}
 			catch (Exception exp) {
 				
+			}
+			if (oldClickedOn != clickedOnTrack) {
+				repaint();
 			}
 //			sonarsPanel.get
 			
@@ -1309,5 +1332,13 @@ public class SonarImagePanel extends JPanel {
 	 */
 	public SonarXYProjector getXyProjector() {
 		return xyProjector;
+	}
+
+
+	/**
+	 * @return the clickedOnTrack
+	 */
+	public TrackLinkDataUnit getClickedOnTrack() {
+		return clickedOnTrack;
 	}
 }

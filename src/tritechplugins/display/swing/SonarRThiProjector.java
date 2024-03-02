@@ -8,8 +8,11 @@ public class SonarRThiProjector extends SonarXYProjector {
 
 	public static final ParameterType[] requiredParams = SonarOverlayManager.paramTypes;
 	
-	public SonarRThiProjector(SonarsPanel sonarsPanel, int imageIndex, int sonarID) {
+	private SonarImagePanel sonarImagePanel;
+	
+	public SonarRThiProjector(SonarsPanel sonarsPanel, SonarImagePanel sonarImagePanel, int imageIndex, int sonarID) {
 		super(sonarsPanel, imageIndex, sonarID);
+		this.sonarImagePanel = sonarImagePanel;
 		for (int i = 0; i < requiredParams.length; i++) {
 			setParmeterType(i, requiredParams[i]);
 		}
@@ -39,6 +42,13 @@ public class SonarRThiProjector extends SonarXYProjector {
 	@Override
 	public ParameterType[] getParameterTypes() {
 		return requiredParams;
+	}
+
+	/**
+	 * @return the sonarImagePanel
+	 */
+	public SonarImagePanel getSonarImagePanel() {
+		return sonarImagePanel;
 	}
 
 }
