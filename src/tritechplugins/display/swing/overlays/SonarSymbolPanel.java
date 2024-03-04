@@ -59,7 +59,7 @@ public class SonarSymbolPanel extends StandardSymbolOptionsPanel {
 		if (sonarSymbolChooser == null) {
 			return;
 		}
-		SonarSymbolOptions params = sonarSymbolChooser.getSymbolOptions();
+		SonarSymbolOptions params = (SonarSymbolOptions) sonarSymbolChooser.getSymbolOptions();
 		int[] types = SonarSymbolOptions.getSymbolTypes();
 		for (int i = 0; i < types.length; i++) {
 			symbolTypes[i].setSelected(types[i] == params.symbolType);
@@ -72,7 +72,7 @@ public class SonarSymbolPanel extends StandardSymbolOptionsPanel {
 		
 		boolean ok = super.getParams();
 		
-		SonarSymbolOptions params = sonarSymbolChooser.getSymbolOptions();
+		SonarSymbolOptions params = (SonarSymbolOptions) sonarSymbolChooser.getSymbolOptions();
 		int[] types = SonarSymbolOptions.getSymbolTypes();
 		for (int i = 0; i < types.length; i++) {
 			if (symbolTypes[i].isSelected()) {

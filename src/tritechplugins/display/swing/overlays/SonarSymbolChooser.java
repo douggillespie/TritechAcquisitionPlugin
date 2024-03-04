@@ -1,11 +1,15 @@
 package tritechplugins.display.swing.overlays;
 
+import java.util.ArrayList;
+
 import PamView.GeneralProjector;
 import PamView.symbol.PamSymbolOptions;
 import PamView.symbol.StandardSymbolChooser;
+import PamView.symbol.StandardSymbolOptions;
 import PamView.symbol.SwingSymbolOptionsPanel;
 import PamView.symbol.SymbolData;
 import PamView.symbol.modifier.SymbolModType;
+import PamView.symbol.modifier.SymbolModifier;
 import PamguardMVC.PamDataBlock;
 import PamguardMVC.PamDataUnit;
 
@@ -21,9 +25,15 @@ public class SonarSymbolChooser extends StandardSymbolChooser{
 
 	@Override
 	public SonarSymbolOptions getSymbolOptions() {
-		if (sonarSymbolOptions == null) {
-			sonarSymbolOptions = new SonarSymbolOptions();
+//		if (sonarSymbolOptions == null) {
+//			sonarSymbolOptions = new SonarSymbolOptions();
+//		}
+		ArrayList<SymbolModifier> modifiers = getSymbolModifiers();
+		for (SymbolModifier symbolModifier: modifiers) {
+			sonarSymbolOptions.setModifierParams(symbolModifier.getName(), symbolModifier.getSymbolModifierParams());
 		}
+//		super.setSymbolOptions(sonarSymbolOptions);
+//		StandardSymbolOptions symbOpts = super.getSymbolOptions();
 		return sonarSymbolOptions;
 	}
 
@@ -31,6 +41,7 @@ public class SonarSymbolChooser extends StandardSymbolChooser{
 	public void setSymbolOptions(PamSymbolOptions symbolOptions) {
 		if (symbolOptions instanceof SonarSymbolOptions) {
 			sonarSymbolOptions = (SonarSymbolOptions) symbolOptions;
+			super.setSymbolOptions(symbolOptions);
 		}
 	}
 
