@@ -4,6 +4,7 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Window;
 
+import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -16,7 +17,7 @@ import PamView.dialog.PamDialogPanel;
 import PamView.dialog.PamGridBagContraints;
 import PamView.dialog.SourcePanel;
 import PamguardMVC.PamDataBlock;
-import tritechgemini.detect.RegionDetector;
+import tritechgemini.detect.TwoThresholdDetector;
 import tritechplugins.acquire.ImageDataUnit;
 import tritechplugins.detect.threshold.RegionDataUnit;
 import tritechplugins.detect.threshold.ThresholdDetector;
@@ -58,6 +59,8 @@ public class ThresholdDialog extends PamDialog {
 	private JTextField minLength, minStraightLength;
 	
 	private PamDialogPanel vetoPanel;
+	
+	private JCheckBox filterRange;
 
 
 	private ThresholdDialog(Window parentFrame, ThresholdDetector thresholdDetector) {
@@ -73,6 +76,9 @@ public class ThresholdDialog extends PamDialog {
 		minObjectSize = new JTextField(3);
 		maxObjectSize = new JTextField(3);
 		connectionType = new JComboBox<String>();
+		filterRange = new JCheckBox();
+		
+		filterRange.setToolTipText("Run a simple 3 tap filter over range at each bearing");
 
 		JPanel thresholdPanel = new JPanel(new GridBagLayout());
 		thresholdPanel.setBorder(new TitledBorder("Threshold detector"));
@@ -84,6 +90,16 @@ public class ThresholdDialog extends PamDialog {
 		thresholdPanel.add(sourcePanel.getPanel(), c);
 		c.gridwidth = 1;
 		
+		c.gridy++;
+		c.gridx = 0;
+		c.gridwidth = 1;
+		thresholdPanel.add(new JLabel("Filter data over range ", JLabel.RIGHT), c);
+		c.gridx++;
+		c.gridwidth = 2;
+		thresholdPanel.add(filterRange, c);
+		c.gridx+=c.gridwidth;
+		thresholdPanel.add(new JLabel(" bins ", JLabel.LEFT), c);
+
 		c.gridy++;
 		c.gridx = 0;
 		c.gridwidth = 1;
@@ -144,7 +160,7 @@ public class ThresholdDialog extends PamDialog {
 		c.gridwidth = 3;
 		thresholdPanel.add(connectionType, c);
 		
-		int[] conTypes = RegionDetector.getConnectionTypes();
+		int[] conTypes = TwoThresholdDetector.getConnectionTypes();
 		for (int i = 0; i < conTypes.length; i++) {
 			connectionType.addItem(String.format("Connect %d", conTypes[i]));
 		}
@@ -227,6 +243,7 @@ public class ThresholdDialog extends PamDialog {
 	private void setParams(ThresholdParams thresholdParams) {
 		this.thresholdParams = thresholdParams;
 		sourcePanel.setSource(thresholdParams.imageDataSource);
+		filterRange.setSelected(thresholdParams.filterRange);
 		backgroundTime.setText(String.format("%d", thresholdParams.backgroundTimeConst));
 		backgroundScale.setText(String.format("%3.2f", thresholdParams.backgroundScale));
 		backgroundRecordS.setText(String.format("%d", thresholdParams.backgroundIntervalSecs));
@@ -235,7 +252,7 @@ public class ThresholdDialog extends PamDialog {
 		minObjectSize.setText(String.format("%3.1f", thresholdParams.minSize));
 		maxObjectSize.setText(String.format("%3.1f", thresholdParams.maxSize));
 
-		int[] conTypes = RegionDetector.getConnectionTypes();
+		int[] conTypes = TwoThresholdDetector.getConnectionTypes();
 		for (int i = 0; i < conTypes.length; i++) {
 			if (thresholdParams.connectionType == conTypes[i]) {
 				connectionType.setSelectedIndex(i);
@@ -260,6 +277,7 @@ public class ThresholdDialog extends PamDialog {
 			return showWarning("No selected data source");
 		}
 		thresholdParams.imageDataSource = imSource.getLongDataName();
+		thresholdParams.filterRange = filterRange.isSelected();
 		try {
 			thresholdParams.backgroundTimeConst = Integer.valueOf(backgroundTime.getText());
 			thresholdParams.backgroundIntervalSecs = Integer.valueOf(backgroundRecordS.getText());

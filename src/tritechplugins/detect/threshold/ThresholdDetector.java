@@ -182,9 +182,15 @@ public class ThresholdDetector extends PamControlledUnit implements PamSettings 
 			obs.newRawData(sonarId, data);
 		}
 	}
+	
 	public void notifyTreatedUpdate(int sonarId, byte[] data) {
 		for (ThresholdObserver obs : thresholdObservers) {
 			obs.newTreatedData(sonarId, data);
+		}
+	}
+	public void notifyBackgroundUpdate(int sonarId, byte[] data) {
+		for (ThresholdObserver obs : thresholdObservers) {
+			obs.newBackgroundData(sonarId, data);
 		}
 	}
 

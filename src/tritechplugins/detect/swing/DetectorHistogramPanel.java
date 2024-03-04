@@ -117,5 +117,12 @@ public class DetectorHistogramPanel implements UserDisplayComponent, ThresholdOb
 		histoPlot.setData(dataName, data);
 		
 	}
+	@Override
+	public void newBackgroundData(int sonarId, byte[] data) {
+		ThresholdHistrogramPlot histoPlot = findHistogramPlot(sonarId);
+		String dataName = String.format("Sonar %d background", sonarId);
+		histoPlot.setData(dataName, data);
+		
+	}
 
 }

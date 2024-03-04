@@ -153,4 +153,11 @@ public class SonarXYProjector extends GeneralProjector {
 		return sonarZoomTransform;
 	}
 
+	/**
+	 * @return the sonarsPanel
+	 */
+	public SonarsPanel getSonarsPanel() {
+		return sonarsPanel;
+	}
+
 }

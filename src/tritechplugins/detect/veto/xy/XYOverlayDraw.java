@@ -37,8 +37,13 @@ public class XYOverlayDraw extends PanelOverlayDraw {
 		XYVeto xyVeto = (XYVeto) spatialVeto;
 		XYVetoParams params = xyVeto.getParams();
 		SonarXYProjector sonarProjector = (SonarXYProjector) generalProjector;
-		Coordinate3d topLeft = sonarProjector.getCoord3d(params.xMin, params.yMax, false);
-		Coordinate3d botRight = sonarProjector.getCoord3d(params.xMax, params.yMin, false);
+		double tlAng = -Math.atan2(params.xMin, params.yMax);
+		double tlR = Math.sqrt(params.xMin*params.xMin + params.yMax*params.yMax);
+		double brAng = -Math.atan2(params.xMax, params.yMin);
+		double brR = Math.sqrt(params.xMax*params.xMax + params.yMin*params.yMin);
+		
+		Coordinate3d topLeft = sonarProjector.getCoord3d(tlR, tlAng, false);
+		Coordinate3d botRight = sonarProjector.getCoord3d(brR, brAng, false);
 		int np = 4;
 		int[] x = {(int) topLeft.x, (int) topLeft.x, (int) botRight.x, (int) botRight.x};
 		int[] y = {(int) topLeft.y, (int) botRight.y, (int) botRight.y, (int) topLeft.y};

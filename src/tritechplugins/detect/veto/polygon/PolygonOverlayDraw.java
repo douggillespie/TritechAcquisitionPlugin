@@ -1,7 +1,9 @@
 package tritechplugins.detect.veto.polygon;
 
+import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Rectangle;
+import java.util.Arrays;
 
 import PamUtils.Coordinate3d;
 import PamView.GeneralProjector;
@@ -14,6 +16,7 @@ import PamguardMVC.PamDataUnit;
 import tritechplugins.detect.veto.SpatialVeto;
 import tritechplugins.detect.veto.SpatialVetoDataUnit;
 import tritechplugins.detect.veto.circle.CircleVeto;
+import tritechplugins.display.swing.SonarRThiProjector;
 import tritechplugins.display.swing.SonarXYProjector;
 
 public class PolygonOverlayDraw extends PanelOverlayDraw {
@@ -37,15 +40,23 @@ public class PolygonOverlayDraw extends PanelOverlayDraw {
 		if (n == 0) {
 			return null;
 		}
+		// sonar projector has been converted to r/phi. 
 		int[] xx = new int[n];
 		int[] yy = new int[n];
 		double[] x = params.getX();
 		double[] y = params.getY();
 		for (int i = 0; i < n; i++) {
-			Coordinate3d coord = sonarProjector.getCoord3d(x[i], y[i], false);
+			double p1 = x[i];
+			double p2 = y[i];
+			if (generalProjector instanceof SonarRThiProjector) {
+				p1 = Math.sqrt(x[i]*x[i] + y[i]*y[i]);
+				p2 = -Math.atan2(x[i], y[i]);
+			}
+			Coordinate3d coord = sonarProjector.getCoord3d(p1, p2, false);
 			xx[i] = (int) coord.x;
 			yy[i] = (int) coord.y;
 		}
+		Rectangle clipRect = g.getClipBounds();
 		g.drawPolygon(xx, yy, n);
 		
 		

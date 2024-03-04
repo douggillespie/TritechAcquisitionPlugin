@@ -21,6 +21,7 @@ import PamView.symbol.PamSymbolChooser;
 import PamguardMVC.PamDataUnit;
 import tritechgemini.detect.DetectedRegion;
 import tritechplugins.detect.threshold.RegionDataUnit;
+import tritechplugins.detect.track.TrackLinkDataUnit;
 import tritechplugins.display.swing.SonarRThiProjector;
 import tritechplugins.display.swing.overlays.SonarSymbolChooser;
 import tritechplugins.display.swing.overlays.SonarSymbolOptions;
@@ -33,6 +34,8 @@ import tritechplugins.display.swing.overlays.SonarSymbolOptions;
 public class RegionOverlayDraw extends PanelOverlayDraw {
 
 	public static PamSymbol defaultSymbol = new PamSymbol(PamSymbolType.SYMBOL_CROSS, 2, 2, false, Color.BLUE, Color.BLUE);
+	
+	private Color highlightCol = Color.YELLOW;
 	
 	public RegionOverlayDraw() {
 		super(defaultSymbol);
@@ -54,6 +57,7 @@ public class RegionOverlayDraw extends PanelOverlayDraw {
 		else {
 			symbolOptions = new SonarSymbolOptions();
 		}
+		
 		boolean useRThi = false;
 		if (generalProjector.getClass() == SonarRThiProjector.class) {
 			useRThi = true;
@@ -77,11 +81,8 @@ public class RegionOverlayDraw extends PanelOverlayDraw {
 		// above not yest stored in database 
 		double ang = (region.getMaxBearing()+region.getMinBearing())/2.;
 		double range = (region.getMinRange()+region.getMaxRange())/2.;
-				
-		double x = -range*Math.sin(ang);
-		double y = range*Math.cos(ang);
-		
-		Coordinate3d pos = generalProjector.getCoord3d(x,  y,  0);
+						
+		Coordinate3d pos = generalProjector.getCoord3d(range, ang,  0);
 		if (pos == null) {
 			return null;
 		}
@@ -94,7 +95,7 @@ public class RegionOverlayDraw extends PanelOverlayDraw {
 	}
 
 	public Rectangle drawRThiBox(Graphics g, RegionDataUnit regionDataUnit, GeneralProjector generalProjector) {
-DetectedRegion region = regionDataUnit.getRegion();
+		DetectedRegion region = regionDataUnit.getRegion();
 		
 		double maxAng = region.getMaxBearing();
 		double minAng = region.getMinBearing();
@@ -132,12 +133,29 @@ DetectedRegion region = regionDataUnit.getRegion();
 		
 		PamSymbol symbol = getPamSymbol(regionDataUnit, generalProjector);
 		Graphics2D g2d = (Graphics2D) g;
-		g2d.setStroke(new BasicStroke(2));
+		g2d.setStroke(new BasicStroke(symbol.getLineThickness()));
+		boolean highlight = false;
+		// try to work out if it's a clicked on track, in which case we'll colour it differently. 
+		if (generalProjector instanceof SonarRThiProjector) {
+			SonarRThiProjector rtProj = (SonarRThiProjector) generalProjector;
+			TrackLinkDataUnit clickedTrack = rtProj.getSonarImagePanel().getClickedOnTrack();
+			if (clickedTrack != null && regionDataUnit.getSuperDetection(TrackLinkDataUnit.class)== clickedTrack) {
+				highlight = true;
+			}
+		}
+		if (highlight) {
+			symbol = symbol.clone();
+			symbol.setFillColor(highlightCol);
+			symbol.setLineColor(highlightCol);
+//			g2d.setStroke(new BasicStroke(symbol.getLineThickness()+1));
+		}
 		
 //		if it's tiny,  plot the symbol
 		if (maxx-minx <= 2 || maxy-miny <=2) {
 			symbol.draw(g, new Point((minx+maxx)/2, (miny+maxy)/2));
 		}
+
+		Rectangle clipRect = g.getClipBounds();
 		
 		if (symbol != null && symbol.isFill()) {
 			g.setColor(symbol.getFillColor());
@@ -147,6 +165,9 @@ DetectedRegion region = regionDataUnit.getRegion();
 			g.setColor(symbol.getLineColor());
 		}
 		g.drawPolygon(xp, yp, 4);
+//		for (int i = 0; i < xp.length; i++) {
+//			g.drawLine(0, 0, xp[i], yp[i]);
+//		}
 		
 		Shape shape = new Polygon(xp, yp, 4);
 		
@@ -224,7 +245,8 @@ DetectedRegion region = regionDataUnit.getRegion();
 				return true;
 			}
 			if (parameterTypes.length >= 2) {
-				return parameterTypes[0] == ParameterType.X && parameterTypes[1] == ParameterType.Y;
+				return (parameterTypes[0] == ParameterType.RANGE && parameterTypes[1] == ParameterType.BEARING)
+				|| (parameterTypes[0] == ParameterType.X && parameterTypes[1] == ParameterType.Y);
 			}
 		}
 		catch (Exception e) {

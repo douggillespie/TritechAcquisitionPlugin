@@ -1,6 +1,7 @@
 package tritechplugins.display.swing;
 
 import java.awt.BorderLayout;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
@@ -103,9 +104,9 @@ public class SonarsOuterPanel implements ConfigurationObserver {
 					viewerSlider.addDataBlock(aBlock);
 				}
 			}
-			PamDataBlock trackBlocks = PamController.getInstance().getDataBlock(TrackLinkDataUnit.class, 0);
-			if (trackBlocks != null) {
-				viewerSlider.addDataBlock(trackBlocks);
+			ArrayList<PamDataBlock> trackBlocks = PamController.getInstance().getDataBlocks(TrackLinkDataUnit.class, false);
+			for (PamDataBlock aBlock : trackBlocks) {
+				viewerSlider.addDataBlock(aBlock);
 			}
 		}
 		

@@ -167,9 +167,17 @@ public class TritechDaqProcess extends PamProcess implements TritechRunMode {
 		}
 		
 		sortDaqSystem();
+		TritechDaqParams params = tritechAcquisition.getDaqParams();
+		boolean realTime =  (params.getRunMode() == TritechDaqParams.RUN_ACQUIRE);
 		if (tritechDaqSystem != null) {
 			tritechDaqSystem.prepareProcess();
-			if (PamController.getInstance().getPamStatus() == PamController.PAM_RUNNING) {
+			/*
+			 * If it's a real time system then start immediately so that the sonar
+			 * shows on the display. 
+			 * however, DON't do this when processing files or it reads every 
+			 * file twice (which is annoying!)
+			 */
+			if (PamController.getInstance().getPamStatus() == PamController.PAM_RUNNING  & realTime) {
 				tritechDaqSystem.start();
 			}
 		}
@@ -177,7 +185,7 @@ public class TritechDaqProcess extends PamProcess implements TritechRunMode {
 
 	@Override
 	public void pamStart() {
-		shouldLogGLF = true;
+		shouldLogGLF = tritechAcquisition.getDaqParams().getRunMode() == TritechDaqParams.RUN_ACQUIRE;
 		if (tritechDaqSystem != null) {
 			tritechDaqSystem.start();
 		}
@@ -379,8 +387,13 @@ public class TritechDaqProcess extends PamProcess implements TritechRunMode {
 		
 		boolean logErr = (lastFileInfo == null || System.currentTimeMillis() - lastFileInfo.getCreationTime() > 5000);
 		if (logErr) {
-			long dt = (System.currentTimeMillis() - lastFileInfo.getCreationTime())/1000;
-			System.out.printf("Log file info has no tupdated for %d seconds: %s\n", dt, lastFileInfo);
+			if (lastFileInfo == null) {
+//				if (get)
+			}
+			else {
+				long dt = (System.currentTimeMillis() - lastFileInfo.getCreationTime())/1000;
+				System.out.printf("Log file info has not updated for %d seconds: %s\n", dt, lastFileInfo);
+			}
 		}
 	}
 	

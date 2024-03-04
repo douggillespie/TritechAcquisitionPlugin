@@ -5,6 +5,7 @@ import PamguardMVC.PamDataUnit;
 import PamguardMVC.dataSelector.DataSelectParams;
 import PamguardMVC.dataSelector.DataSelector;
 import pamViewFX.fxSettingsPanes.DynamicSettingsPane;
+import tritechgemini.detect.DetectedRegion;
 import tritechplugins.detect.threshold.RegionDataBlock;
 import tritechplugins.detect.threshold.RegionDataUnit;
 
@@ -24,7 +25,7 @@ public class RegionDataSelector extends DataSelector {
 	}
 
 	@Override
-	public DataSelectParams getParams() {
+	public RegionDataSelectorParams getParams() {
 		if (regionDataSelectorParams == null) {
 			regionDataSelectorParams = new RegionDataSelectorParams();
 		}
@@ -44,8 +45,19 @@ public class RegionDataSelector extends DataSelector {
 
 	@Override
 	public double scoreData(PamDataUnit pamDataUnit) {
+		getParams();
 		RegionDataUnit regionDataUnit = (RegionDataUnit) pamDataUnit;
-		return 1.;
+		DetectedRegion region = regionDataUnit.getRegion();
+		if (region.getObjectSize() < regionDataSelectorParams.minSize) {
+			return 0;
+		}
+		if (region.getObjectSize() > regionDataSelectorParams.maxSize) {
+			return 0;
+		}
+		if (region.getOccupancy() < regionDataSelectorParams.minOccupancy) {
+			return 0;
+		}
+		return 1;
 	}
 
 	/**

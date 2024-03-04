@@ -2,13 +2,20 @@ package tritechplugins.display.swing;
 
 import PamUtils.Coordinate3d;
 import PamUtils.PamCoordinate;
+import tritechplugins.display.swing.overlays.SonarOverlayManager;
 
 public class SonarRThiProjector extends SonarXYProjector {
 
-	public static final ParameterType[] requiredParams = {ParameterType.BEARING, ParameterType.RANGE};
+	public static final ParameterType[] requiredParams = SonarOverlayManager.paramTypes;
 	
-	public SonarRThiProjector(SonarsPanel sonarsPanel, int imageIndex, int sonarID) {
+	private SonarImagePanel sonarImagePanel;
+	
+	public SonarRThiProjector(SonarsPanel sonarsPanel, SonarImagePanel sonarImagePanel, int imageIndex, int sonarID) {
 		super(sonarsPanel, imageIndex, sonarID);
+		this.sonarImagePanel = sonarImagePanel;
+		for (int i = 0; i < requiredParams.length; i++) {
+			setParmeterType(i, requiredParams[i]);
+		}
 	}
 
 	@Override
@@ -35,6 +42,13 @@ public class SonarRThiProjector extends SonarXYProjector {
 	@Override
 	public ParameterType[] getParameterTypes() {
 		return requiredParams;
+	}
+
+	/**
+	 * @return the sonarImagePanel
+	 */
+	public SonarImagePanel getSonarImagePanel() {
+		return sonarImagePanel;
 	}
 
 }

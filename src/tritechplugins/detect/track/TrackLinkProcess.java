@@ -74,11 +74,13 @@ public class TrackLinkProcess extends PamProcess implements PamSettings {
 //	private ManualAnnotationHandler annotationHandler;
 
 	private TrackLogging trackLogging;
+	
+	private static final String defaultName = "Gemini Tracks";
 
 	public TrackLinkProcess(ThresholdDetector thresholdDetector, ThresholdProcess thresholdProcess) {
 		super(thresholdDetector, null);
 		this.thresholdDetector = thresholdDetector;
-		trackLinkDataBlock = new TrackLinkDataBlock("Gemini Tracks", this);
+		trackLinkDataBlock = new TrackLinkDataBlock(getDataName(), this);
 		trackLogging = new TrackLogging(thresholdDetector, trackLinkDataBlock, true);
 		trackLogging.setSubLogging(thresholdProcess.getRegionLogging());
 		trackLinkDataBlock.SetLogging(trackLogging);
@@ -91,6 +93,15 @@ public class TrackLinkProcess extends PamProcess implements PamSettings {
 		addOutputDataBlock(trackLinkDataBlock);
 		
 		PamSettingManager.getInstance().registerSettings(this);
+	}
+	
+	/**
+	 *  wee bit of a mess since in V1 this was called "Gemini Tracks" but we need 
+	 *  a more uniquename I think ? 
+	 * @return more sensible name ? 
+	 */
+	private String getDataName() {
+		return defaultName;
 	}
 
 	@Override

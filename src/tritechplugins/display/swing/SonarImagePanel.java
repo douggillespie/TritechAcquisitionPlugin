@@ -43,7 +43,9 @@ import PamUtils.LatLong;
 import PamUtils.PamCalendar;
 import PamUtils.PamUtils;
 import PamUtils.time.CalendarControl;
+import PamView.GeneralProjector;
 import PamView.GeneralProjector.ParameterType;
+import PamView.HoverData;
 import PamView.PamColors.PamColor;
 import PamView.PamSymbol;
 import PamView.PamColors;
@@ -71,6 +73,8 @@ import tritechgemini.imagedata.ImageFanMaker;
 import tritechplugins.acquire.TritechAcquisition;
 import tritechplugins.acquire.offline.TritechOffline;
 import tritechplugins.detect.threshold.RegionDataUnit;
+import tritechplugins.detect.track.TrackLinkDataBlock;
+import tritechplugins.detect.track.TrackLinkDataUnit;
 import tritechplugins.detect.veto.SpatialVetoDataBlock;
 import tritechplugins.display.swing.overlays.SonarOverlayData;
 import warnings.PamWarning;
@@ -129,6 +133,8 @@ public class SonarImagePanel extends JPanel {
 	
 	private BufferedImage toolTipImage;
 	
+	private TrackLinkDataUnit clickedOnTrack;
+	
 	/**
 	 * Overlay image which get's used when all data are displayed 
 	 */
@@ -142,6 +148,8 @@ public class SonarImagePanel extends JPanel {
 	public long lastEscape;
 	
 	private PersistentFanImageMaker persistentFanMaker;
+
+	private TrackLinkDataUnit lastHighlightTrack;
 	
 	public SonarImagePanel(SonarsPanel sonarsPanel, int panelIndex) {
 		this.panelIndex = panelIndex;
@@ -153,7 +161,7 @@ public class SonarImagePanel extends JPanel {
 		imageFanMaker = new FanPicksFromData(4);
 		persistentFanMaker = new PersistentFanImageMaker();
 //		xyProjector = new SonarXYProjector(sonarsPanel, sonarId, sonarId);
-		xyProjector = new SonarRThiProjector(sonarsPanel, sonarId, sonarId);
+		xyProjector = new SonarRThiProjector(sonarsPanel, this, sonarId, sonarId);
 		
 		externalMouseHandler = new ExtMapMouseHandler(PamController.getMainFrame(), false);
 		sonarPanelMarker = new SonarsPanelMarker(sonarsPanel, xyProjector, panelIndex);
@@ -414,15 +422,28 @@ public class SonarImagePanel extends JPanel {
 		}
 //		System.out.printf("Paint tail from %s to %s\n", PamCalendar.formatDBDateTime(tailStart), PamCalendar.formatDBDateTime(tailEnd));
 		boolean drawSpecial = overlayDraw.canDraw(xyProjector) == false;
+		ArrayList<PamDataUnit> laterList = new ArrayList();
 		for (PamDataUnit aUnit : dataCopy) {
+			if (aUnit.getTimeMilliseconds() < tailStart || aUnit.getTimeMilliseconds() > tailEnd) {
+				continue;
+			}
 			if (aUnit instanceof RegionDataUnit) {
 				if (((RegionDataUnit) aUnit).getSonarId() != sonarId) {
 					continue;
 				}
+				if (clickedOnTrack != null && aUnit.getSuperDetection(TrackLinkDataUnit.class) == clickedOnTrack) {
+					laterList.add(aUnit);
+					continue;
+				}
 			}
-			if (aUnit.getTimeMilliseconds() < tailStart || aUnit.getTimeMilliseconds() > tailEnd) {
-				continue;
+			if (drawSpecial) {
+				drawHere(g, overlayDraw, aUnit, xyProjector);
 			}
+			else {
+				overlayDraw.drawDataUnit(g, aUnit, xyProjector);
+			}
+		}
+		for (PamDataUnit aUnit : laterList) {
 			if (drawSpecial) {
 				drawHere(g, overlayDraw, aUnit, xyProjector);
 			}
@@ -639,6 +660,10 @@ public class SonarImagePanel extends JPanel {
 			return true;
 		}
 		if (overlayImage.getWidth() != getWidth() || overlayImage.getHeight() != getHeight()) {
+			return true;
+		}
+		if (lastHighlightTrack != clickedOnTrack) {
+			lastHighlightTrack = clickedOnTrack;
 			return true;
 		}
 		return false;
@@ -1093,6 +1118,24 @@ public class SonarImagePanel extends JPanel {
 			if (externalMouseHandler.mouseClicked(e)) {
 				return;
 			}
+			TrackLinkDataUnit oldClickedOn = clickedOnTrack;
+			clickedOnTrack = null;
+			try {
+				int dataUnitInd = xyProjector.findClosestDataUnitIndex(new Coordinate3d(e.getX(), e.getY(), 0));
+				if (dataUnitInd >= 0) {
+					HoverData hoverData = (HoverData) xyProjector.getHoverDataList().get(dataUnitInd);
+					PamDataUnit dataUnit = hoverData.getDataUnit();
+					clickedOnTrack = (TrackLinkDataUnit) dataUnit.getSuperDetection(TrackLinkDataUnit.class);
+				}
+			}
+			catch (Exception exp) {
+				
+			}
+			if (oldClickedOn != clickedOnTrack) {
+				repaint();
+			}
+//			sonarsPanel.get
+			
 		}
 
 		@Override
@@ -1289,5 +1332,13 @@ public class SonarImagePanel extends JPanel {
 	 */
 	public SonarXYProjector getXyProjector() {
 		return xyProjector;
+	}
+
+
+	/**
+	 * @return the clickedOnTrack
+	 */
+	public TrackLinkDataUnit getClickedOnTrack() {
+		return clickedOnTrack;
 	}
 }
