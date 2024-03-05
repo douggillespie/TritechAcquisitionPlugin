@@ -92,7 +92,7 @@ public class TritechDetectPlugin implements PamPluginInterface {
 
 	@Override
 	public int getMaxNumber() {
-		return 1;
+		return 0;
 	}
 
 	@Override

@@ -1,11 +1,13 @@
 package tritechplugins.acquire;
 
+import java.util.ArrayList;
 import java.util.ListIterator;
 
 import PamguardMVC.PamDataBlock;
 import PamguardMVC.PamProcess;
 import PamguardMVC.dataOffline.OfflineDataLoadInfo;
 import pamScrollSystem.ViewLoadObserver;
+import tritechgemini.fileio.GeminiFileCatalog;
 import tritechgemini.fileio.MultiFileCatalog;
 import tritechgemini.imagedata.GeminiImageRecordI;
 import tritechplugins.acquire.offline.TritechOffline;
@@ -42,24 +44,39 @@ public class ImageDataBlock extends PamDataBlock<ImageDataUnit> {
 			return false;
 		}
 		
-		int totalRecords = fileCatalog.getTotalRecords();
+//		int totalRecords = fileCatalog.getTotalRecords();
 		long tStart = offlineDataLoadInfo.getStartMillis();
 		long tEnd = offlineDataLoadInfo.getEndMillis();
 		/*
 		 * Perhaps not very efficient, but should work. May have to later add an iterator to the catalog so that it 
 		 * can work through lists of records between two time so avoid always searching from the start. This will do
 		 * for now though. 
+		 * Update this to skip points as much as it possibly can !
 		 */
-		for (int i = 0; i < totalRecords; i++) {
-			GeminiImageRecordI aRecord = fileCatalog.getRecord(i, false);
-			if (aRecord.getRecordTime() < tStart) {
+		ArrayList<GeminiFileCatalog> glfCats = fileCatalog.getCatalogList();
+		for (GeminiFileCatalog glfCat : glfCats) {
+			int catRecords = glfCat.getNumRecords();
+			long catStart = glfCat.getFirstRecordTime();
+			long catEnd = glfCat.getLastRecordTime();
+			if (tStart > catEnd) {
+				// the glf is earlier, so skip it
 				continue;
 			}
-			if (aRecord.getRecordTime() >= tEnd) {
-				continue;
+			if (tEnd < catStart) {
+				// the glf is later, so we should be done and can break
+				break;
 			}
-			ImageDataUnit dataUnit = new ImageDataUnit(aRecord.getRecordTime(), 1, aRecord);
-			addPamData(dataUnit);
+			for (int i = 0; i < catRecords; i++) {
+				GeminiImageRecordI aRecord = glfCat.getRecord(i);
+				if (aRecord.getRecordTime() < tStart) {
+					continue;
+				}
+				if (aRecord.getRecordTime() >= tEnd) {
+					continue;
+				}
+				ImageDataUnit dataUnit = new ImageDataUnit(aRecord.getRecordTime(), 1, aRecord);
+				addPamData(dataUnit);
+			}
 		}
 		
 //		this.
