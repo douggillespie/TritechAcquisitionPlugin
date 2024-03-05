@@ -134,21 +134,6 @@ public class RegionOverlayDraw extends PanelOverlayDraw {
 		PamSymbol symbol = getPamSymbol(regionDataUnit, generalProjector);
 		Graphics2D g2d = (Graphics2D) g;
 		g2d.setStroke(new BasicStroke(symbol.getLineThickness()));
-		boolean highlight = false;
-		// try to work out if it's a clicked on track, in which case we'll colour it differently. 
-		if (generalProjector instanceof SonarRThiProjector) {
-			SonarRThiProjector rtProj = (SonarRThiProjector) generalProjector;
-			TrackLinkDataUnit clickedTrack = rtProj.getSonarImagePanel().getClickedOnTrack();
-			if (clickedTrack != null && regionDataUnit.getSuperDetection(TrackLinkDataUnit.class)== clickedTrack) {
-				highlight = true;
-			}
-		}
-		if (highlight) {
-			symbol = symbol.clone();
-			symbol.setFillColor(highlightCol);
-			symbol.setLineColor(highlightCol);
-//			g2d.setStroke(new BasicStroke(symbol.getLineThickness()+1));
-		}
 		
 //		if it's tiny,  plot the symbol
 		if (maxx-minx <= 2 || maxy-miny <=2) {
@@ -265,6 +250,34 @@ public class RegionOverlayDraw extends PanelOverlayDraw {
 	public String getHoverText(GeneralProjector generalProjector, PamDataUnit dataUnit, int iSide) {
 		// TODO Auto-generated method stub
 		return null;
+	}
+
+	@Override
+	public PamSymbol getPamSymbol(PamDataUnit pamDataUnit, GeneralProjector projector) {
+		PamSymbol symbol = super.getPamSymbol(pamDataUnit, projector);
+		boolean highlight = isHighlighted(pamDataUnit, projector);
+		if (highlight) {
+			symbol = symbol.clone();
+			symbol.setFillColor(highlightCol);
+			symbol.setLineColor(highlightCol);
+//			g2d.setStroke(new BasicStroke(symbol.getLineThickness()+1));
+		}
+		return symbol;
+	}
+	
+	private boolean isHighlighted(PamDataUnit pamDataUnit, GeneralProjector projector) {
+		RegionDataUnit regionDataUnit = (RegionDataUnit) pamDataUnit;
+		DetectedRegion region = regionDataUnit.getRegion();
+		// try to work out if it's a clicked on track, in which case we'll colour it differently. 
+		if (projector instanceof SonarRThiProjector) {
+			SonarRThiProjector rtProj = (SonarRThiProjector) projector;
+			TrackLinkDataUnit clickedTrack = rtProj.getSonarImagePanel().getClickedOnTrack();
+			if (clickedTrack != null && regionDataUnit.getSuperDetection(TrackLinkDataUnit.class)== clickedTrack) {
+				return true;
+			}
+		}
+		return false;
+		
 	}
 
 }

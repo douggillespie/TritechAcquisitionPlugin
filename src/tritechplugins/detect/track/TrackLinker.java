@@ -61,6 +61,9 @@ public class TrackLinker {
 		if (candidateLinks.size() >= 2) {
 			candidateLinks.sort(null);
 		}
+//		if (currentTime >= 1700068388159L) {
+//			System.out.println("Break track");
+//		}
 		//  now go through and make the links, but don't reuse any chains OR new regions. 
 		boolean[] usedRegions = new boolean[regions.size()];
 		for (CandidateLink candidate : candidateLinks) {
@@ -132,8 +135,17 @@ public class TrackLinker {
 			 * Want to sort by best score first, so 
 			 * will do the opposite of what's 'normal'
 			 */
+			int lenDiff = other.chain.getChainLength()-this.chain.getChainLength();
+			if (lenDiff != 0) {
+				return lenDiff;
+			}
 			int ans = (int) Math.signum(other.score-this.score);
 			return ans;
+		}
+
+		@Override
+		public String toString() {
+			return String.format("link ind %d to %s, score %3.2f", regionIndex, chain, score);
 		}
 	}
 

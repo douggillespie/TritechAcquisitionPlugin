@@ -133,7 +133,6 @@ public class SonarImagePanel extends JPanel {
 	
 	private BufferedImage toolTipImage;
 	
-	private TrackLinkDataUnit clickedOnTrack;
 	
 	/**
 	 * Overlay image which get's used when all data are displayed 
@@ -431,7 +430,7 @@ public class SonarImagePanel extends JPanel {
 				if (((RegionDataUnit) aUnit).getSonarId() != sonarId) {
 					continue;
 				}
-				if (clickedOnTrack != null && aUnit.getSuperDetection(TrackLinkDataUnit.class) == clickedOnTrack) {
+				if (getClickedOnTrack() != null && aUnit.getSuperDetection(TrackLinkDataUnit.class) == getClickedOnTrack()) {
 					laterList.add(aUnit);
 					continue;
 				}
@@ -662,8 +661,8 @@ public class SonarImagePanel extends JPanel {
 		if (overlayImage.getWidth() != getWidth() || overlayImage.getHeight() != getHeight()) {
 			return true;
 		}
-		if (lastHighlightTrack != clickedOnTrack) {
-			lastHighlightTrack = clickedOnTrack;
+		if (lastHighlightTrack != getClickedOnTrack()) {
+			lastHighlightTrack = getClickedOnTrack();
 			return true;
 		}
 		return false;
@@ -1118,20 +1117,21 @@ public class SonarImagePanel extends JPanel {
 			if (externalMouseHandler.mouseClicked(e)) {
 				return;
 			}
-			TrackLinkDataUnit oldClickedOn = clickedOnTrack;
-			clickedOnTrack = null;
+			TrackLinkDataUnit oldClickedOn = getClickedOnTrack();
+			setClickedOnTrack(null);
 			try {
 				int dataUnitInd = xyProjector.findClosestDataUnitIndex(new Coordinate3d(e.getX(), e.getY(), 0));
 				if (dataUnitInd >= 0) {
 					HoverData hoverData = (HoverData) xyProjector.getHoverDataList().get(dataUnitInd);
 					PamDataUnit dataUnit = hoverData.getDataUnit();
-					clickedOnTrack = (TrackLinkDataUnit) dataUnit.getSuperDetection(TrackLinkDataUnit.class);
+					setClickedOnTrack((TrackLinkDataUnit) dataUnit.getSuperDetection(TrackLinkDataUnit.class));
 				}
 			}
 			catch (Exception exp) {
 				
 			}
-			if (oldClickedOn != clickedOnTrack) {
+			if (oldClickedOn != getClickedOnTrack()) {
+				sonarsPanel.repaint();
 				repaint();
 			}
 //			sonarsPanel.get
@@ -1339,6 +1339,10 @@ public class SonarImagePanel extends JPanel {
 	 * @return the clickedOnTrack
 	 */
 	public TrackLinkDataUnit getClickedOnTrack() {
-		return clickedOnTrack;
+		return sonarsPanel.getClickedOnTrack();
+	}
+	
+	public void setClickedOnTrack(TrackLinkDataUnit tlDataUnit) {
+		sonarsPanel.setClickedOnTrack(tlDataUnit);
 	}
 }

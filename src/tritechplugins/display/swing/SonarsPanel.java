@@ -57,6 +57,7 @@ import tritechplugins.acquire.ImageDataBlock;
 import tritechplugins.acquire.TritechAcquisition;
 import tritechplugins.acquire.offline.TritechOffline;
 import tritechplugins.detect.threshold.BackgroundRemoval;
+import tritechplugins.detect.track.TrackLinkDataUnit;
 import tritechplugins.display.swing.overlays.OverlayTailDialogPanel;
 import tritechplugins.display.swing.overlays.SonarOverlayData;
 import tritechplugins.display.swing.overlays.SonarOverlayManager;
@@ -99,6 +100,7 @@ public class SonarsPanel extends PamPanel implements DataMenuParent {
 	
 	private OverlayObserver overlayObserver;
 
+	private TrackLinkDataUnit clickedOnTrack;
 	/**
 	 * Layout for the individual sonar panels. 
 	 */
@@ -687,6 +689,20 @@ public class SonarsPanel extends PamPanel implements DataMenuParent {
 	 */
 	public TritechAcquisition getTritechAcquisition() {
 		return tritechAcquisition;
+	}
+
+	/**
+	 * @return the clickedOnTrack
+	 */
+	public TrackLinkDataUnit getClickedOnTrack() {
+		return clickedOnTrack;
+	}
+
+	/**
+	 * @param clickedOnTrack the clickedOnTrack to set
+	 */
+	public void setClickedOnTrack(TrackLinkDataUnit clickedOnTrack) {
+		this.clickedOnTrack = clickedOnTrack;
 	}
 
 

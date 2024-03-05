@@ -38,9 +38,21 @@ public class ImageRangeFilter {
 		return outputData;
 	}
 	
+	/**
+	 * Filter a single beam
+	 * @param inputData array of input data
+	 * @param outputData array of output data (must be same size as input)
+	 * @param nBeam number of beams
+	 * @param nRange number of ranges
+	 * @param b beam index
+	 */
 	protected void filterBeam(byte[] inputData, byte[] outputData, int nBeam, int nRange, int b) {
-		// setup loop with p the 'pointer'
-		// into the input and outputdata. 
+		/**
+		 * The 'rectangle' or raw data is arranged in a big one dimensional array, the first nBeam
+		 * elements being the first range bin, the next nBeam elements the second range, etc.
+		 * So if we're filtering the b'th beam, we start at element b, then step by nBeam to get
+		 * to each subsequent range.   
+		 */
 		int nData = nRange*nBeam;
 		Filter filter = filterMaker();
 		double in;

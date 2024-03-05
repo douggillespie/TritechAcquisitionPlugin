@@ -300,4 +300,14 @@ public class TrackChain {
 		double t = (double)(getLastTime()-getFirstTime())/1000.;
 		return np/t;
 	}
+
+	@Override
+	public String toString() {
+		if (regions.size() == 0) {
+			return "Empty track chain";
+		}
+		long t1 = regions.get(0).getTimeMilliseconds();
+		long t2 = regions.get(regions.size()-1).getTimeMilliseconds();
+		return String.format("Track Chain %d pts %3.2fs", regions.size(), (double) (t2-t1)/1000.);
+	}
 }
