@@ -39,7 +39,7 @@ public class ThresholdDialog extends PamDialog {
 
 	private JTextField thresholdOn, thresholdOff;
 
-	private JTextField backgroundTime, backgroundScale;
+	private JTextField backgroundTime, backgroundScale, backgroundSTDScale;
 	
 	private JTextField backgroundRecordS;
 	
@@ -72,6 +72,7 @@ public class ThresholdDialog extends PamDialog {
 		thresholdOff = new JTextField(3);
 		backgroundTime = new JTextField(3);
 		backgroundScale = new JTextField(3);
+		backgroundSTDScale = new JTextField(3);
 		backgroundRecordS = new JTextField(3);
 		minObjectSize = new JTextField(3);
 		maxObjectSize = new JTextField(3);
@@ -113,10 +114,20 @@ public class ThresholdDialog extends PamDialog {
 		c.gridy++;
 		c.gridx = 0;
 		c.gridwidth = 1;
-		thresholdPanel.add(new JLabel("Background removal scale ", JLabel.RIGHT), c);
+		thresholdPanel.add(new JLabel("Mean background removal scale ", JLabel.RIGHT), c);
 		c.gridx++;
 		c.gridwidth = 2;
 		thresholdPanel.add(backgroundScale, c);
+		c.gridx+=c.gridwidth;
+		thresholdPanel.add(new JLabel(" multiplier ", JLabel.LEFT), c);
+
+		c.gridy++;
+		c.gridx = 0;
+		c.gridwidth = 1;
+		thresholdPanel.add(new JLabel("STD background removal scale ", JLabel.RIGHT), c);
+		c.gridx++;
+		c.gridwidth = 2;
+		thresholdPanel.add(backgroundSTDScale, c);
 		c.gridx+=c.gridwidth;
 		thresholdPanel.add(new JLabel(" multiplier ", JLabel.LEFT), c);
 
@@ -246,6 +257,7 @@ public class ThresholdDialog extends PamDialog {
 		filterRange.setSelected(thresholdParams.filterRange);
 		backgroundTime.setText(String.format("%d", thresholdParams.backgroundTimeConst));
 		backgroundScale.setText(String.format("%3.2f", thresholdParams.backgroundScale));
+		backgroundSTDScale.setText(String.format("%3.2f", thresholdParams.backgroundSTDs));
 		backgroundRecordS.setText(String.format("%d", thresholdParams.backgroundIntervalSecs));
 		thresholdOn.setText(String.format("%d", thresholdParams.highThreshold));
 		thresholdOff.setText(String.format("%d", thresholdParams.lowThreshold));
@@ -289,6 +301,7 @@ public class ThresholdDialog extends PamDialog {
 		}
 		try {
 			thresholdParams.backgroundScale = Double.valueOf(backgroundScale.getText());
+			thresholdParams.backgroundSTDs = Double.valueOf(backgroundSTDScale.getText());
 		}
 		catch (NumberFormatException e) {
 			return showWarning("Invalid scale value");

@@ -936,6 +936,21 @@ public class SonarImagePanel extends JPanel {
 		return str;
 	}
 	
+	@Override
+	public Point getToolTipLocation(MouseEvent event) {
+		/**
+		 * Offset the tooltip by a tiny amount to the right. 
+		 * Swing will still position it vertically if it's going
+		 * off the since of the screen. The offset allows the mouse to 
+		 * move over the underlying window, rather than the tooltip,
+		 * when you move it to the right, so that image updates correctly
+		 * occur as you move the mouse around.  
+		 */
+		Point pt = new Point(event.getPoint());
+		pt.x += 5;
+		return pt;
+	}
+
 	private BufferedImage getToolTipImage() {
 		try {
 			PamDataUnit hoverData = xyProjector.getHoveredDataUnit();

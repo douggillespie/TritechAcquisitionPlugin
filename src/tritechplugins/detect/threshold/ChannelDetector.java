@@ -76,6 +76,7 @@ public class ChannelDetector {
 		ThresholdParams params = thresholdDetector.getThresholdParams();
 		backgroundRemoval.setTimeConstant(params.backgroundTimeConst);
 		backgroundRemoval.setRemovalScale(params.backgroundScale);
+		backgroundRemoval.setRemovalScale(params.backgroundScale, params.backgroundSTDs);
 //		backgroundRemoval.setRemovalScale(1.5); // WTF is this doing here ? Was it there for all processing ? 
 		byte[] filteredData;
 		if (params.filterRange) {

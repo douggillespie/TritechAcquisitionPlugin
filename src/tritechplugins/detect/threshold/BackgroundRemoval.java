@@ -27,6 +27,7 @@ public class BackgroundRemoval extends BackgroundSub {
 		ImageDataUnit newDataUnit = new ImageDataUnit(imageDataUnit.getTimeMilliseconds(), imageDataUnit.getChannelBitmap(), newImage);
 		return newDataUnit;
 	}
+
 	
 
 }

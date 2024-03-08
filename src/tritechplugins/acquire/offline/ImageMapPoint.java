@@ -24,6 +24,13 @@ public class ImageMapPoint extends OfflineDataMapPoint {
 	}
 
 	@Override
+	public String toString() {
+		String str =  super.toString();
+		String file = geminiFileCatalog.getFilePath();
+		return str + "<br>" + file;
+	}
+
+	@Override
 	public Long getLowestUID() {
 		// TODO Auto-generated method stub
 		return null;
