@@ -230,6 +230,7 @@ public class JavaFileAcquisition extends TritechDaqSystem  implements CatalogStr
 //					try {
 					boolean carryOn = currentCatalog.streamCatalog(JavaFileAcquisition.this);
 					if (carryOn == false) {
+						currentFile++;
 						break;
 					}
 //					lastRecordTime = currentCatalog.getLastRecordTime();

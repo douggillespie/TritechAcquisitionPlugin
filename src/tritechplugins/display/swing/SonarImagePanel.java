@@ -784,10 +784,15 @@ public class SonarImagePanel extends JPanel {
 			}
 			SonarsPanelParams panelParams = sonarsPanel.getSonarsPanelParams();
 			fanImageData = imageFanMaker.createFanData(imageRecord, usePix);
-			if (fanImageData == null) {
+			/**
+			 * Multithreading, so small chance fanImageData may have been reset between
+			 * last line and next line, so copy the refernece in order that this can't 
+			 * happen and deal with possibility of null of the local variable
+			 */
+			FanImageData totallyFinalData = fanImageData;
+			if (totallyFinalData == null) {
 				return null;
 			}
-			FanImageData totallyFinalData = fanImageData;
 			if (panelParams.usePersistence) {
 				totallyFinalData = persistentFanMaker.makePersistentImage(totallyFinalData, 
 						panelParams.persistentFrames, panelParams.rescalePersistence);
