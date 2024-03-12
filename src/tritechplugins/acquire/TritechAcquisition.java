@@ -7,6 +7,8 @@ import java.util.ArrayList;
 
 import javax.swing.JMenuItem;
 
+import PamController.DataInputStore;
+import PamController.InputStoreInfo;
 import PamController.OfflineDataStore;
 import PamController.OfflineFileDataStore;
 import PamController.PamControlledUnit;
@@ -28,7 +30,7 @@ import tritechplugins.display.swing.SonarPanelProvider;
 import tritechplugins.display.swing.SonarsPanelParams;
 import userDisplay.UserDisplayControl;
 
-public class TritechAcquisition extends PamControlledUnit implements PamSettings, OfflineDataStore {
+public class TritechAcquisition extends PamControlledUnit implements PamSettings, OfflineDataStore, DataInputStore {
 
 	public static final String unitType = "Tritech Acquisition";
 	
@@ -227,6 +229,21 @@ public class TritechAcquisition extends PamControlledUnit implements PamSettings
 	@Override
 	public String getDataLocation() {
 		return daqParams.getOfflineFileFolder();
+	}
+
+	@Override
+	public InputStoreInfo getStoreInfo(boolean detail) {
+		return tritechDaqProcess.getStoreInfo(detail);
+	}
+
+	@Override
+	public boolean setAnalysisStartTime(long startTime) {
+		return tritechDaqProcess.setAnalysisStartTime(startTime);
+	}
+
+	@Override
+	public String getBatchStatus() {
+		return tritechDaqProcess.getBatchStatus();
 	}
 
 }

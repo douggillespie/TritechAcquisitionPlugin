@@ -13,6 +13,8 @@ import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.Timer;
 
+import PamController.DataInputStore;
+import PamController.InputStoreInfo;
 import PamController.PamController;
 import PamguardMVC.PamProcess;
 import geminisdk.OutputFileInfo;
@@ -467,13 +469,33 @@ public class TritechDaqProcess extends PamProcess implements TritechRunMode {
 		return tritechAcquisition;
 	}
 
-//	/**
-//	 * Set the playback speed. Called from the task bar when running offline. 
-//	 * @param speed 0 = fast as, otherwise a double
-//	 */
-//	public void setPlaybackSpeed(double speed) {
-//		jnaDaq.setPlaybackSpeed(speed);
-//	}
+	public InputStoreInfo getStoreInfo(boolean detail) {
+		if (tritechDaqSystem instanceof DataInputStore) {
+			return ((DataInputStore) tritechDaqSystem).getStoreInfo(detail);
+		}
+		else {
+			return null;
+		}
+	}
+
+	public boolean setAnalysisStartTime(long startTime) {
+		if (tritechDaqSystem instanceof DataInputStore) {
+			return ((DataInputStore) tritechDaqSystem).setAnalysisStartTime(startTime);
+		}
+		else {
+			return false;
+		}
+	}
+
+	public String getBatchStatus() {
+//		System.out.println("Getting daq status from " + tritechDaqSystem);
+		if (tritechDaqSystem instanceof DataInputStore) {
+			return ((DataInputStore) tritechDaqSystem).getBatchStatus();
+		}
+		else {
+			return null;
+		}
+	}
 
 
 }

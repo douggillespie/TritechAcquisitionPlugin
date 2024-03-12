@@ -784,6 +784,9 @@ public class SonarImagePanel extends JPanel {
 			}
 			SonarsPanelParams panelParams = sonarsPanel.getSonarsPanelParams();
 			fanImageData = imageFanMaker.createFanData(imageRecord, usePix);
+			if (fanImageData == null) {
+				return null;
+			}
 			FanImageData totallyFinalData = fanImageData;
 			if (panelParams.usePersistence) {
 				totallyFinalData = persistentFanMaker.makePersistentImage(totallyFinalData, 

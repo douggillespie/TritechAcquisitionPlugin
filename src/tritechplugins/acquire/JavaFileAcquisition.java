@@ -6,10 +6,14 @@ import java.util.List;
 
 import javax.swing.SwingWorker;
 
+import Acquisition.FolderInputSystem;
+import PamController.DataInputStore;
+import PamController.InputStoreInfo;
 import PamController.PamControlledUnitSettings;
 import PamController.PamController;
 import PamUtils.PamCalendar;
 import fileOfflineData.OfflineFileList;
+import pamguard.GlobalArguments;
 import tritechgemini.fileio.CatalogException;
 import tritechgemini.fileio.CatalogStreamObserver;
 import tritechgemini.fileio.GeminiFileCatalog;
@@ -26,7 +30,7 @@ import tritechplugins.display.swing.SonarDisplayDecorations;
  * @author dg50
  *
  */
-public class JavaFileAcquisition extends TritechDaqSystem  implements CatalogStreamObserver, ConfigurationObserver {
+public class JavaFileAcquisition extends TritechDaqSystem  implements CatalogStreamObserver, ConfigurationObserver, DataInputStore {
 	
 	/**
 	 * will need a few changes to GeminiFileCatalog to enable two functions
@@ -69,6 +73,9 @@ public class JavaFileAcquisition extends TritechDaqSystem  implements CatalogStr
 	@Override
 	public boolean prepareProcess() {
 		TritechDaqParams params = tritechAcquisition.getDaqParams();
+		
+		checkCommandLineFolder(params);
+		
 		OfflineFileList fileList = new OfflineFileList(params.getOfflineFileFolder(), new TritechFileFilter(), params.isOfflineSubFolders() | true);
 		fileList.sortByFileName();
 		allFiles = fileList.asStringList();
@@ -90,6 +97,20 @@ public class JavaFileAcquisition extends TritechDaqSystem  implements CatalogStr
 			};
 		}
 		return allFiles.length>0;
+	}
+
+	/**
+	 * Check there isn't a command line folder. This will come from the 
+	 * batch processor and will be the GlobaWafFolderArg. 
+	 * @param params
+	 */
+	private boolean checkCommandLineFolder(TritechDaqParams params) {
+		String globalFolder = GlobalArguments.getParam(FolderInputSystem.GlobalWavFolderArg);
+		if (globalFolder == null) {
+			return false;
+		}
+		params.setOfflineFileFolder(globalFolder);
+		return true;
 	}
 
 	@Override
@@ -400,6 +421,52 @@ public class JavaFileAcquisition extends TritechDaqSystem  implements CatalogStr
 	protected void newSonar(SonarStatusData sonarData) {
 		// TODO Auto-generated method stub
 		
+	}
+
+	@Override
+	public InputStoreInfo getStoreInfo(boolean detail) {
+		if (allFiles == null || allFiles.length == 0) {
+			return null;
+		}
+		int nFiles = allFiles.length;
+		GeminiFileCatalog firstCat;
+		try {
+			firstCat = GeminiFileCatalog.getFileCatalog(allFiles[0], true);
+			GeminiFileCatalog lastCat = GeminiFileCatalog.getFileCatalog(allFiles[nFiles-1], true);
+
+			InputStoreInfo storeInfo = new InputStoreInfo(tritechAcquisition, nFiles, firstCat.getFirstRecordTime(), lastCat.getFirstRecordTime(), lastCat.getLastRecordTime());
+			return storeInfo;
+
+		} catch (CatalogException e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+
+	@Override
+	public boolean setAnalysisStartTime(long startTime) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public String getBatchStatus() {
+		int nFiles = 0;
+		if (allFiles == null) {
+			return null;
+		}
+		nFiles = allFiles.length;
+		int generalStatus = PamController.getInstance().getPamStatus();
+		String currFile;
+		if (currentFile < allFiles.length) {
+			currFile = allFiles[currentFile];
+		}
+		else {
+			currFile = "Processing complete";
+		}
+		String bs = String.format("%d,%d,%d,%s", nFiles,currentFile,generalStatus,currFile);
+//		System.out.println("Tritech batch status: " + bs);
+		return bs;
 	}
 	
 }
