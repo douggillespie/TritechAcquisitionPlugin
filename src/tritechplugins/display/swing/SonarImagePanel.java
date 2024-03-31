@@ -217,7 +217,7 @@ public class SonarImagePanel extends JPanel {
 		// copy reference, just incase it get's knocked out in a different thread while we're drawing. 
 		FanDataImage theFanimage = fanImage;
 		if (!isViewer && theFanimage == null) {
-			theFanimage = makeFinalImage();
+			fanImage = theFanimage = makeFinalImage();
 		}
 		if (theFanimage != null) {
 			maxRange = theFanimage.getFanData().getGeminiRecord().getMaxRange();
@@ -233,7 +233,7 @@ public class SonarImagePanel extends JPanel {
 		xyProjector.setLayout(sonarZoomTransform);
 //		xyProjector.setFlipImage(sonarsPanelParams.flipLeftRight);
 		
-		paintSonarImage(g);
+		paintSonarImage(g, theFanimage);
 		
 		if (sonarsPanelParams.showGrid) {
 			paintGrid(g);
@@ -336,12 +336,13 @@ public class SonarImagePanel extends JPanel {
 	/**
 	 * paint the main sonar image. 
 	 * @param g
+	 * @param theFanimage 
 	 */
-	private void paintSonarImage(Graphics g) {
-		if (fanImage == null) {
+	private void paintSonarImage(Graphics g, FanDataImage theFanimage) {
+		if (theFanimage == null) {
 			return;
 		}
-		BufferedImage image = fanImage.getBufferedImage();
+		BufferedImage image = theFanimage.getBufferedImage();
 		if (image == null) {
 			return;
 		}
@@ -741,7 +742,7 @@ public class SonarImagePanel extends JPanel {
 		}
 		setSonarId(imageRecord.getDeviceId());
 		if (isViewer) {
-			makeFinalImage();
+			fanImage = makeFinalImage();
 			repaint();
 		}
 		else {
@@ -765,6 +766,7 @@ public class SonarImagePanel extends JPanel {
 	 * @return 
 	 */
 	private FanDataImage makeFinalImage() {
+		FanDataImage aFanImage = null;
 		if (imageRecord == null) {
 			fanImageData = null;
 			fanImage = null;
@@ -797,11 +799,12 @@ public class SonarImagePanel extends JPanel {
 				totallyFinalData = persistentFanMaker.makePersistentImage(totallyFinalData, 
 						panelParams.persistentFrames, panelParams.rescalePersistence);
 			}
-			fanImage = new FanDataImage(totallyFinalData, sonarsPanel.getColourMap(), true, panelParams.displayGain);
-			fanImage.getBufferedImage(); // created and kept..
+			
+			aFanImage = new FanDataImage(totallyFinalData, sonarsPanel.getColourMap(), true, panelParams.displayGain);
+			aFanImage.getBufferedImage(); // created and kept..
 			imageTime = System.nanoTime()-t1;
 		}
-		return fanImage;
+		return aFanImage;
 	}
 	
 	/**

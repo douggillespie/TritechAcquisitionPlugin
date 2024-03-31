@@ -16,6 +16,7 @@ import fileOfflineData.OfflineFileList;
 import pamguard.GlobalArguments;
 import tritechgemini.fileio.CatalogException;
 import tritechgemini.fileio.CatalogStreamObserver;
+import tritechgemini.fileio.CatalogStreamSummary;
 import tritechgemini.fileio.GeminiFileCatalog;
 import tritechgemini.imagedata.GLFStatusData;
 import tritechgemini.imagedata.GeminiImageRecordI;
@@ -64,6 +65,13 @@ public class JavaFileAcquisition extends TritechDaqSystem  implements CatalogStr
 	private JavaFileDecorations javaFileDecorations;
 
 	private long lastCallbackTime, lastFrameTime;
+	
+	/**
+	 * information used in a restart situation if there was a gap 
+	 * within or between image files. 
+	 */
+	private int recordsSkipAtStart = 0;
+	private long restartFirstRecordTime = 0;
 	
 	public JavaFileAcquisition(TritechAcquisition tritechAcquisition, TritechDaqProcess tritechProcess) {
 		super(tritechAcquisition, tritechProcess);
@@ -117,6 +125,7 @@ public class JavaFileAcquisition extends TritechDaqSystem  implements CatalogStr
 	public void configurationChanged() {
 		currentFile = 0;
 		lastRecordTime = null;
+		restartFirstRecordTime = 0;
 	}
 
 	/**
@@ -139,7 +148,7 @@ public class JavaFileAcquisition extends TritechDaqSystem  implements CatalogStr
 			GeminiFileCatalog<GeminiImageRecordI> fileCatalog = GeminiFileCatalog.getFileCatalog(filePath, true);
 			long recordTime = fileCatalog.getFirstRecordTime();
 			if (recordTime != Long.MIN_VALUE) {
-				PamCalendar.setSessionStartTime(recordTime);
+				PamCalendar.setSessionStartTime(Math.max(recordTime, restartFirstRecordTime));
 				PamCalendar.setSoundFile(true);
 				return true;
 			}
@@ -228,11 +237,32 @@ public class JavaFileAcquisition extends TritechDaqSystem  implements CatalogStr
 					}
 //					long firstRecordTime = currentCatalog.getFirstRecordTime();
 //					try {
-					boolean carryOn = currentCatalog.streamCatalog(JavaFileAcquisition.this);
-					if (carryOn == false) {
-						currentFile++;
+					CatalogStreamSummary streamSummary = currentCatalog.streamCatalog(JavaFileAcquisition.this);
+					if (streamSummary.endReason == CatalogStreamSummary.PROCESSSTOP) {
+						/*
+						 *  this get's called when there is a gap in the file. This may be within a file
+						 *  or, more often, between files. If it's the first record of a new file, then all
+						 *  we need to do is break and issue a restart. 
+						 *  If it's a higher record number, then we need to move the counter on to the next file. 
+						 */
+						restartFirstRecordTime = streamSummary.lastRecordTime;
+						if (streamSummary.recordsStreamed == 0) {
+							// there seems to be an error in that file, so skip to
+							// the next
+							currentFile++;
+						}
+						else {
+							recordsSkipAtStart = streamSummary.recordsStreamed-1;
+						}
+						PamController.getInstance().pamStop();
+						restartLater();
 						break;
 					}
+					recordsSkipAtStart = 0;
+//					if (carryOn == false) {
+//						currentFile++;
+//						break;
+//					}
 //					lastRecordTime = currentCatalog.getLastRecordTime();
 //					}
 					// don't need since outer catch changed from CatalogException to Exception
@@ -269,6 +299,15 @@ public class JavaFileAcquisition extends TritechDaqSystem  implements CatalogStr
 	@Override
 	public boolean newImageRecord(GeminiImageRecordI glfImage) {
 		/*
+		 * Check the restartFirstRecordTime value. This will mostly be
+		 * zero, but if there has been a restart after a gap, then it will
+		 * be non-zero and all records prior to that time should be ignored
+		 */
+		if (glfImage.getRecordTime() < restartFirstRecordTime) {
+			return true;
+		}
+		
+		/*
 		 *  see if there is a bit gap between this and the last record which may be
 		 *  caused by a gap in file data, in which case we may want to nudge a restart
 		 *  to reset the binary store. 
@@ -282,8 +321,6 @@ public class JavaFileAcquisition extends TritechDaqSystem  implements CatalogStr
 						PamCalendar.formatDBDateTime(PamCalendar.getTimeInMillis()));
 				// so tell pamguard to restart and return false to stop this catalogue. 
 				lastRecordTime = null;
-				PamController.getInstance().pamStop();
-				restartLater();
 				return false;
 			}
 			else if (gap < -10000L) {
