@@ -20,6 +20,7 @@ import java.awt.event.MouseWheelEvent;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
+import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -28,11 +29,14 @@ import java.util.List;
 
 import javax.imageio.ImageIO;
 import javax.management.PersistentMBean;
+import javax.swing.AbstractAction;
+import javax.swing.Action;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
+import javax.swing.KeyStroke;
 import javax.swing.Timer;
 
 import Layout.PamAxis;
@@ -185,8 +189,32 @@ public class SonarImagePanel extends JPanel {
 					cycleTipTypes();
 				}
 			}
+			@Override
+			public void keyPressed(KeyEvent e) {
+				if (e.getKeyCode() == KeyEvent.VK_LEFT) {
+					arrowKeyPress(-1);
+				}
+				if (e.getKeyCode() == KeyEvent.VK_RIGHT) {
+					arrowKeyPress(1);
+				}
+				
+			}
 			
 		});
+		
+	}
+
+
+	/**
+	 * Scroll forwards or backwards by frames
+	 * @param frames frames to scroll (-1 or 1).
+	 */
+	protected void arrowKeyPress(int frames) {
+		if (isViewer == false) {
+			return;
+		}
+//		System.out.println("Sroll frames " + frames);
+		sonarsPanel.getSonarsOuterPanel().scrollByFrames(frames);
 	}
 
 

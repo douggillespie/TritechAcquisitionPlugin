@@ -705,5 +705,24 @@ public class SonarsPanel extends PamPanel implements DataMenuParent {
 		this.clickedOnTrack = clickedOnTrack;
 	}
 
+	/**
+	 * @return the sonarsOuterPanel
+	 */
+	public SonarsOuterPanel getSonarsOuterPanel() {
+		return sonarsOuterPanel;
+	}
+
+	@Override
+	public void repaint() {
+		// TODO Auto-generated method stub
+		super.repaint();
+	}
+
+	@Override
+	public void repaint(long tm) {
+		// TODO Auto-generated method stub
+		super.repaint(tm);
+	}
+
 
 }

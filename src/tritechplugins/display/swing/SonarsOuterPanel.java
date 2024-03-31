@@ -86,6 +86,7 @@ public class SonarsOuterPanel implements ConfigurationObserver {
 			sonarsPanel.add(fsc.getComponent(), new CornerLayoutContraint(CornerLayoutContraint.FIRST_LINE_END));
 			
 			viewerSlider = new PamScrollSlider(nameProvider.getUnitName(), PamScrollSlider.HORIZONTAL, 10, 600000, true);
+			viewerSlider.getSlider().setFocusable(false); // needed if we want lr arrow keys to arrive in separate handler. 
 			outerPanel.add(viewerSlider.getComponent(), BorderLayout.SOUTH);
 			viewerSlider.addDataBlock(tritechAcquisition.getImageDataBlock());
 			viewerSlider.addObserver(new ScrollObserver());

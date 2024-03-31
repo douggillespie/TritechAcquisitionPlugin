@@ -71,6 +71,11 @@ public class FineScrollControl implements SonarDisplayDecoration {
 		forwardOneFrame.addActionListener(new ScrollByFrames(1));
 		forward10Frames.addActionListener(new ScrollByFrames(10));
 		
+		backOneFrame.setFocusable(false);
+		back10Frames.setFocusable(false);
+		forwardOneFrame.setFocusable(false);
+		forward10Frames.setFocusable(false);
+		
 	}
 	
 	private void sizeButton(JButton b) {
