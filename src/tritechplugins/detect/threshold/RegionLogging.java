@@ -2,6 +2,7 @@ package tritechplugins.detect.threshold;
 
 import java.sql.Types;
 
+import PamController.SettingsNameProvider;
 import PamguardMVC.PamDataUnit;
 import generalDatabase.PamSubtableDefinition;
 import generalDatabase.PamTableDefinition;
@@ -15,9 +16,9 @@ public class RegionLogging extends SQLLogging {
 	private PamTableItem sonarId, minBearing, maxBearing, minRange, maxRange, objectSize;
 	private PamTableItem meanValue, totalValue, maxValue, occupancy;
 	private PamTableItem peakRange, peakBearing;
-	private ThresholdDetector thresholdDetector;
+	private SettingsNameProvider thresholdDetector;
 
-	public RegionLogging(ThresholdDetector thresholdDetector, RegionDataBlock regionDataBlock) {
+	public RegionLogging(SettingsNameProvider thresholdDetector, RegionDataBlock regionDataBlock) {
 		super(regionDataBlock);
 		this.thresholdDetector = thresholdDetector;
 		PamTableDefinition tableDef = makeBaseTable();

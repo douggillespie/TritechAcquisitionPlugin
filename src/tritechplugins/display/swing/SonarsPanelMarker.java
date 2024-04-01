@@ -1,6 +1,5 @@
 package tritechplugins.display.swing;
 
-import java.awt.Component;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -14,10 +13,8 @@ import PamView.paneloverlay.overlaymark.OverlayMark;
 import PamView.paneloverlay.overlaymark.OverlayMarker;
 import PamguardMVC.PamDataUnit;
 import PamguardMVC.superdet.SuperDetection;
-import javafx.embed.swing.SwingFXUtils;
 import javafx.scene.control.MenuItem;
 import javafx.scene.input.MouseEvent;
-import pamViewFX.fxNodes.utilsFX.MenuItemInfo;
 import pamViewFX.fxNodes.utilsFX.PamUtilsFX;
 import tritechplugins.detect.threshold.RegionDataUnit;
 import tritechplugins.detect.track.TrackLinkDataUnit;
@@ -73,6 +70,13 @@ public class SonarsPanelMarker extends OverlayMarker {
 				if (track != null) {
 					set.add(track);
 				}
+				else {
+					/*
+					 * If it's not part of a track, then it will be a manually added
+					 * data unit, so add it to the list anyway. 
+					 */
+					set.add(aData);
+				}
 			}
 			else {
 				set.add(aData);
@@ -108,6 +112,13 @@ public class SonarsPanelMarker extends OverlayMarker {
 			}
 		}
 		return markItems;
+	}
+
+	/**
+	 * @return the imageIndex
+	 */
+	public int getImageIndex() {
+		return imageIndex;
 	}
 
 }

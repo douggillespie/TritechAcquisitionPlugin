@@ -28,6 +28,7 @@ import tritechplugins.acquire.offline.TritechOffline;
 import tritechplugins.acquire.swing.framerate.FrameRateDisplayProvider;
 import tritechplugins.display.swing.SonarPanelProvider;
 import tritechplugins.display.swing.SonarsPanelParams;
+import tritechplugins.mark.SonarMarker;
 import userDisplay.UserDisplayControl;
 
 public class TritechAcquisition extends PamControlledUnit implements PamSettings, OfflineDataStore, DataInputStore {
@@ -40,20 +41,14 @@ public class TritechAcquisition extends PamControlledUnit implements PamSettings
 	
 	private ArrayList<ConfigurationObserver> configurationObservers = new ArrayList();
 	
-	public TritechOffline getTritechOffline() {
-		return tritechOffline;
-	}
-
 	private TritechRunMode tritechRunMode;
 	
 	private TritechDaqProcess tritechDaqProcess;
 	
 	private BackupInformation backupInformation;
 	
-	public TritechDaqProcess getTritechDaqProcess() {
-		return tritechDaqProcess;
-	}
-
+	private SonarMarker sonarMarker;
+	
 	public TritechAcquisition(String unitName) {
 		super(unitType, unitName);
 		PamSettingManager.getInstance().registerSettings(this);
@@ -70,8 +65,18 @@ public class TritechAcquisition extends PamControlledUnit implements PamSettings
 		
 		backupInformation = new BackupInformation(new GLFBackup(this));
 		
+		sonarMarker = new SonarMarker(this);
+		
 		UserDisplayControl.addUserDisplayProvider(new SonarPanelProvider(this));
 		UserDisplayControl.addUserDisplayProvider(new FrameRateDisplayProvider(this));
+	}
+
+	public TritechDaqProcess getTritechDaqProcess() {
+		return tritechDaqProcess;
+	}
+
+	public TritechOffline getTritechOffline() {
+		return tritechOffline;
 	}
 
 	@Override
@@ -244,6 +249,13 @@ public class TritechAcquisition extends PamControlledUnit implements PamSettings
 	@Override
 	public String getBatchStatus() {
 		return tritechDaqProcess.getBatchStatus();
+	}
+
+	/**
+	 * @return the sonarMarker
+	 */
+	public SonarMarker getSonarMarker() {
+		return sonarMarker;
 	}
 
 }

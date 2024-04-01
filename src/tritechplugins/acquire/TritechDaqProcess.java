@@ -49,17 +49,6 @@ public class TritechDaqProcess extends PamProcess implements TritechRunMode {
 	
 	private Timer logCheckTimer;
 	
-	/**
-	 * @return the tritechDaqSystem
-	 */
-	public TritechDaqSystem getTritechDaqSystem() {
-		return tritechDaqSystem;
-	}
-
-	public ImageDataBlock getImageDataBlock() {
-		return imageDataBlock;
-	}
-
 	public TritechDaqProcess(TritechAcquisition tritechAcquisition) {
 		super(tritechAcquisition, null);
 		this.tritechAcquisition = tritechAcquisition;
@@ -495,6 +484,17 @@ public class TritechDaqProcess extends PamProcess implements TritechRunMode {
 		else {
 			return null;
 		}
+	}
+
+	/**
+	 * @return the tritechDaqSystem
+	 */
+	public TritechDaqSystem getTritechDaqSystem() {
+		return tritechDaqSystem;
+	}
+
+	public ImageDataBlock getImageDataBlock() {
+		return imageDataBlock;
 	}
 
 

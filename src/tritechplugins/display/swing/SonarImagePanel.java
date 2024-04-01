@@ -170,7 +170,11 @@ public class SonarImagePanel extends JPanel {
 		sonarPanelMarker = new SonarsPanelMarker(sonarsPanel, xyProjector, panelIndex);
 		OverlayMarkProviders.singleInstance().addProvider(sonarPanelMarker);
 		externalMouseHandler.addMouseHandler(sonarPanelMarker);
-		sonarPanelMarker.addObserver(new OverlayMarkObserver());
+		sonarPanelMarker.addObserver(new SonarMarkObserver());
+		TritechAcquisition acquisition = sonarsPanel.getTritechAcquisition();
+		if (acquisition != null) {
+			sonarPanelMarker.addObserver(acquisition.getSonarMarker());
+		}
 		markOverlayDraw = new MarkOverlayDraw(sonarPanelMarker);
 		sideAxis = new PamAxis(0, 1, 0,  1, 0,  1, PamAxis.BELOW_RIGHT, null, PamAxis.LABEL_NEAR_MIN, "  %3.1fm");
 		
@@ -1344,7 +1348,7 @@ public class SonarImagePanel extends JPanel {
 		return standardItems;
 	}
 
-	private class OverlayMarkObserver implements PamView.paneloverlay.overlaymark.OverlayMarkObserver {
+	private class SonarMarkObserver implements PamView.paneloverlay.overlaymark.OverlayMarkObserver {
 
 		@Override
 		public boolean markUpdate(int markStatus, javafx.scene.input.MouseEvent mouseEvent, OverlayMarker overlayMarker,

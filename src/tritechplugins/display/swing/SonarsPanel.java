@@ -300,7 +300,9 @@ public class SonarsPanel extends PamPanel implements DataMenuParent {
 	 * remake the images from fan data, e.g. after a colour map change.
 	 * All this really does is set the images to null and they will get
 	 * rebuilt in the paint thread when it runs. 
-	 * Also kill off the data overlays. 
+	 * <br>
+	 * Also kill off the data overlays. So good to call this rather than repaint()
+	 * after there has been a change to any detection overlay.  
 	 */
 	public void remakeImages() {
 		clearDataOverlays();
