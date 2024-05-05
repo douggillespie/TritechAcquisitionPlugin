@@ -237,7 +237,9 @@ public class SonarImagePanel extends JPanel {
 		
 		Graphics2D g2d = (Graphics2D) g;
 		g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-		g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+	    g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
+	    g2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+//		g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
 		
 		SonarsPanelParams sonarsPanelParams = sonarsPanel.getSonarsPanelParams();
 		/*
@@ -319,13 +321,14 @@ public class SonarImagePanel extends JPanel {
 		double[] bearings = imageRecord.getBearingTable();
 		double maxAng = Math.abs(bearings[0]);
 		double[] toPlot = {-1., -0.5, 0, .5, 1};
-		double x = 0, y = 0;
+//		double x = 0, y = 0;
 		Coordinate3d end = null;
 		Coordinate3d maxXend = new Coordinate3d(0,0,0);
 		for (int i = 0; i < toPlot.length; i++) {
-			x = range*Math.sin(toPlot[i]*maxAng);
-			y = range*Math.cos(toPlot[i]*maxAng);
-			 end = xyProjector.getCoord3d(x, y, false);
+//			x = range*Math.sin(toPlot[i]*maxAng);
+//			y = range*Math.cos(toPlot[i]*maxAng);
+//			 end = xyProjector.getCoord3d(x, y, false);
+			 end = xyProjector.getCoord3d(range, toPlot[i]*maxAng, false);
 			 if (end.x > maxXend.x) {
 				 maxXend = end;
 			 }
@@ -347,15 +350,15 @@ public class SonarImagePanel extends JPanel {
 			}
 //			aRange = range*.5;
 			g.setColor(col);
-			x = aRange*Math.sin(maxAng);
-			y = aRange*Math.cos(maxAng);
-			end = xyProjector.getCoord3d(x, y, false);
+//			x = aRange*Math.sin(maxAng);
+//			y = aRange*Math.cos(maxAng);
+			end = xyProjector.getCoord3d(aRange*2, maxAng, false);
 //			double width = Math.abs(end.x-zero.x);
-			y = end.y;
-			Coordinate3d end2 = xyProjector.getCoord3d(0, aRange, false);
+//			y = end.y;
+			Coordinate3d end2 = xyProjector.getCoord3d(aRange*2, -maxAng, false);
 			int maxDegs = (int) Math.toDegrees(maxAng);
-			int ang1 = 90-maxDegs;
-			int ang2 = 2*maxDegs;
+			int ang1 = 90-maxDegs-1;
+			int ang2 = 2*maxDegs+2;
 			int h = (int) Math.abs(end2.y-zero.y);
 			g.drawArc((int) (zero.x-h), (int) (zero.y-h), (int) (2*+h), (int) (2*h), ang1, ang2);
 //			g.drawRect((int) (zero.x-width), (int) (zero.y-h), (int) (2*+width), (int) (2*h));
