@@ -816,7 +816,8 @@ public class SonarImagePanel extends JPanel {
 			if (zoomTrans != null) {
 				double zoom = xyProjector.getSonarZoomTransform().getZoomFactor();
 				if (zoom > 1) {
-					usePix = (int) (usePix*Math.min(zoom, 2));
+					// don't do this, it slows it down FAR too much. 
+//					usePix = (int) (usePix*Math.min(zoom, 2));
 				}
 			}
 			SonarsPanelParams panelParams = sonarsPanel.getSonarsPanelParams();
@@ -836,6 +837,7 @@ public class SonarImagePanel extends JPanel {
 			}
 			
 			aFanImage = new FanDataImage(totallyFinalData, sonarsPanel.getColourMap(), true, panelParams.displayGain);
+//			t1 = System.nanoTime();
 			aFanImage.getBufferedImage(); // created and kept..
 			imageTime = System.nanoTime()-t1;
 		}

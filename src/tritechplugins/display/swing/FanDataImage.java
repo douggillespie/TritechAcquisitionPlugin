@@ -1,7 +1,9 @@
 package tritechplugins.display.swing;
 
 import java.awt.Color;
+import java.awt.Graphics;
 import java.awt.image.BufferedImage;
+import java.awt.image.DataBufferByte;
 import java.awt.image.WritableRaster;
 
 import PamView.ColourArray;
@@ -32,6 +34,8 @@ public class FanDataImage {
 	private int yPix0;
 
 	private int yPix1;
+	
+	static int nFail = 0;
 
 	/**
 	 * Create a buffered image equal in size to the fanData
@@ -112,6 +116,11 @@ public class FanDataImage {
 	}
 
 	private BufferedImage makeImage() {
+		/**
+		 * Without multithreading, this is currently taking about 
+		 * 6 times longer than the conversion from rectangular to 
+		 * fan data, which is not good!
+		 */
 		if (fanData == null) {
 			return null;
 		}
@@ -124,30 +133,137 @@ public class FanDataImage {
 		if (xPix1 <= xPix0 || yPix1 <= yPix0) {
 			return null;
 		}
-		BufferedImage image = new BufferedImage(xPix1-xPix0, yPix1-yPix0, BufferedImage.TYPE_4BYTE_ABGR);
-		WritableRaster raster = image.getRaster();
-		int[] transparent = {0,0,0,0};
-		int[] coloured = {0,0,0,255};
 
-		Color[] colourValues = colours.getColours();
-		for (int ix = xPix0, ixout = 0; ix < xPix1; ix++, ixout++) {
+		int[] transparent = {0,0,0,0};
+		Color transparentCol = new Color(0,0,0,0);
+		
+		BufferedImage image = new BufferedImage(xPix1-xPix0, (yPix1-yPix0), BufferedImage.TYPE_4BYTE_ABGR);
+//		Graphics g = image.getGraphics();
+//		g.setColor(transparentCol);
+//		g.fillRect(0, 0, image.getWidth(), image.getHeight());
+		
+		WritableRaster raster = image.getRaster();
+		/*
+		 *  some interesting ideas here that might be able to speed up (i.e. bypass)
+		 *  a lot of the raster.setPixel slowness. 
+		 *  https://stackoverflow.com/questions/6319465/fast-loading-and-drawing-of-rgb-data-in-bufferedimage
+		 */
+		
+		
+//		raster.
+		/*
+		 * Most of the time is spent in raster.setPixel. If I comment that line, 
+		 * then loops take around 25ms. With that line, loops take 120ms, i.e. 4 - 5
+		 * times longer. So is there a better call to raster.setPixel ? 
+		 */
+		boolean fail = true;
+		try {
+		/* this comes back 4 times the size of our data, so all we have to do is copy
+		 * the RGB values across. Note these are in reverse order. Could probably multithread this
+		 */
+			byte[] imgData = ((DataBufferByte) image.getRaster().getDataBuffer()).getData();
+			int iPut = 0;
+			int[] coloured = {0,0,0,255};
+			Color[] colourValues = colours.getColours();
 			for (int iy = yPix0, iyout = 0; iy < yPix1; iy++, iyout++) {
-				short val = data[ix][iy];
-				if (val < 0) {
-					raster.setPixel(ixout, iyout, transparent);
+				for (int ix = xPix0, ixout = 0; ix < xPix1; ix++, ixout++) {
+					short val = data[ix][iy];
+					if (val < 0) {
+//						raster.setPixel(ixout, iyout, transparent);
+						iPut+=4;
+					}
+					else {
+						val = (short) Math.min(255, val*gain);
+						val &= 0xFF;
+						Color col = colourValues[val];
+						imgData[iPut++] = (byte) 0xFF;//col.getRed(); 
+						imgData[iPut++] = (byte) col.getBlue(); 
+						imgData[iPut++] = (byte) col.getGreen();
+						imgData[iPut++] = (byte) col.getRed();
+			
+					}
 				}
-				else {
-					val = (short) Math.min(255, val*gain);
-					val &= 0xFF;
-					Color col = colourValues[val];
-					coloured[0] = col.getRed();
-					coloured[1] = col.getGreen();
-					coloured[2] = col.getBlue();//sqrt255(val);
-					//					coloured[3] = val;
-					raster.setPixel(ixout, iyout, coloured);
+			}
+			
+			
+			fail = false;
+		}
+		catch (Exception e) {
+			if (nFail++ < 5) {
+				System.out.println("Error in fast image transform: " + e.getMessage());
+			}
+		}
+			// do it the old way
+		if (fail) {
+
+			int[] coloured = {0,0,0,255};
+			Color[] colourValues = colours.getColours();
+			for (int ix = xPix0, ixout = 0; ix < xPix1; ix++, ixout++) {
+				for (int iy = yPix0, iyout = 0; iy < yPix1; iy++, iyout++) {
+					short val = data[ix][iy];
+					if (val < 0) {
+//						raster.setPixel(ixout, iyout, transparent);
+					}
+					else {
+						val = (short) Math.min(255, val*gain);
+						val &= 0xFF;
+						Color col = colourValues[val];
+//						g.
+						
+						coloured[0] = col.getRed();
+						coloured[1] = col.getGreen();
+						coloured[2] = col.getBlue();//sqrt255(val);
+//											coloured[3] = val;
+//						raster.set
+						raster.setPixel(ixout, iyout, coloured);
+					}
 				}
 			}
 		}
+//		else {
+//		// multithreads slows it down. Presumably setRaster is synchronized ? 
+//		int nThread = 1;
+//		Thread[] threads = new Thread[nThread];
+//		for (int t = 0; t < nThread; t++) {
+//			int iThread = t;
+//			threads[t] = new Thread(new Runnable() {
+//				@Override
+//				public void run() {
+//					int[] coloured = {0,0,0,255};
+//					Color[] colourValues = colours.getColours();
+//					for (int ix = xPix0+iThread, ixout = iThread; ix < xPix1; ix+=nThread, ixout+=nThread) {
+//						for (int iy = yPix0, iyout = 0; iy < yPix1; iy++, iyout++) {
+//							short val = data[ix][iy];
+//							if (val < 0) {
+////								raster.setPixel(ixout, iyout, transparent);
+//							}
+//							else {
+//								val = (short) Math.min(255, val*gain);
+//								val &= 0xFF;
+//								Color col = colourValues[val];
+////								g.
+//								
+//								coloured[0] = col.getRed();
+//								coloured[1] = col.getGreen();
+//								coloured[2] = col.getBlue();//sqrt255(val);
+////													coloured[3] = val;
+//								raster.setPixel(ixout, iyout, coloured);
+//							}
+//						}
+//					}
+//					
+//				};
+//			});
+//			threads[t].start();
+//		}
+//		for (int t = 0; t < nThread; t++) {
+//			try {
+//				threads[t].join();
+//			} catch (InterruptedException e) {
+//				e.printStackTrace();
+//			}
+//		}
+//		}
 		return image;
 	}
 	/**
