@@ -114,12 +114,34 @@ public class FanDataImage {
 	public FanImageData getFanData() {
 		return fanData;
 	}
+	
+	/**
+	 * pull individual bytes for the colours out into a simple
+	 * 2d byte array to more quickly copy over to image raster
+	 * @param colourArray
+	 * @return raw byte data for colours
+	 */
+	private byte[][] extractColours(ColourArray colourArray) {
+		Color[] cols = colourArray.getColours();
+		byte[][] byteData = new byte[cols.length][4];
+		// note reverse byte order.
+		for (int i = 0; i < cols.length; i++) {
+			Color col = cols[i];
+			byte[] bRow = byteData[i];
+			bRow[0] = (byte) 0xFF; // opaque; 
+			bRow[1] = (byte) col.getBlue(); 
+			bRow[2] = (byte) col.getGreen();
+			bRow[3] = (byte) col.getRed();
+		}
+		return byteData;
+	}
 
 	private BufferedImage makeImage() {
 		/**
 		 * Without multithreading, this is currently taking about 
 		 * 6 times longer than the conversion from rectangular to 
-		 * fan data, which is not good!
+		 * fan data, which is not good! This has now been reduced to 
+		 * about the same time, i.e. abut 50ms for a high res image. 
 		 */
 		if (fanData == null) {
 			return null;
@@ -161,12 +183,13 @@ public class FanDataImage {
 		/* this comes back 4 times the size of our data, so all we have to do is copy
 		 * the RGB values across. Note these are in reverse order. Could probably multithread this
 		 */
+			byte[][] colourBytes = extractColours(colours);
 			byte[] imgData = ((DataBufferByte) image.getRaster().getDataBuffer()).getData();
 			int iPut = 0;
-			int[] coloured = {0,0,0,255};
-			Color[] colourValues = colours.getColours();
-			for (int iy = yPix0, iyout = 0; iy < yPix1; iy++, iyout++) {
-				for (int ix = xPix0, ixout = 0; ix < xPix1; ix++, ixout++) {
+//			int[] coloured = {0,0,0,255};
+//			Color[] colourValues = colours.getColours();
+			for (int iy = yPix0; iy < yPix1; iy++) {
+				for (int ix = xPix0; ix < xPix1; ix++) {
 					short val = data[ix][iy];
 					if (val < 0) {
 //						raster.setPixel(ixout, iyout, transparent);
@@ -175,11 +198,14 @@ public class FanDataImage {
 					else {
 						val = (short) Math.min(255, val*gain);
 						val &= 0xFF;
-						Color col = colourValues[val];
-						imgData[iPut++] = (byte) 0xFF;//col.getRed(); 
-						imgData[iPut++] = (byte) col.getBlue(); 
-						imgData[iPut++] = (byte) col.getGreen();
-						imgData[iPut++] = (byte) col.getRed();
+//						byte[] bRow = colourBytes[val];
+						System.arraycopy(colourBytes[val], 0, imgData, iPut, 4);
+						iPut+=4;
+//						Color col = colourValues[val];
+//						imgData[iPut++] = (byte) 0xFF;//col.getRed(); 
+//						imgData[iPut++] = (byte) col.getBlue(); 
+//						imgData[iPut++] = (byte) col.getGreen();
+//						imgData[iPut++] = (byte) col.getRed();
 			
 					}
 				}
