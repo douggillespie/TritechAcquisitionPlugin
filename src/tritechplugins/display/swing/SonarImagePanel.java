@@ -9,6 +9,10 @@ import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
+import java.awt.Toolkit;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.ClipboardOwner;
+import java.awt.datatransfer.Transferable;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
@@ -47,6 +51,7 @@ import PamUtils.LatLong;
 import PamUtils.PamCalendar;
 import PamUtils.PamUtils;
 import PamUtils.time.CalendarControl;
+import PamView.ClipboardCopier;
 import PamView.GeneralProjector;
 import PamView.GeneralProjector.ParameterType;
 import PamView.HoverData;
@@ -189,12 +194,26 @@ public class SonarImagePanel extends JPanel {
 
 			@Override
 			public void keyTyped(KeyEvent e) {
+				boolean ctrl = e.isControlDown();
+//				char keyChar = e.getKeyChar();
+//				System.out.println("Keychar is " + keyChar);
+//				System.out.println("Keycode is " + e.getKeyCode());
 				if (e.getKeyChar() == 't') {
 					cycleTipTypes();
 				}
+//				else if (e.getKeyChar() == 'c') {
+//					copyToolTipImage();
+//				}
 			}
 			@Override
 			public void keyPressed(KeyEvent e) {
+				char keyChar = e.getKeyChar();
+//				System.out.println("Keypressed is " + keyChar);
+//				System.out.println("Keypressedcode is " + e.getKeyCode());
+				boolean ctrl = e.isControlDown();
+				if (e.getKeyCode() == 67) {
+					copyToolTipImage();
+				}
 				if (e.getKeyCode() == KeyEvent.VK_LEFT) {
 					arrowKeyPress(-1);
 				}
@@ -207,7 +226,6 @@ public class SonarImagePanel extends JPanel {
 		});
 
 	}
-
 
 	/**
 	 * Scroll forwards or backwards by frames
@@ -1007,6 +1025,39 @@ public class SonarImagePanel extends JPanel {
 		pt.y += 2;
 		return pt;
 	}
+	
+
+	/**
+	 * If there is a tooltip image, copy it to the clip board. 
+	 */
+	protected void copyToolTipImage() {
+		FanDataImage tipImage = getToolTipImage();
+		if (tipImage == null) {
+			return;
+		}
+		BufferedImage image = tipImage.getBufferedImage();
+		image = ClipBoardImage.flipImageV(image);
+		if (image == null) {
+			return;
+		}
+		ClipBoardImage clipImage = new ClipBoardImage(image);
+		Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+		clipboard.setContents(clipImage, new ClipBoardThing());
+		
+		PamWarning w = new PamWarning("Sonar Panel", "Thumbnail copied to clipboard", 0);
+		w.setEndOfLife(System.currentTimeMillis() + 2000);
+		WarningSystem.getWarningSystem().addWarning(w);
+	}
+	
+	private class ClipBoardThing implements ClipboardOwner {
+
+		@Override
+		public void lostOwnership(Clipboard clipboard, Transferable contents) {
+			// TODO Auto-generated method stub
+			
+		}
+		
+	}
 
 	private FanDataImage getToolTipImage() {
 		try {
@@ -1343,6 +1394,17 @@ public class SonarImagePanel extends JPanel {
 		catch (Exception exc) {
 
 		}
+		
+		JMenuItem copyItem = new JMenuItem("Copy image");
+		copyItem.setToolTipText("Copy image to clipboard");
+		copyItem.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				copyImage();
+			}
+		});
+		standardItems.add(copyItem);
+		
 		PamDataUnit hoveredData = xyProjector.getHoveredDataUnit();
 		if (hoveredData != null && hoveredData.getSuperDetection(0) != null) {
 			hoveredData = hoveredData.getSuperDetection(0);
@@ -1361,10 +1423,15 @@ public class SonarImagePanel extends JPanel {
 			standardItems.add(menuItem);
 		}
 
-
-
-
 		return standardItems;
+	}
+
+	/**
+	 * Copy the image, overlays and all, to the clipboard. 
+	 */
+	protected void copyImage() {
+		ClipboardCopier cbc = new ClipboardCopier(sonarsPanel);
+		cbc.copyToClipBoard();
 	}
 
 	private class SonarMarkObserver implements PamView.paneloverlay.overlaymark.OverlayMarkObserver {
