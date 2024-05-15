@@ -76,9 +76,9 @@ public class TrackLinkDataUnit extends SuperDetection<RegionDataUnit> {
 				PamCalendar.formatTime(trackChain.getLastTime(), 3, false),
 				"UTC");
 		
-		str += String.format("<br>Sonars %s, Mean Occupancy %3.1f%%<br>Duration %3.1fs, points %d (%3.1fpps)<br>", 
+		str += String.format("<br>Sonars %s, Mean Occupancy %3.1f%%<br>Duration %3.1fs, points %d (%3.1fpps), score %4.2f<br>", 
 				trackChain.getsonarIdString(), trackChain.getMeanOccupancy(), getDurationInMilliseconds()/1000., 
-				trackChain.getChainLength(), trackChain.getPointRate());
+				trackChain.getChainLength(), trackChain.getPointRate(), trackChain.getTrackLinkScore());
 		
 		str+= String.format("Total length %3.1fm, Straight length %3.1fm, Straightness %4.2f<br>", 
 				trackChain.getWobblyLength(), trackChain.getEnd2EndMetres(), trackChain.getStraigtness());
@@ -145,5 +145,9 @@ public class TrackLinkDataUnit extends SuperDetection<RegionDataUnit> {
 			}
 		} 
 		return n;
+	}
+	
+	public double getTrackLinkScore() {
+		return trackChain.getTrackLinkScore();
 	}
 }

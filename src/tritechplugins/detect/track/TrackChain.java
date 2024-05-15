@@ -16,6 +16,8 @@ public class TrackChain {
 	
 	private TrackLinkDataUnit parentDataUnit;
 	
+	private double trackLinkScore = -1;
+	
 	public TrackChain(DetectedRegion region) {
 		this.regions = new LinkedList<>();
 		if (region != null) {
@@ -309,5 +311,13 @@ public class TrackChain {
 		long t1 = regions.get(0).getTimeMilliseconds();
 		long t2 = regions.get(regions.size()-1).getTimeMilliseconds();
 		return String.format("Track Chain %d pts %3.2fs", regions.size(), (double) (t2-t1)/1000.);
+	}
+
+	public double getTrackLinkScore() {
+//		if (trackLinkScore < 0) {
+			TrackScorer tx = new TrackScorer();
+			trackLinkScore = tx.scoreTrack(this);
+//		}
+		return trackLinkScore;
 	}
 }

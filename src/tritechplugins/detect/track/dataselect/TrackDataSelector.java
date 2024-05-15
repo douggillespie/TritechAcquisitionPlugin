@@ -75,9 +75,13 @@ public class TrackDataSelector extends DataSelector {
 		if (params.maxPointsPerFrame > 0 && trackDataUnit.getMaxFrameDetectionCount() > params.maxPointsPerFrame) {
 			return 0;
 		}
+		if (chain.getTrackLinkScore() < params.minTrackScore) {
+			return 0;
+		}		
 		if (params.vetoXzero && isAllX0(chain)) {
 			return 0.;
 		}
+		
 		return 1.;
 	}
 

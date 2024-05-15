@@ -20,6 +20,7 @@ public class TrackDataSelectorPanel implements PamDialogPanel {
 	private TrackDataSelector trackDataSelector;
 	
 	private JTextField minLength, minStraightness, minDuration, minPoints, maxPerFrame, minPointRate;
+	private JTextField minScore;
 	private JCheckBox vetoX0;
 	
 	public TrackDataSelectorPanel(TrackDataSelector trackDataSelector) {
@@ -41,6 +42,8 @@ public class TrackDataSelectorPanel implements PamDialogPanel {
 		vetoX0.setToolTipText("Veto tracks caused by additional noise on x=0 centre line");
 		minPointRate = new JTextField(4);
 		minPointRate.setToolTipText("Minimum average rate of points within track (per second)");
+		minScore = new JTextField(4);
+		minScore.setToolTipText("Track evenness score. Should generally be > .5");
 		
 		mainPanel.add(new JLabel("Minimum length "), c);
 		c.gridx++;
@@ -80,6 +83,11 @@ public class TrackDataSelectorPanel implements PamDialogPanel {
 		mainPanel.add(maxPerFrame, c);
 		c.gridx = 0;
 		c.gridy++;
+		mainPanel.add(new JLabel("Minimum strack score "), c);
+		c.gridx++;
+		mainPanel.add(minScore, c);
+		c.gridx = 0;
+		c.gridy++;
 		c.gridwidth = 3;
 		mainPanel.add(vetoX0, c);
 		
@@ -99,6 +107,7 @@ public class TrackDataSelectorPanel implements PamDialogPanel {
 		minPoints.setText(String.format("%d", params.minPoints));
 		maxPerFrame.setText(String.format("%d", params.maxPointsPerFrame));
 		minPointRate.setText(String.format("%3.2f", params.minPointRate));
+		minScore.setText(String.format("%3.2f", params.minTrackScore));
 		vetoX0.setSelected(params.vetoXzero);		
 	}
 
@@ -112,6 +121,7 @@ public class TrackDataSelectorPanel implements PamDialogPanel {
 			params.minPoints = Integer.valueOf(minPoints.getText());
 			params.maxPointsPerFrame = Integer.valueOf(maxPerFrame.getText());
 			params.minPointRate = Double.valueOf(minPointRate.getText());
+			params.minTrackScore = Double.valueOf(minScore.getText());
 			params.vetoXzero = vetoX0.isSelected();
 		}
 		catch (NumberFormatException e) {

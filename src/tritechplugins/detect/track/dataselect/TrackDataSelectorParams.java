@@ -43,6 +43,8 @@ public class TrackDataSelectorParams extends DataSelectParams implements Cloneab
 	 * (total number of frames in track -1) / track duration. 
 	 */
 	public double minPointRate = 2;
+
+	public double minTrackScore = 0;
 	
 
 	@Override
