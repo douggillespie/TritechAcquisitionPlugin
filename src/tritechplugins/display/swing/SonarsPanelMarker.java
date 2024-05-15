@@ -7,6 +7,7 @@ import java.util.List;
 import javax.swing.JPopupMenu;
 
 import PamView.GeneralProjector;
+import PamView.paneloverlay.overlaymark.ClosestDataInfo;
 import PamView.paneloverlay.overlaymark.ExtMouseAdapter;
 import PamView.paneloverlay.overlaymark.MarkDataSelector;
 import PamView.paneloverlay.overlaymark.OverlayMark;
@@ -52,8 +53,29 @@ public class SonarsPanelMarker extends OverlayMarker {
 	}
 
 	@Override
+	public ClosestDataInfo findClosestData(MouseEvent e, double maxDistance) {
+		// override this so that it gets the tracks, not the individual point. 
+		ClosestDataInfo closest = super.findClosestData(e, maxDistance);
+		
+		if (closest == null) {
+			return closest;
+		}
+		PamDataUnit aData = closest.dataUnit;
+		if (aData instanceof RegionDataUnit) {
+			SuperDetection track = ((RegionDataUnit) aData).getSuperDetection(TrackLinkDataUnit.class);
+			if (track == null) {
+				return null;
+			}
+			closest.dataUnit = track;
+		}
+		
+		return closest;
+	}
+
+	@Override
 	public List<PamDataUnit> getSelectedMarkedDataUnits(OverlayMark overlayMark, MarkDataSelector markDataSelector,
 			int minOverlap) {
+		// override this so that it gets a list of the tracks, not the individual points. 
 		List<PamDataUnit> selectedData = super.getSelectedMarkedDataUnits(overlayMark, markDataSelector, minOverlap);
 		if (selectedData == null) {
 			return null;
