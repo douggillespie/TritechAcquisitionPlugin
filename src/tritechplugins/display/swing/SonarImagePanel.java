@@ -72,6 +72,7 @@ import annotation.handler.AnnotationHandler;
 import detectiongrouplocaliser.DetectionGroupSummary;
 import javafx.scene.control.MenuItem;
 import pamMaths.PamVector;
+import pamScrollSystem.PamScrollSlider;
 import tritechgemini.detect.DetectedRegion;
 import tritechgemini.fileio.MultiFileCatalog;
 import tritechgemini.imagedata.FanImageData;
@@ -452,8 +453,12 @@ public class SonarImagePanel extends JPanel {
 		long tailStart = 0;
 		switch (sonarsPanel.getSonarsPanelParams().tailOption) {
 		case SonarsPanelParams.OVERLAY_TAIL_ALL:
-			tailStart = 0;
-			tailEnd = Long.MAX_VALUE;
+			// get the scroll times, since some dat amay be loaded elsewhere. 
+			PamScrollSlider scroller = sonarsPanel.getSonarsOuterPanel().getViewerSlider();
+			tailStart = scroller.getMinimumMillis();
+			tailEnd = scroller.getMaximumMillis();
+//			tailStart = 0;
+//			tailEnd = Long.MAX_VALUE;
 			break;
 		case SonarsPanelParams.OVERLAY_TAIL_NONE:
 			if (imageRecord != null) {
@@ -473,6 +478,7 @@ public class SonarImagePanel extends JPanel {
 		synchronized (dataBlock.getSynchLock()) {
 			dataCopy = dataBlock.getDataCopy(tailStart, tailEnd, false, dataSelector);
 		}
+		overlayDraw.preDrawAnything(g, dataBlock, xyProjector);
 		//		System.out.printf("Paint tail from %s to %s\n", PamCalendar.formatDBDateTime(tailStart), PamCalendar.formatDBDateTime(tailEnd));
 		boolean drawSpecial = overlayDraw.canDraw(xyProjector) == false;
 		ArrayList<PamDataUnit> laterList = new ArrayList();

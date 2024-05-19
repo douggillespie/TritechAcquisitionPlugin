@@ -2,10 +2,12 @@ package tritechplugins.detect.track;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.ListIterator;
 import java.util.Set;
 
+import PamUtils.PamArrayUtils;
 import tritechgemini.detect.DetectedRegion;
 
 public class TrackChain {
@@ -84,6 +86,80 @@ public class TrackChain {
 		double y = (r2.getPeakY()-r1.getPeakY());
 		double[] velocityVec = {x, y};
 		return velocityVec;
+	}
+	
+	/**
+	 * Get a direction vector for the track. This also includes
+	 * times, so can be used to extrapolate. 
+	 * @return direction vector. 
+	 */
+	public TrackVector getTrackVector() {
+		DetectedRegion r1 = regions.get(0);
+		DetectedRegion r2 = regions.get(regions.size()-1);
+		return new TrackVector(-r1.getPeakX(), r1.getPeakY(), -r2.getPeakX(), 
+				r2.getPeakY(), getFirstTime(), getLastTime());
+	}
+	
+	/**
+	 * Chop up the track into segments based on a time in seconds
+	 * and return multiple track vectors. 
+	 * @param segmentDuration segment duration in seconds. <br> 0 will get a single segment for entire track.
+	 * @return list of vectors along length of track. 
+	 */
+	public ArrayList<TrackVector> getTrackVectors(double segmentDuration) {
+		ArrayList<TrackVector> segs = new ArrayList<>();
+		int n = regions.size();
+		if (n<2) {
+			return segs;
+		}
+		long trackMillis = getTrackDuration();
+		long segMillis = (long) (segmentDuration*1000);
+		if (segMillis <= 0 || segMillis >= trackMillis) {
+			segs.add(getTrackVector());
+			return segs;
+		}
+		DetectedRegion segStart = null, segEnd = null;
+		synchronized (this) {
+			Iterator<DetectedRegion> it = regions.iterator();
+			segStart = it.next();
+			while (it.hasNext()) {
+				DetectedRegion thisReg = it.next();
+				if (thisReg.getTimeMilliseconds()-segStart.getTimeMilliseconds() > segMillis) {
+					if (segEnd != null) {
+						TrackVector v = new TrackVector(segStart.getPeakX(), segStart.getPeakY(), 
+								segEnd.getPeakX(), segEnd.getPeakY(), segStart.getTimeMilliseconds(), segEnd.getTimeMilliseconds());
+						segs.add(v);
+						// reset, starting at end of last segment
+						segStart = segEnd;
+						segEnd = null;
+					}
+					/**
+					 * If everything is too spaced out, this doing nothing here should trick it 
+					 * into waiting until segs are long enough - though may end
+					 * up with a seg for every pair of points. 
+					 */
+//					else {
+						// not enough points to make a vector.
+//						segStart = thisReg;
+//						continue;
+//					}
+				}
+				else {
+					// not yet long enough. 
+					// keep ref to this for next time. 
+					segEnd = thisReg;
+				}
+			}
+			/**
+			 * If what's left is > half the span of another segment, keep it anyway. 
+			 */
+			if (segEnd != null & segEnd.getTimeMilliseconds()-segStart.getTimeMilliseconds() >= segMillis/2) {
+				TrackVector v = new TrackVector(segStart.getPeakX(), segStart.getPeakY(), 
+						segEnd.getPeakX(), segEnd.getPeakY(), segStart.getTimeMilliseconds(), segEnd.getTimeMilliseconds());
+				segs.add(v);
+			}
+		}
+		return segs;
 	}
 	
 	/**
@@ -179,7 +255,7 @@ public class TrackChain {
 	 * Track duration in milliseconds from first to last point
 	 * @return duration in milliseconds. 
 	 */
-	public double getTrackDuration() {
+	public long getTrackDuration() {
 		if (regions.size() < 2) {
 			return 0;
 		}
@@ -319,5 +395,47 @@ public class TrackChain {
 			trackLinkScore = tx.scoreTrack(this);
 //		}
 		return trackLinkScore;
+	}
+	
+	/**
+	 * Get mean size of track in radial coordinate. 
+	 * @return mean radial size in metres 
+	 */
+	public double getMeanRSize() {
+		int n = 0;
+		double rSize = 0;
+		synchronized(this) {
+			Iterator<DetectedRegion> it = regions.iterator();
+			while (it.hasNext()) {
+				DetectedRegion aR = it.next();
+				n++;
+				rSize += aR.getMaxRange()-aR.getMinRange();
+			}
+		}
+		if (n == 0) {
+			return 0;
+		}
+		return rSize/n;		
+	}
+	
+	/**
+	 * Get the median of the radial coordinate of the track size. 
+	 * @return median radial size. Metres
+	 */
+	public double getMedianRSize() {
+		int n = 0;
+		double[] values = null;
+		synchronized(this) {
+			if (regions.size() == 0) {
+				return 0;
+			}
+			Iterator<DetectedRegion> it = regions.iterator();
+			values = new double[regions.size()]; 
+			while (it.hasNext()) {
+				DetectedRegion aR = it.next();
+				values[n++] = aR.getMaxRange()-aR.getMinRange();
+			}
+		}
+		return PamArrayUtils.median(values);
 	}
 }
