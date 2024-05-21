@@ -43,6 +43,9 @@ public class RegionDataUnit extends PamDataUnit {
 		}
 		DataUnitBaseData basicData = getBasicData();
 //		str += PamCalendar.formatDateTime(timeMilliseconds) + "<p>";
+		double degsSize = Math.toDegrees(Math.abs(region.getMaxBearing()-region.getMinBearing()));
+		double angMetres = Math.abs(region.getMaxBearing()-region.getMinBearing())*region.getPeakRange();
+		double radMetres = region.getMaxRange()-region.getMinRange();
 		str += String.format("<b>%s %s</b> %s<p>", PamCalendar.formatDate(basicData.getTimeMilliseconds(), true),
 				PamCalendar.formatTime(basicData.getTimeMilliseconds(), 3, true),
 				CalendarControl.getInstance().getTZCode(true));
@@ -51,7 +54,7 @@ public class RegionDataUnit extends PamDataUnit {
 					PamCalendar.formatTime(basicData.getTimeMilliseconds(), 3, false),
 					"UTC");
 		}
-		str += String.format("Size: %d pix, %3.1fm, Occupancy %3.1f%%<br>", region.getRegionSize(), region.getObjectSize(), region.getOccupancy());
+		str += String.format("Size: %d pix, %3.2fx%3.2fm, Occupancy %3.1f%%<br>", region.getRegionSize(), angMetres, radMetres, region.getOccupancy());
 		str += String.format("Level: Mean %d, Max %d<br>", region.getAverageValue(), region.getMaxValue());
 		str += String.format("Angles: %3.1f to %3.1f<br>", Math.toDegrees(region.getMinBearing()), 
 				Math.toDegrees(region.getMaxBearing()));
