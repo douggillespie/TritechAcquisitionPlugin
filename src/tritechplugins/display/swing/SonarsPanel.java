@@ -16,7 +16,9 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
@@ -54,9 +56,11 @@ import pamScrollSystem.PamScrollSlider;
 import tritechgemini.fileio.MultiFileCatalog;
 import tritechgemini.imagedata.GeminiImageRecordI;
 import tritechplugins.acquire.ImageDataBlock;
+import tritechplugins.acquire.SonarDaqParams;
 import tritechplugins.acquire.TritechAcquisition;
 import tritechplugins.acquire.offline.TritechOffline;
 import tritechplugins.detect.threshold.BackgroundRemoval;
+import tritechplugins.detect.threshold.RegionDataBlock;
 import tritechplugins.detect.track.TrackLinkDataUnit;
 import tritechplugins.display.swing.overlays.OverlayTailDialogPanel;
 import tritechplugins.display.swing.overlays.SonarOverlayData;
@@ -264,22 +268,57 @@ public class SonarsPanel extends PamPanel implements DataMenuParent {
 	}
 
 	/**
-		 * Scroll range has changed. 
-		 * @param minimumMillis min data load time
-		 * @param maximumMillis max data load time
+	 * Scroll range has changed. 
+	 * @param minimumMillis min data load time
+	 * @param maximumMillis max data load time
+	 */
+	public void newScrollRange(long minimumMillis, long maximumMillis) {
+		/**
+		 * The main thing we need to do here is to make transparent overlay images of all
+		 * the detection data to show when alldata is selected. This may also need to 
+		 * be redone whenever rectangle sizes change. 
 		 */
-		public void newScrollRange(long minimumMillis, long maximumMillis) {
-			/**
-			 * The main thing we need to do here is to make transparent overlay images of all
-			 * the detection data to show when alldata is selected. This may also need to 
-			 * be redone whenever rectangle sizes change. 
-			 */
-	//		remakeDataOverlays();
-			int n = getNumImagePanels();
-			for (int i = 0; i < n; i++) {
-				getImagePanel(i).newScrollRange(minimumMillis, maximumMillis);
+		//		remakeDataOverlays();
+		int n = getNumImagePanels();
+		for (int i = 0; i < n; i++) {
+			getImagePanel(i).newScrollRange(minimumMillis, maximumMillis);
+		}
+		checkSonarPanels();
+	}
+
+	/**
+	 * Run a check of sonar panels based on any overlays of the detector
+	 * data block. This is needed if image data are not available to 
+	 * make sure we've a panel for each sonar in the binary data. 
+	 *  A bit of a bodge and won't create sonar panels if 
+	 *  there are no data for that sonar, but we'll live with that. 
+	 */
+	private void checkSonarPanels() {
+		Collection<SonarOverlayData> dataBlocks = sonarOverlayManager.getSelectedDataBlocks();
+		if (dataBlocks == null) {
+			return;
+		}
+		Iterator<SonarOverlayData> it = dataBlocks.iterator();
+		while (it.hasNext()) {
+			SonarOverlayData overlay = it.next();
+			PamDataBlock aBlock = PamController.getInstance().getDataBlockByLongName(overlay.dataName);
+			if (aBlock instanceof RegionDataBlock) {
+				RegionDataBlock regionDataBlock = (RegionDataBlock) aBlock;
+				Set<Integer> sonarIds = regionDataBlock.getSonarIds();
+				setNumSonars(sonarIds.size());
+				Iterator<Integer> sonIt = sonarIds.iterator();
+				while (sonIt.hasNext()) {
+					Integer sonId = sonIt.next();
+//					check that panel exists. 
+					int sonIndex = sonarsOuterPanel.getSonarIndex(sonId);
+					SonarImagePanel imagePanel = getImagePanel(sonIndex);
+					if (imagePanel != null) {
+						imagePanel.setSonarId(sonId);
+					}
+				}
 			}
 		}
+	}
 
 	/**
 	 * Get an images panel by index. This is a cast of the panels 
@@ -724,6 +763,24 @@ public class SonarsPanel extends PamPanel implements DataMenuParent {
 	public void repaint(long tm) {
 		// TODO Auto-generated method stub
 		super.repaint(tm);
+	}
+
+	/**
+	 * Get a max range for the display. Used when there are 
+	 * no fanimage data for this display. 
+	 * @param maxRange current max range.
+	 * @param sonarId
+	 * @return
+	 */
+	public double getDefaultMaxRange(double maxRange, int sonarId) {
+		if (tritechAcquisition == null) {
+			return maxRange;
+		}
+		SonarDaqParams sonarParams = tritechAcquisition.getDaqParams().getSonarParams(sonarId);
+		if (sonarParams == null) {
+			return maxRange;
+		}
+		return sonarParams.getRange();
 	}
 
 

@@ -296,7 +296,7 @@ public class SonarsOuterPanel implements ConfigurationObserver {
 	 * @param deviceId device unique id.
 	 * @return 0,1, etc. index for image drawing.
 	 */
-	private int getSonarIndex(int deviceId) {
+	public int getSonarIndex(int deviceId) {
 		Integer ind = imageIndexes.get(deviceId);
 		if (ind == null) {
 			ind = imageIndexes.size();

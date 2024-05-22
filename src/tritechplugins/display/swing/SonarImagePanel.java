@@ -160,6 +160,8 @@ public class SonarImagePanel extends JPanel {
 
 	private TrackLinkDataUnit lastHighlightTrack;
 
+	private boolean neverImage = true;
+
 	public SonarImagePanel(SonarsPanel sonarsPanel, int panelIndex) {
 		this.panelIndex = panelIndex;
 		this.sonarsPanel = sonarsPanel;
@@ -273,12 +275,17 @@ public class SonarImagePanel extends JPanel {
 			fanImage = theFanimage = makeFinalImage();
 		}
 		if (theFanimage != null) {
+			neverImage = false;
 			maxRange = theFanimage.getFanData().getGeminiRecord().getMaxRange();
 			BufferedImage bufIm = theFanimage.getBufferedImage();
 			if (bufIm != null) {
 				imageBounds = new Rectangle(0,0,bufIm.getWidth(),bufIm.getHeight());
 			}
 			currentTime = theFanimage.getFanData().getGeminiRecord().getRecordTime();
+		}
+		else if (neverImage){ // only ever do this once ?
+			// try to get it from the trigech acquisition
+			maxRange = sonarsPanel.getDefaultMaxRange(maxRange, sonarId);
 		}
 		sonarZoomTransform = new SonarZoomTransform(maxRange, panelRectangle, imageBounds, 
 				sonarsPanel.getZoomFactor(), sonarsPanel.getZoomCentre(),
@@ -324,7 +331,7 @@ public class SonarImagePanel extends JPanel {
 
 	private void paintGrid(Graphics g) {
 		if (fanImage == null ||imageRecord == null) {
-			return;
+//			return;
 		}
 
 		Color col = sonarsPanel.getColourMap().getContrastingColour();
@@ -336,9 +343,15 @@ public class SonarImagePanel extends JPanel {
 		if (zero == null) {
 			return;
 		}
-		double range = imageRecord.getMaxRange();
-		double[] bearings = imageRecord.getBearingTable();
-		double maxAng = Math.abs(bearings[0]);
+		Double range = xyProjector.getMaxRange();
+		if (range == null) {
+			return;
+		}
+		double maxAng = Math.toRadians(60);
+		if (imageRecord != null) {
+			double[] bearings = imageRecord.getBearingTable();
+			maxAng = Math.abs(bearings[0]);
+		}
 		double[] toPlot = {-1., -0.5, 0, .5, 1};
 		//		double x = 0, y = 0;
 		Coordinate3d end = null;

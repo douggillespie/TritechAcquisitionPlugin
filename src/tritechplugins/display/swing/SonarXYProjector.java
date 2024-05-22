@@ -160,4 +160,12 @@ public class SonarXYProjector extends GeneralProjector {
 		return sonarsPanel;
 	}
 
+	public Double getMaxRange() {
+		// TODO Auto-generated method stub
+		if (sonarZoomTransform == null) {
+			return null;
+		}
+		return sonarZoomTransform.getMaximumRange();
+	}
+
 }

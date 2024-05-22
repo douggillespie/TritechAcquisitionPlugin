@@ -33,4 +33,19 @@ public class RegionDataBlock extends PamDataBlock<RegionDataUnit> {
 		return sonarId;
 	}
 
+	/**
+	 * @return the sonarIds
+	 */
+	public Set<Integer> getSonarIds() {
+		return sonarIds;
+	}
+
+	/**
+	 * GEt a collection of sonar id's. 
+	 * @param sonarIds the sonarIds to set
+	 */
+	public void setSonarIds(Set<Integer> sonarIds) {
+		this.sonarIds = sonarIds;
+	}
+
 }
