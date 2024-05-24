@@ -229,7 +229,7 @@ public class TrackLinker {
 	 * @param chain
 	 * @return
 	 */
-	private boolean wantChain(TrackChain chain) {
+	public boolean wantChain(TrackChain chain) {
 		TrackLinkParameters trackParams = trackLinkProcess.trackLinkParams;
 		return (chain.getChainLength() >= trackParams.minTrackPoints && 
 				chain.getEnd2EndMetres() >= trackParams.minStraightLength &&

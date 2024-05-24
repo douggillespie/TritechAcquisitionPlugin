@@ -330,9 +330,9 @@ public class SonarImagePanel extends JPanel {
 
 
 	private void paintGrid(Graphics g) {
-		if (fanImage == null ||imageRecord == null) {
+//		if (fanImage == null ||imageRecord == null) {
 //			return;
-		}
+//		}
 
 		Color col = sonarsPanel.getColourMap().getContrastingColour();
 		col = new Color(col.getRed(), col.getGreen(), col.getBlue(), 192);

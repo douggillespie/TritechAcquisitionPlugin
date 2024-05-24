@@ -1,7 +1,9 @@
 package tritechplugins.detect.threshold;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.TreeSet;
 
 import PamView.GeneralProjector;
 import PamguardMVC.PamDataBlock;
@@ -11,7 +13,7 @@ import tritechplugins.display.swing.overlays.SonarSymbolManager;
 
 public class RegionDataBlock extends PamDataBlock<RegionDataUnit> {
 
-	private Set<Integer> sonarIds = new HashSet<Integer>();
+	private Set<Integer> sonarIds = Collections.synchronizedSortedSet(new TreeSet<Integer>());
 	
 	public RegionDataBlock(String dataName, PamProcess thresholdProcess) {
 		super(RegionDataUnit.class, dataName, thresholdProcess, 0);

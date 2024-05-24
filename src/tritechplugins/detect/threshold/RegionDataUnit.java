@@ -37,7 +37,8 @@ public class RegionDataUnit extends PamDataUnit {
 	@Override
 	public String getSummaryString() {
 		String str = "<html>";
-		str += "UID: " + getUID() + "<p>";
+//		str += "UID: " + getUID();
+		str += "Sonar " + sonarId + "<p>";
 		if (getParentDataBlock() != null) {
 			str += "<i>" + getParentDataBlock().getLongDataName() + "</i><p>";
 		}
