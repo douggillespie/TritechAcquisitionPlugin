@@ -32,7 +32,7 @@ public class ChannelDetector {
 	private RegionDetector regionDetector;
 	
 	private BackgroundRemoval backgroundRemoval;
-	private RegionDataBlock regionDataBlock;
+//	private RegionDataBlock regionDataBlock;
 	
 	private static final int MAX_FRAME_REGIONS = 1000;
 	
@@ -55,7 +55,7 @@ public class ChannelDetector {
 		backgroundRemoval = new BackgroundRemoval();
 		regionDetector = new TwoThresholdDetector();
 		
-		regionDataBlock = thresholdProcess.getRegionDataBlock();
+//		regionDataBlock = thresholdProcess.getRegionDataBlock();
 		
 		imageRangeFilter = new ImageRangeFilter();
 	}
@@ -95,8 +95,13 @@ public class ChannelDetector {
 		thresholdDetector.notifyRawUpdate(sonarId, imageData);
 		thresholdDetector.notifyTreatedUpdate(sonarId, noBackground);
 		
-//		byte[] std = backgroundRemoval.getBackground();
-//		thresholdDetector.notifyBackgroundUpdate(sonarId, std);
+		/*
+		 * Can escape here if the background has recently been reset in order to avoid the problem of lots
+		 * of false dets firing off as things settle. 
+		 */
+		if (backgroundRemoval.getUpdateCount() < params.backgroundTimeConst*2) {
+			return null;
+		}
 		
 		GeminiImageRecordI clonedImage = image.clone();
 		clonedImage.setImageData(noBackground);

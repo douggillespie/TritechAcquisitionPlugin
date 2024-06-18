@@ -19,6 +19,13 @@ public class TrackChain {
 	private TrackLinkDataUnit parentDataUnit;
 	
 	private double trackLinkScore = -1;
+
+	/**
+	 * Count of skipped images. Used during track
+	 * formation to count how many frames haven't 
+	 * added to this chain. 
+	 */
+	public int imageSkips;
 	
 	public TrackChain(DetectedRegion region) {
 		this.regions = new LinkedList<>();
@@ -272,7 +279,7 @@ public class TrackChain {
 		synchronized (this) {
 			regions.add(detectedRegion);
 		}
-		
+		imageSkips = 0;
 	}
 
 	/**

@@ -467,10 +467,14 @@ public class SonarImagePanel extends JPanel {
 		switch (sonarsPanel.getSonarsPanelParams().tailOption) {
 		case SonarsPanelParams.OVERLAY_TAIL_ALL:
 			// get the scroll times, since some dat amay be loaded elsewhere. 
-			PamScrollSlider scroller = sonarsPanel.getSonarsOuterPanel().getViewerSlider();
-			tailStart = scroller.getMinimumMillis();
-			tailEnd = scroller.getMaximumMillis();
-//			tailStart = 0;
+			if (isViewer) {
+				PamScrollSlider scroller = sonarsPanel.getSonarsOuterPanel().getViewerSlider();
+				if (scroller != null) {
+					tailStart = scroller.getMinimumMillis();
+					tailEnd = scroller.getMaximumMillis();
+				}
+			}
+			//			tailStart = 0;
 //			tailEnd = Long.MAX_VALUE;
 			break;
 		case SonarsPanelParams.OVERLAY_TAIL_NONE:

@@ -334,7 +334,7 @@ public class JavaFileAcquisition extends TritechDaqSystem  implements CatalogStr
 		ImageDataBlock datablock = tritechProcess.getImageDataBlock();
 		ImageDataUnit imageDataUnit = new ImageDataUnit(glfImage.getRecordTime(), 0, glfImage);
 		
-		PamCalendar.setSessionStartTime(glfImage.getRecordTime());
+		PamCalendar.setSoundFileTimeInMillis(glfImage.getRecordTime()-PamCalendar.getSessionStartTime());
 		delayPlayback(glfImage.getRecordTime());
 		
 		datablock.addPamData(imageDataUnit);

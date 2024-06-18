@@ -50,7 +50,6 @@ import PamguardMVC.PamObserverAdapter;
 import PamguardMVC.datamenus.DataMenuParent;
 import PamguardMVC.superdet.SuperDetDataBlock;
 import annotation.handler.AnnotationHandler;
-import javafx.scene.control.MenuItem;
 import offlineProcessing.superdet.OfflineSuperDetFilter;
 import pamScrollSystem.PamScrollSlider;
 import tritechgemini.fileio.MultiFileCatalog;

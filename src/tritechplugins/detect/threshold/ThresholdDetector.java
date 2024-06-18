@@ -17,6 +17,7 @@ import PamController.PamSettings;
 import annotation.handler.AnnotationHandler;
 import annotation.handler.ManualAnnotationHandler;
 import annotation.tasks.AnnotationManager;
+import dataMap.OfflineDataMap;
 import offlineProcessing.OLProcessDialog;
 import offlineProcessing.OfflineTaskGroup;
 import tritechplugins.detect.swing.DetectorHistogramProvider;
@@ -29,12 +30,6 @@ public class ThresholdDetector extends PamControlledUnit implements PamSettings 
 	
 	private ThresholdProcess thresholdProcess;
 	
-	/**
-	 * @return the thresholdProcess
-	 */
-	public ThresholdProcess getThresholdProcess() {
-		return thresholdProcess;
-	}
 	private ThresholdParams thresholdParams = new ThresholdParams();
 	
 	private DetectorHistogramProvider histogramProvider;
@@ -45,7 +40,12 @@ public class ThresholdDetector extends PamControlledUnit implements PamSettings 
 	
 	private SpatialVetoManager spatialVetoManager;
 	
-
+	/**
+	 * @return the thresholdProcess
+	 */
+	public ThresholdProcess getThresholdProcess() {
+		return thresholdProcess;
+	}
 	/**
 	 * @return the trackLinkProcess
 	 */
@@ -80,10 +80,29 @@ public class ThresholdDetector extends PamControlledUnit implements PamSettings 
 			thresholdProcess.prepareProcess();
 			trackLinkProcess.prepareProcess();
 			break;
+		case PamController.INITIALIZE_LOADDATA:
+			if (isViewer()) {
+				fudgeRegionsDataMap();
+			}
+			break;
+		case PamController.OFFLINE_DATA_LOADED:
+			/*
+			 * Sort here, since this isn't a stored datablock, so doesn't
+			 * get sorted automatically from the call to sort in binary store like tracks do
+			 */
+			thresholdProcess.getRegionDataBlock().sortData();
+			break;
 		}
 		spatialVetoManager.notifyModelChanged(changeType);
 	}
 	
+	private void fudgeRegionsDataMap() {
+		OfflineDataMap trackMap = getTrackLinkProcess().getTrackLinkDataBlock().getPrimaryDataMap();
+		if (trackMap == null) {
+			return;
+		}
+//		thresholdProcess.getRegionDataBlock().addOfflineDataMap(trackMap);
+	}
 	/**
 	 * @return the thresholdParams
 	 */

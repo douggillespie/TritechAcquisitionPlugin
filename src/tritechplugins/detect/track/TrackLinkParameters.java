@@ -18,6 +18,13 @@ public class TrackLinkParameters implements Serializable, Cloneable {
 	public long maxTimeSeparation = 500;
 	
 	/**
+	 * Max separation in frames. Can be useful if framerate
+	 * drops too low.  
+	 */
+	public int maxSeparationFrames = 5;
+	private boolean maxFramesSet;
+	
+	/**
 	 * Track within each sonar independently. Default
 	 * is to process together (assumes both pointing at same space)
 	 */
@@ -45,7 +52,12 @@ public class TrackLinkParameters implements Serializable, Cloneable {
 	@Override
 	public TrackLinkParameters clone() {
 		try {
-			return (TrackLinkParameters) super.clone();
+			TrackLinkParameters newParams = (TrackLinkParameters) super.clone();
+			if (newParams.maxFramesSet == false) {
+				newParams.maxSeparationFrames = new TrackLinkParameters().maxSeparationFrames;
+				newParams.maxFramesSet = true;
+			}
+			return newParams;
 		} catch (CloneNotSupportedException e) {
 			e.printStackTrace();
 			return null;

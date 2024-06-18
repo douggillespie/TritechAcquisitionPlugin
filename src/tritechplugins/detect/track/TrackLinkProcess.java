@@ -187,6 +187,7 @@ public class TrackLinkProcess extends PamProcess implements PamSettings {
 	@Override
 	public boolean restoreSettings(PamControlledUnitSettings pamControlledUnitSettings) {
 		trackLinkParams = (TrackLinkParameters) pamControlledUnitSettings.getSettings();
+		trackLinkParams = trackLinkParams.clone();
 		return true;
 	}
 

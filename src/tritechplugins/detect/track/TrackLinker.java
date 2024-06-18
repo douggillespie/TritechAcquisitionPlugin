@@ -37,7 +37,9 @@ public class TrackLinker {
 	 * @param regions list of regions, can be null. 
 	 */
 	public void newImageRegions(long currentTime, List<DetectedRegion> regions) {
+		
 		closeOldOnes(currentTime);
+		
 		if (regions == null) {
 			return;
 		}
@@ -47,6 +49,7 @@ public class TrackLinker {
 		 */
 		ArrayList<CandidateLink> candidateLinks = new ArrayList<>();
 		for (TrackChain chain : embryos) {
+			chain.imageSkips++;
 			for (int i = 0; i < regions.size(); i++) {
 				double score = matchRegion(chain, regions.get(i));
 				if (score > 0) {
@@ -153,7 +156,8 @@ public class TrackLinker {
 		Iterator<TrackChain> chainIt = embryos.iterator();
 		while (chainIt.hasNext()) {
 			TrackChain chain = chainIt.next();
-			if (currentTime - chain.getLastTime() > trackLinkProcess.trackLinkParams.maxTimeSeparation) {
+			if (currentTime - chain.getLastTime() > trackLinkProcess.trackLinkParams.maxTimeSeparation ||
+					chain.imageSkips > trackLinkProcess.trackLinkParams.maxSeparationFrames) {
 				chainIt.remove();
 				if (wantChain(chain)) {
 					completeChain(chain);

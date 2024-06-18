@@ -50,6 +50,8 @@ public class ThresholdDialog extends PamDialog {
 	// fields for tracker
 	private JTextField maxTimeStepS;
 	
+	private JTextField maxSeparationFrames;
+	
 	private JTextField maxSpeed;
 	
 	private JTextField minTrackPoints;
@@ -199,6 +201,13 @@ public class ThresholdDialog extends PamDialog {
 		trackPanel.add(new JLabel(" s", JLabel.LEFT), c);
 		c.gridx = 0;
 		c.gridy++;
+		trackPanel.add(new JLabel("Max frame step ", JLabel.RIGHT), c);
+		c.gridx++;
+		trackPanel.add(maxSeparationFrames = new JTextField(4), c);
+		c.gridx++;
+		trackPanel.add(new JLabel(" (any sonar)", JLabel.LEFT), c);
+		c.gridx = 0;
+		c.gridy++;
 		trackPanel.add(new JLabel("Max speed ", JLabel.RIGHT), c);
 		c.gridx++;
 		trackPanel.add(maxSpeed = new JTextField(4), c);
@@ -235,6 +244,9 @@ public class ThresholdDialog extends PamDialog {
 		
 		vetoPanel = thresholdDetector.getSpatialVetoManager().getDialogPanel(this);
 
+		maxTimeStepS.setToolTipText("Max time gap within a track");
+		maxSeparationFrames.setToolTipText("Max number of frames that can be skipped in a track.");
+		
 		JTabbedPane tabbedPanel = new JTabbedPane();
 		tabbedPanel.add(thresholdPanel, "Threshold Detector");
 		tabbedPanel.add(vetoPanel.getDialogComponent(), "Spatial Vetos");
@@ -273,6 +285,7 @@ public class ThresholdDialog extends PamDialog {
 		
 		TrackLinkParameters trackParams = thresholdDetector.getTrackLinkProcess().getTrackLinkParams();
 		maxTimeStepS.setText(String.format("%3.2f", trackParams.maxTimeSeparation/1000.));
+		maxSeparationFrames.setText(String.format("%d", trackParams.maxSeparationFrames));
 		maxSpeed.setText(String.format("%3.2f", trackParams.maxSpeed));
 		maxSizeRatio.setText(String.format("%3.2f", trackParams.maxSizeRatio));
 		minTrackPoints.setText(String.format("%d", trackParams.minTrackPoints));
@@ -317,6 +330,7 @@ public class ThresholdDialog extends PamDialog {
 		TrackLinkParameters trackParams = thresholdDetector.getTrackLinkProcess().getTrackLinkParams().clone();
 		try {
 			trackParams.maxTimeSeparation = (long) (Double.valueOf(maxTimeStepS.getText()) * 1000.);
+			trackParams.maxSeparationFrames = Integer.valueOf(maxSeparationFrames.getText());
 			trackParams.maxSpeed = Double.valueOf(maxSpeed.getText());
 			trackParams.maxSizeRatio = Double.valueOf(maxSizeRatio.getText());
 			trackParams.minTrackPoints = Integer.valueOf(minTrackPoints.getText());
