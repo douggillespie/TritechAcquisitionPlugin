@@ -14,6 +14,7 @@ import PamguardMVC.PamProcess;
 import tritechgemini.detect.DetectedRegion;
 import tritechplugins.acquire.ImageDataBlock;
 import tritechplugins.acquire.ImageDataUnit;
+import tritechplugins.detect.aidetect.AIThresholdDetector;
 import tritechplugins.detect.swing.RegionOverlayDraw;
 import tritechplugins.detect.threshold.dataselect.RegionDataSelectorCreator;
 import tritechplugins.detect.track.TrackLinkProcess;
@@ -86,7 +87,8 @@ public class ThresholdProcess extends PamProcess {
 	private ChannelDetector findChannelDetector(int sonarId, boolean create) {
 		ChannelDetector cd = channelDetectors.get(sonarId);
 		if (cd == null && create) {
-			cd = new ChannelDetector(thresholdDetector, this, sonarId);
+//			cd = new ChannelThresholdDet(thresholdDetector, this, sonarId);
+			cd = new AIThresholdDetector(thresholdDetector, this, sonarId);
 			channelDetectors.put(sonarId, cd);
 		}
 		return cd;
