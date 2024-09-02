@@ -52,7 +52,7 @@ public class TritechDetectPlugin implements PamPluginInterface {
 
 	@Override
 	public String getPamVerTestedOn() {
-		return "2.02.12";
+		return "2.02.13";
 	}
 
 	@Override
