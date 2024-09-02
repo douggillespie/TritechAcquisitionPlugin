@@ -18,7 +18,8 @@ url: 'https://www.pamguard.org/'
 abstract: >-
   PAMGuard plugin to acquire and process data from Tritech multibeam sonars.
 keywords:
-  - Passive Acoustics
+  - Active Acoustics
+  - Multibeam sonar
   - Marine Mammals
 license: GPL-3.0-or-later
 version: V1.41
