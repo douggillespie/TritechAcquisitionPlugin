@@ -1,4 +1,7 @@
 # TritechAcquisitionPlugin
+
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.13627798.svg)](https://doi.org/10.5281/zenodo.13627798.svg)
+
 Acquisition, display, and analysis of Tritech Gemini sonar data within PAMGuard
 
 The code can be built as a PAMGuard plugin, which can be added to a standard PAMGuard installation. For development though it's much easier to work with the code in an Ecliplse workspace containing this code, the [TritechFiles](https://github.com/douggillespie/TritechFiles) and [GenesisJavaJNAInterface](https://github.com/douggillespie/GenesisJavaJNAInterface) projects and the main PAMGuard project. You can then run, change and debug all four projects at the same time. 
