@@ -16,6 +16,7 @@ import PamController.PamControlledUnitSettings;
 import PamController.PamController;
 import PamController.PamSettingManager;
 import PamController.PamSettings;
+import PamController.RawInputControlledUnit;
 import PamguardMVC.PamDataBlock;
 import PamguardMVC.dataOffline.OfflineDataLoadInfo;
 import backupmanager.BackupInformation;
@@ -31,7 +32,7 @@ import tritechplugins.display.swing.SonarsPanelParams;
 import tritechplugins.mark.SonarMarker;
 import userDisplay.UserDisplayControl;
 
-public class TritechAcquisition extends PamControlledUnit implements PamSettings, OfflineDataStore, DataInputStore {
+public class TritechAcquisition extends RawInputControlledUnit implements PamSettings, OfflineDataStore, DataInputStore {
 
 	public static final String unitType = "Tritech Acquisition";
 	
@@ -256,6 +257,19 @@ public class TritechAcquisition extends PamControlledUnit implements PamSettings
 	 */
 	public SonarMarker getSonarMarker() {
 		return sonarMarker;
+	}
+
+	@Override
+	public int getRawInputType() {
+		switch (daqParams.getRunMode()) {
+		case TritechDaqParams.RUN_ACQUIRE:
+			return RawInputControlledUnit.RAW_INPUT_REALTIME;
+		case TritechDaqParams.RUN_REPROCESS:
+			return RawInputControlledUnit.RAW_INPUT_FILEARCHIVE;
+		case TritechDaqParams.RUN_SIMULATE:
+			return RawInputControlledUnit.RAW_INPUT_UNKNOWN;
+		}
+		return RawInputControlledUnit.RAW_INPUT_UNKNOWN;
 	}
 
 }

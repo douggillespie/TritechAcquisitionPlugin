@@ -473,6 +473,20 @@ public class JavaFileAcquisition extends TritechDaqSystem  implements CatalogStr
 			GeminiFileCatalog lastCat = GeminiFileCatalog.getFileCatalog(allFiles[nFiles-1], true);
 
 			InputStoreInfo storeInfo = new InputStoreInfo(tritechAcquisition, nFiles, firstCat.getFirstRecordTime(), lastCat.getFirstRecordTime(), lastCat.getLastRecordTime());
+			if (detail) {
+				long[] allStarts = new long[nFiles];
+				long[] allEnds = new long[nFiles];
+				for (int i = 0; i < nFiles; i++) {
+					GeminiFileCatalog fileCat = GeminiFileCatalog.getFileCatalog(allFiles[i], true);
+					if (fileCat == null) {
+						continue;
+					}
+					allStarts[i] = fileCat.getFirstRecordTime();
+					allEnds[i] = fileCat.getLastRecordTime();
+				}
+				storeInfo.setFileStartTimes(allStarts);
+				storeInfo.setFileEndTimes(allEnds);
+			}
 			return storeInfo;
 
 		} catch (CatalogException e) {
