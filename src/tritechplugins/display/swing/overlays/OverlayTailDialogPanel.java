@@ -50,7 +50,7 @@ public class OverlayTailDialogPanel implements PamDialogPanel {
 		c.gridwidth = 1;
 		mainPanel.add(new JLabel("Tail length ", JLabel.RIGHT), c);
 		c.gridx++;
-		mainPanel.add(tailLength = new JTextField(3), c);
+		mainPanel.add(tailLength = new JTextField(5), c);
 		c.gridx++;
 		mainPanel.add(new JLabel(" seconds"), c);
 	}
