@@ -26,4 +26,12 @@ public class TrackLinkDataBlock extends SuperDetDataBlock<TrackLinkDataUnit, Reg
 		return loadOk;
 	}
 
+
+	@Override
+	public boolean reattachSubdetections(ViewLoadObserver viewLoadObserver) {
+		// this has already been done as data were loaded, so can return immediately
+		//		return super.reattachSubdetections(viewLoadObserver);
+		return true;
+	}
+
 }

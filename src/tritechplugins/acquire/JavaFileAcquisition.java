@@ -361,7 +361,7 @@ public class JavaFileAcquisition extends TritechDaqSystem  implements CatalogStr
 //					System.out.println("Current PAMGuard status is still  " + PamController.getInstance().getPamStatus());
 				}
 				System.out.printf("Tritch Acquisition issue restart after %dms\n", System.currentTimeMillis() - t);
-				PamController.getInstance().startLater();
+				PamController.getInstance().startLater(false);
 			}
 		};
 		

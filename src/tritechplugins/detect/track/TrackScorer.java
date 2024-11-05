@@ -59,7 +59,7 @@ public class TrackScorer {
 		double prevX = Double.NaN, prevY = Double.NaN;
 		long prevMillis;
 		
-		ArrayList<DetectedRegion> sonarPoints = getSonarRegions(regions, sonarId);
+		ArrayList<DetectedRegion> sonarPoints = trackChain.getSonarRegions(sonarId);
 		if (sonarPoints.size() < 3) {
 			return 0;
 		}
@@ -94,21 +94,22 @@ public class TrackScorer {
 		return median;
 	}
 	
-	/**
-	 * Get the track points for a single sonar. 
-	 * @param regions
-	 * @param sonarId
-	 * @return
-	 */
-	private ArrayList<DetectedRegion> getSonarRegions(List<DetectedRegion> regions, int sonarId) {
-		ArrayList<DetectedRegion> sonarPoints = new ArrayList<>(regions.size());
-		Iterator<DetectedRegion> it = regions.iterator();
-		while (it.hasNext()) {
-			DetectedRegion region = it.next();
-			if (region.getSonarId() == sonarId) {
-				sonarPoints.add(region);
-			}
-		}
-		return sonarPoints;
-	}
+//	/**
+//	Moved  to TrackChain class so the method can be correctly synchronized.
+//	 * Get the track points for a single sonar. 
+//	 * @param regions
+//	 * @param sonarId
+//	 * @return
+//	 */
+//	private ArrayList<DetectedRegion> getSonarRegions(List<DetectedRegion> regions, int sonarId) {
+//		ArrayList<DetectedRegion> sonarPoints = new ArrayList<>(regions.size());
+//		Iterator<DetectedRegion> it = regions.iterator();
+//		while (it.hasNext()) {
+//			DetectedRegion region = it.next();
+//			if (region.getSonarId() == sonarId) {
+//				sonarPoints.add(region);
+//			}
+//		}
+//		return sonarPoints;
+//	}
 }

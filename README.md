@@ -30,7 +30,14 @@ eye on performance.
 
 Latest Features and bug fixes
 
-V1.41
+**V1.43**
+
+Larger field for text in time tail dialog.
+
+Improve data loading speed in viewer mode. 
+
+**V1.41**
+
 Offline display improvements, so that most display of detections will now work 
 even if raw sonar image data (glf files) is not available. Note however, that
 in it's current form you are strongly advised to keep raw glf data. 
@@ -41,8 +48,10 @@ to fan image).
 Detector improvements: Filtering in range for the detector, and setting maximum track
 gaps in frames as well as in time. 
 
-V1.27
+**V1.27**
+
 Fixed display of spatial vetos on sonar image.
+
 Added option to colour tracks sequentially from blue to red (so you can easily see
 direction of travel).
 

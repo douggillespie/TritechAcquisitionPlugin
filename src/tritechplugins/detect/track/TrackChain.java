@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.ListIterator;
 import java.util.Set;
 
@@ -289,8 +290,10 @@ public class TrackChain {
 	public int[] getSonarIds() {
 		// make a list of all the sonar Ids in the region. 
 		Set<Integer> uniqueIds = new HashSet<>();
-		for (DetectedRegion region : regions) {
-			uniqueIds.add(region.getSonarId());
+		synchronized (this) {
+			for (DetectedRegion region : regions) {
+				uniqueIds.add(region.getSonarId());
+			}
 		}
 		int[] ids = new int[uniqueIds.size()] ;
 		int i = 0;
@@ -341,9 +344,11 @@ public class TrackChain {
 	private double calcMeanOccupancy() {
 		double totalOcc = 0;
 		double totalPix = 0;
-		for (DetectedRegion r : regions) {
-			totalOcc += (r.getOccupancy()*r.getnPoints());
-			totalPix += r.getnPoints();
+		synchronized (this) {
+			for (DetectedRegion r : regions) {
+				totalOcc += (r.getOccupancy()*r.getnPoints());
+				totalPix += r.getnPoints();
+			}
 		}
 		return totalOcc/totalPix;
 	}
@@ -423,6 +428,25 @@ public class TrackChain {
 			return 0;
 		}
 		return rSize/n;		
+	}
+	
+	/**
+	 * Get the track points for a single sonar. 
+	 * @param sonarId
+	 * @return copied list of the track points for the given sonar
+	 */
+	public ArrayList<DetectedRegion> getSonarRegions(int sonarId) {
+		ArrayList<DetectedRegion> sonarPoints = new ArrayList<>(regions.size());
+		synchronized (this) {
+			Iterator<DetectedRegion> it = regions.iterator();
+			while (it.hasNext()) {
+				DetectedRegion region = it.next();
+				if (region.getSonarId() == sonarId) {
+					sonarPoints.add(region);
+				}
+			}
+		}
+		return sonarPoints;
 	}
 	
 	/**

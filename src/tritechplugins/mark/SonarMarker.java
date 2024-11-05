@@ -203,11 +203,15 @@ public class SonarMarker implements SettingsNameProvider, OverlayMarkObserver {
 		}
 		GeminiImageRecordI[] currentImages = sonarsPanel.getCurrentImages();
 		if (currentImages == null || imageIndex >= currentImages.length) {
-			return ;
+			return;
+		}
+		// the image array may exist, but contain null values.
+		GeminiImageRecordI sonarImage = currentImages[imageIndex];
+		if (sonarImage == null) {
+			return;
 		}
 		// use mark limits since they work for any shaped mark;
 		double[] markLimits = mark.getLimits();
-		GeminiImageRecordI sonarImage = currentImages[imageIndex];
 		// coordinate units are range and bearing (in radians)
 		// need to convert the markLimits to angle and range bins in the image. 
 		int bInd1 = sonarImage.getBearingIndex(markLimits[2]);
