@@ -148,8 +148,9 @@ public class JavaFileAcquisition extends TritechDaqSystem  implements CatalogStr
 			GeminiFileCatalog<GeminiImageRecordI> fileCatalog = GeminiFileCatalog.getFileCatalog(filePath, true);
 			long recordTime = fileCatalog.getFirstRecordTime();
 			if (recordTime != Long.MIN_VALUE) {
-				PamCalendar.setSessionStartTime(Math.max(recordTime, restartFirstRecordTime));
 				PamCalendar.setSoundFile(true);
+				PamCalendar.setSessionStartTime(Math.max(recordTime, restartFirstRecordTime));
+				PamCalendar.setSoundFileTimeInMillis(0);
 				return true;
 			}
 			
@@ -486,6 +487,24 @@ public class JavaFileAcquisition extends TritechDaqSystem  implements CatalogStr
 				}
 				storeInfo.setFileStartTimes(allStarts);
 				storeInfo.setFileEndTimes(allEnds);
+				/*
+				 * Run some checks to check that everything is in order. 
+				 * 
+				 */
+//				for (int i = 0; i < nFiles; i++) {
+//					if (allEnds[i] < allStarts[i]) {
+//						System.out.printf("file %s has a negative duration of %d millis\n", allFiles[i], allEnds[i]-allStarts[i]);
+//					}
+//					if (i > 0) {
+//						long gap = allStarts[i] - allEnds[i-1];
+//						if (gap > 10000 || gap < 0) {
+//							System.out.printf("%3.1f second gap between files %s and %s\n", 
+//									(double)gap/1000., allFiles[i-1], allFiles[i]);
+//						}
+//						
+//					}
+//				}
+				
 			}
 			return storeInfo;
 
