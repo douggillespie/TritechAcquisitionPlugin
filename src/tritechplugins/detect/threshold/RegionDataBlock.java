@@ -50,5 +50,10 @@ public class RegionDataBlock extends PamDataBlock<RegionDataUnit> {
 		this.sonarIds = sonarIds;
 	}
 
+	@Override
+	public void clearAll() {
+		// TODO Auto-generated method stub
+		super.clearAll();
+	}
 
 }

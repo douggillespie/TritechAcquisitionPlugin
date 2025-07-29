@@ -42,7 +42,7 @@ public class TritechDetectPlugin implements PamPluginInterface {
 
 	@Override
 	public String getVersion() {
-		return "2.2";
+		return "2.3";
 	}
 
 	@Override

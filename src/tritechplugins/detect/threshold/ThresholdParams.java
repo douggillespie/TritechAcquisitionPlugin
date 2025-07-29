@@ -42,7 +42,7 @@ public class ThresholdParams implements Cloneable, Serializable {
 	/**
 	 * time between writes of background data to binary files. 
 	 */
-	public int backgroundIntervalSecs = 60;
+	public int backgroundIntervalSecs = 600;
 
 	public ThresholdParams() {
 	}
