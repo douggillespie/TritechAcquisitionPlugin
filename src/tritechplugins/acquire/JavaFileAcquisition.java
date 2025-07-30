@@ -12,6 +12,7 @@ import PamController.InputStoreInfo;
 import PamController.PamControlledUnitSettings;
 import PamController.PamController;
 import PamUtils.PamCalendar;
+import PamUtils.worker.PamWorkMonitor;
 import fileOfflineData.OfflineFileList;
 import pamguard.GlobalArguments;
 import tritechgemini.fileio.CatalogException;
@@ -462,7 +463,7 @@ public class JavaFileAcquisition extends TritechDaqSystem  implements CatalogStr
 		
 	}
 
-	@Override
+//	@Override
 	public InputStoreInfo getStoreInfo(boolean detail) {
 		if (allFiles == null || allFiles.length == 0) {
 			return null;
@@ -538,6 +539,12 @@ public class JavaFileAcquisition extends TritechDaqSystem  implements CatalogStr
 		String bs = String.format("%d,%d,%d,%s", nFiles,currentFile,generalStatus,currFile);
 //		System.out.println("Tritech batch status: " + bs);
 		return bs;
+	}
+
+	@Override
+	public InputStoreInfo getStoreInfo(PamWorkMonitor workerMonitor, boolean detail) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 	
 }

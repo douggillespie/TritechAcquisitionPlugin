@@ -18,8 +18,8 @@
 			<attribute name="maven.pomderived" value="true"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry combineaccessrules="false" kind="src" path="/TritechFiles"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/PAMGuardDG"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/GenesisJavaJNAInterface"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/TritechFiles"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/PAMGuard"/>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>

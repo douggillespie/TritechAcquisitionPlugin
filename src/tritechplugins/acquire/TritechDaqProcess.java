@@ -16,6 +16,7 @@ import javax.swing.Timer;
 import PamController.DataInputStore;
 import PamController.InputStoreInfo;
 import PamController.PamController;
+import PamUtils.worker.PamWorkMonitor;
 import PamguardMVC.PamProcess;
 import geminisdk.OutputFileInfo;
 import geminisdk.Svs5Exception;
@@ -458,9 +459,9 @@ public class TritechDaqProcess extends PamProcess implements TritechRunMode {
 		return tritechAcquisition;
 	}
 
-	public InputStoreInfo getStoreInfo(boolean detail) {
+	public InputStoreInfo getStoreInfo(PamWorkMonitor workerMonitor, boolean detail) {
 		if (tritechDaqSystem instanceof DataInputStore) {
-			return ((DataInputStore) tritechDaqSystem).getStoreInfo(detail);
+			return ((DataInputStore) tritechDaqSystem).getStoreInfo(workerMonitor, detail);
 		}
 		else {
 			return null;

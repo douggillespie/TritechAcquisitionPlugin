@@ -17,6 +17,7 @@ import PamController.PamController;
 import PamController.PamSettingManager;
 import PamController.PamSettings;
 import PamController.RawInputControlledUnit;
+import PamUtils.worker.PamWorkMonitor;
 import PamguardMVC.PamDataBlock;
 import PamguardMVC.dataOffline.OfflineDataLoadInfo;
 import backupmanager.BackupInformation;
@@ -238,11 +239,6 @@ public class TritechAcquisition extends RawInputControlledUnit implements PamSet
 	}
 
 	@Override
-	public InputStoreInfo getStoreInfo(boolean detail) {
-		return tritechDaqProcess.getStoreInfo(detail);
-	}
-
-	@Override
 	public boolean setAnalysisStartTime(long startTime) {
 		return tritechDaqProcess.setAnalysisStartTime(startTime);
 	}
@@ -270,6 +266,12 @@ public class TritechAcquisition extends RawInputControlledUnit implements PamSet
 			return RawInputControlledUnit.RAW_INPUT_UNKNOWN;
 		}
 		return RawInputControlledUnit.RAW_INPUT_UNKNOWN;
+	}
+
+	@Override
+	public InputStoreInfo getStoreInfo(PamWorkMonitor workerMonitor, boolean detail) {
+		// TODO Auto-generated method stub
+		return tritechDaqProcess.getStoreInfo(workerMonitor, detail);
 	}
 
 }
