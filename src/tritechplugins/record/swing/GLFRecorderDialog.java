@@ -10,6 +10,7 @@ import javax.swing.ButtonGroup;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
+import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
 import javax.swing.border.TitledBorder;
 
@@ -20,6 +21,7 @@ import PamView.dialog.SourcePanel;
 import PamView.panel.PamAlignmentPanel;
 import PamguardMVC.PamDataBlock;
 import tritechplugins.acquire.ImageDataUnit;
+import tritechplugins.record.GLFRecorderCtrl;
 import tritechplugins.record.GLFRecorderParams;
 
 public class GLFRecorderDialog extends PamDialog {
@@ -34,22 +36,31 @@ public class GLFRecorderDialog extends PamDialog {
 	
 	private JRadioButton initialStart, initialIdle;
 	
+	private GLFTriggersPanel triggersPanel;
+
+	private GLFRecorderCtrl recorderControl;
+	
 	private static GLFRecorderDialog singleInstance;
 
-	public GLFRecorderDialog(Window parentFrame) {
+	public GLFRecorderDialog(GLFRecorderCtrl recorderControl, Window parentFrame) {
 		super(parentFrame, "GLF Recorder", true);
+		this.recorderControl = recorderControl;
 		
-		JPanel mainPanel = new JPanel();
+		JPanel mainPanel = new JPanel(new BorderLayout());
+		JTabbedPane tabPane = new JTabbedPane();
+		mainPanel.add(BorderLayout.CENTER, tabPane);
+		
+		JPanel recordPanel = new JPanel();
 //		mainPanel.setBorder(new TitledBorder("GLF Recorder"));
-		mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
+		recordPanel.setLayout(new BoxLayout(recordPanel, BoxLayout.Y_AXIS));
 		// source data
 		sourcePanel = new SourcePanel(this, "Sonar Image data source", ImageDataUnit.class, false, true);
-		mainPanel.add(sourcePanel.getPanel());
+		recordPanel.add(sourcePanel.getPanel());
 		// output folder
-		outputFolder = new SelectFolder("Output folder", 60);
+		outputFolder = new SelectFolder("Output folder", 40);
 		JPanel fPan = outputFolder.getFolderPanel();
 		fPan.setBorder(new TitledBorder("Output Folder"));
-		mainPanel.add(fPan);
+		recordPanel.add(fPan);
 		// other params
 		PamAlignmentPanel pPanel = new PamAlignmentPanel(BorderLayout.WEST);
 		pPanel.setLayout( new GridBagLayout());
@@ -79,15 +90,19 @@ public class GLFRecorderDialog extends PamDialog {
 		ButtonGroup bg = new ButtonGroup();
 		bg.add(initialIdle);
 		bg.add(initialStart);
-		mainPanel.add(pPanel);
+		recordPanel.add(pPanel);
 		
+		tabPane.add("Recording", recordPanel);
+		
+		triggersPanel = new GLFTriggersPanel(recorderControl, this);
+		tabPane.add("Triggers", triggersPanel.getMainPanel());
 		
 		setDialogComponent(mainPanel);
 	}
 
-	public static GLFRecorderParams showDialog(Window parentFrame, GLFRecorderParams recorderParams) {
+	public static GLFRecorderParams showDialog(Window parentFrame, GLFRecorderCtrl recorderCtrl, GLFRecorderParams recorderParams) {
 //		if (singleInstance == null || singleInstance.getParent() != parentFrame) {
-			singleInstance = new GLFRecorderDialog(parentFrame);
+			singleInstance = new GLFRecorderDialog(recorderCtrl, parentFrame);
 //		}
 		singleInstance.setParams(recorderParams);
 		singleInstance.setVisible(true);
@@ -102,6 +117,8 @@ public class GLFRecorderDialog extends PamDialog {
 		maxFileSize.setText(String.format("%d", recorderParams.maxSizeMegabytes));
 		initialIdle.setSelected(recorderParams.initialState == GLFRecorderParams.START_IDLE);
 		initialStart.setSelected(recorderParams.initialState == GLFRecorderParams.START_RECORD);
+		
+		triggersPanel.setParams(recorderParams);
 	}
 
 	@Override
@@ -132,8 +149,8 @@ public class GLFRecorderDialog extends PamDialog {
 			recorderParams.initialState = GLFRecorderParams.START_IDLE;
 		}
 		
-		
-		return true;
+		boolean tOK = triggersPanel.getParams(recorderParams);
+		return tOK;
 	}
 
 	@Override
@@ -144,6 +161,13 @@ public class GLFRecorderDialog extends PamDialog {
 	@Override
 	public void restoreDefaultSettings() {
 		setParams(new GLFRecorderParams());
+	}
+
+	/**
+	 * @return the recorderControl
+	 */
+	public GLFRecorderCtrl getRecorderControl() {
+		return recorderControl;
 	}
 
 }

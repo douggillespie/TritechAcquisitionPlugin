@@ -51,6 +51,7 @@ import printscreen.PrintScreenControl;
 import rockBlock.RockBlockControl;
 import tritechplugins.acquire.TritechAcquisition;
 import tritechplugins.detect.threshold.ThresholdDetector;
+import tritechplugins.record.GLFRecorderCtrl;
 import turbineops.TurbineOperationControl;
 import GPS.GpsDataUnit;
 import Map.MapController;
@@ -526,6 +527,11 @@ final public class PamModel implements PamModelInterface, PamSettings {
 		mi.setModulesMenuGroup(tritechGroup);
 //		mi.setMaxNumber(1);
 		mi.setToolTipText("Basic detector for Tritech image data");
+
+		mi = PamModuleInfo.registerControlledUnit(GLFRecorderCtrl.class.getName(), GLFRecorderCtrl.unitType);
+		mi.setModulesMenuGroup(tritechGroup);
+//		mi.setMaxNumber(1);
+		mi.setToolTipText("Recorder for GLF data");
 
 //		mi = PamModuleInfo.registerControlledUnit(MeygenVetoControl.class.getName(), MeygenVetoControl.unitType);
 //		mi.setModulesMenuGroup(tritechGroup);

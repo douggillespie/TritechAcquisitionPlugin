@@ -300,4 +300,18 @@ public class GLFWriter extends PamObserverAdapter {
 		writeAllData();
 		closeCurrentFile();
 	}
+
+	/**
+	 * @return the currentGLFFile
+	 */
+	public File getCurrentGLFFile() {
+		return currentGLFFile;
+	}
+
+	/**
+	 * @return the currentDATFile
+	 */
+	public File getCurrentDATFile() {
+		return currentDATFile;
+	}
 }

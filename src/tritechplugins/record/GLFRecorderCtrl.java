@@ -5,6 +5,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.Serializable;
+import java.util.ArrayList;
 
 import javax.swing.JMenuItem;
 
@@ -14,8 +15,10 @@ import PamController.PamControlledUnitSettings;
 import PamController.PamController;
 import PamController.PamSettingManager;
 import PamController.PamSettings;
+import PamView.PamSidePanel;
 import PamView.dialog.warn.WarnOnce;
 import tritechplugins.record.swing.GLFRecorderDialog;
+import tritechplugins.record.swing.GLFRecorderSidePanel;
 
 /**
  * PAMGuard module to provide GLF recording. Will be similar to the PAMGuard sound recorder
@@ -34,6 +37,9 @@ public class GLFRecorderCtrl extends PamControlledUnit implements PamSettings {
 	private GLFRecorderProcess recorderProcess;
 	
 	private GLFRecorderParams recorderParams = new GLFRecorderParams();
+	
+	private ArrayList<StateObserver> stateObservers = new ArrayList();
+	private GLFRecorderSidePanel glfSidePanel; 
 
 	public GLFRecorderCtrl(PamConfiguration pamConfiguration, String unitName) {
 		super(pamConfiguration, unitType, unitName);
@@ -77,7 +83,7 @@ public class GLFRecorderCtrl extends PamControlledUnit implements PamSettings {
 	}
 
 	protected void settingsMenu(Frame parentFrame) {
-		GLFRecorderParams newSettings = GLFRecorderDialog.showDialog(parentFrame, recorderParams);
+		GLFRecorderParams newSettings = GLFRecorderDialog.showDialog(parentFrame, this, recorderParams);
 		if (newSettings != null) {
 			recorderParams = newSettings;
 			recorderProcess.prepareProcess();
@@ -118,5 +124,33 @@ public class GLFRecorderCtrl extends PamControlledUnit implements PamSettings {
 		boolean ok = oPath.mkdirs();
 		return ok;
 	}
+	
+	public void addStateObserver(StateObserver stateObserver) {
+		stateObservers.add(stateObserver);
+	}
+	
+	public void removeStateObserver(StateObserver stateObserver) {
+		stateObservers.remove(stateObserver);
+	}
 
+	public void notifiyStateObservers(int state) {
+		for (StateObserver so : stateObservers) {
+			so.notify(state);
+		}
+	}
+
+	@Override
+	public PamSidePanel getSidePanel() {
+		if (glfSidePanel == null) {
+			glfSidePanel = new GLFRecorderSidePanel(this);
+		}
+		return glfSidePanel;
+	}
+
+	/**
+	 * @return the recorderProcess
+	 */
+	public GLFRecorderProcess getRecorderProcess() {
+		return recorderProcess;
+	}
 }

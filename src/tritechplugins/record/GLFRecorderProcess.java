@@ -1,5 +1,6 @@
 package tritechplugins.record;
 
+import java.io.File;
 import java.util.ArrayList;
 
 import PamController.PamController;
@@ -70,6 +71,40 @@ public class GLFRecorderProcess extends PamProcess {
 	}
 	
 	/**
+	 * Get information about the data buffer. 
+	 * @return
+	 */
+	public BufferState getBufferState() {
+		long firstTime = 0, lastTime = 0;
+		ImageDataUnit fu = dataBuffer.getFirstUnit();
+		ImageDataUnit lu = dataBuffer.getLastUnit();
+		int nu = dataBuffer.getUnitsCount();
+		if (fu != null && lu != null && nu > 0) {
+			firstTime = fu.getTimeMilliseconds();
+			lastTime = lu.getTimeMilliseconds();
+		}
+		GLFRecorderParams params = recorderCtrl.getRecorderParams();
+		
+		return new BufferState(firstTime, lastTime, nu, params.bufferSeconds);		
+	}
+	
+	/**
+	 * Get the current file being recorded. 
+	 * @return
+	 */
+	public File getCurrentFile() {
+		return glfWriter.getCurrentGLFFile();
+	}
+	
+	/**
+	 * Get information about if recording (or if should be recording). 
+	 * @return
+	 */
+	public boolean getRecordState() {
+		return shouldRecord;
+	}
+	
+	/**
 	 * Start recording, using the buffer as necessary to take data 
 	 * from the given start time. 
 	 * @param startTime start time for recording - should be now or in the very recent past. 
@@ -85,12 +120,13 @@ public class GLFRecorderProcess extends PamProcess {
 			ArrayList<ImageDataUnit> copy = null;
 			synchronized (dataBuffer.getSynchLock()) {
 				copy = dataBuffer.getDataCopy();
+				dataBuffer.clearAll();
 			}
 			/*
 			 *  can let go the synch on the input buffer so new data can be added to it. This 
 			 *  process won't read out of it any more though since there is a lock below on 
 			 *  newData.  
-			 *  This doesn't open a file or anything, it just diversts data into the 
+			 *  This doesn't open a file or anything, it just diverts data into the 
 			 *  finalBuffer. The GLFWriter will automatically open a file as soon as something
 			 *  arrives.  
 			 */

@@ -57,6 +57,22 @@ public class GLFRecorderParams implements Serializable, Cloneable {
 		}
 		return data;
 	}
+
+	/**
+	 * Only use this in the dialogs. Not in general programming
+	 * @return the triggerDataHash
+	 */
+	public HashMap<String, GLFTriggerData> getTriggerDataHash() {
+		return triggerDataHash;
+	}
+
+	/**
+	 * Only use this in the dialogs. Not in general programming
+	 * @param triggerDataHash the triggerDataHash to set
+	 */
+	public void setTriggerDataHash(HashMap<String, GLFTriggerData> triggerDataHash) {
+		this.triggerDataHash = triggerDataHash;
+	}
 	
 
 }
