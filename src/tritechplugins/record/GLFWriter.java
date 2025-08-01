@@ -59,7 +59,7 @@ public class GLFWriter extends PamObserverAdapter {
 	
 	private CountingOutputStream countingOutput;
 
-	private static String dateformat = "yyyy-MM-dd-hhmmss";
+	private static String dateformat = "yyyy-MM-dd-HHmmss";
 	
 	private ImageDataBlock databuffer;
 	
@@ -115,6 +115,8 @@ public class GLFWriter extends PamObserverAdapter {
 
 		GLFImageRecord glfRecord = (GLFImageRecord) idu.getGeminiImage();
 		try {
+			// need to write a short header before writing each record. 
+			glfFileCatalog.writeGLFHeader(glfRecord, outputStream);
 			glfFileCatalog.writeGLFReecord(glfRecord, outputStream);
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -203,6 +205,9 @@ public class GLFWriter extends PamObserverAdapter {
 				zos.close();
 				fos.close();
 				bis.close();
+				
+				// finally delete the .dat file
+				datFile.delete();
 				
 			} catch (FileNotFoundException e) {
 				// TODO Auto-generated catch block
