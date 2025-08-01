@@ -1,5 +1,6 @@
 package tritechplugins.detect.threshold;
 
+import PamDetection.PamDetection;
 import PamUtils.PamCalendar;
 import PamUtils.time.CalendarControl;
 import PamguardMVC.DataUnitBaseData;
@@ -8,7 +9,7 @@ import PamguardMVC.PamDataUnit;
 import PamguardMVC.superdet.SuperDetection;
 import tritechgemini.detect.DetectedRegion;
 
-public class RegionDataUnit extends PamDataUnit {
+public class RegionDataUnit extends PamDataUnit implements PamDetection {
 
 	private DetectedRegion region;
 	private int sonarId;

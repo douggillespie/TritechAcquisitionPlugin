@@ -40,6 +40,8 @@ public class GLFRecorderCtrl extends PamControlledUnit implements PamSettings {
 	
 	private ArrayList<StateObserver> stateObservers = new ArrayList();
 	private GLFRecorderSidePanel glfSidePanel; 
+	
+	public static final String DATASELECTNAME = "GLF Recorder";
 
 	public GLFRecorderCtrl(PamConfiguration pamConfiguration, String unitName) {
 		super(pamConfiguration, unitType, unitName);

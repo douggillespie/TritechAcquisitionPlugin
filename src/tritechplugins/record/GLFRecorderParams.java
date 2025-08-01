@@ -2,6 +2,7 @@ package tritechplugins.record;
 
 import java.io.Serializable;
 import java.util.HashMap;
+import java.util.Set;
 
 import PamguardMVC.PamDataBlock;
 
@@ -51,28 +52,44 @@ public class GLFRecorderParams implements Serializable, Cloneable {
 	 */
 	public GLFTriggerData getTriggerData(String blockName, boolean autoCreate) {
 		GLFTriggerData data = triggerDataHash.get(blockName);
-		if (data == null) {
+		if (data == null && autoCreate) {
 			data = new GLFTriggerData(blockName);
 			triggerDataHash.put(blockName, data);
 		}
 		return data;
 	}
-
+	
 	/**
-	 * Only use this in the dialogs. Not in general programming
-	 * @return the triggerDataHash
+	 * Get the hashmap key names. These should be longdatanames of data blocks. 
+	 * @return
 	 */
-	public HashMap<String, GLFTriggerData> getTriggerDataHash() {
-		return triggerDataHash;
+	public Set<String> getTriggerHashKeys() {
+		return triggerDataHash.keySet();
 	}
 
 	/**
-	 * Only use this in the dialogs. Not in general programming
-	 * @param triggerDataHash the triggerDataHash to set
+	 * Remove a set
+	 * @param setName
 	 */
-	public void setTriggerDataHash(HashMap<String, GLFTriggerData> triggerDataHash) {
-		this.triggerDataHash = triggerDataHash;
+	public void removeTriggerData(String setName) {
+		triggerDataHash.remove(setName);
 	}
+
+//	/**
+//	 * Only use this in the dialogs. Not in general programming
+//	 * @return the triggerDataHash
+//	 */
+//	public HashMap<String, GLFTriggerData> getTriggerDataHash() {
+//		return triggerDataHash;
+//	}
+
+//	/**
+//	 * Only use this in the dialogs. Not in general programming
+//	 * @param triggerDataHash the triggerDataHash to set
+//	 */
+//	public void setTriggerDataHash(HashMap<String, GLFTriggerData> triggerDataHash) {
+//		this.triggerDataHash = triggerDataHash;
+//	}
 	
 
 }

@@ -7,14 +7,22 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.TimeZone;
+import java.util.zip.CRC32;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
+
+import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
+import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream;
+import org.apache.commons.compress.utils.IOUtils;
 
 import PamUtils.FileParts;
 import PamUtils.PamCalendar;
@@ -22,6 +30,7 @@ import PamguardMVC.PamDataUnit;
 import PamguardMVC.PamObservable;
 import PamguardMVC.PamObserverAdapter;
 import binaryFileStorage.CountingOutputStream;
+import tritechgemini.fileio.CatalogException;
 import tritechgemini.fileio.CountingInputStream;
 import tritechgemini.fileio.GLFFileCatalog;
 import tritechgemini.fileio.LittleEndianDataOutputStream;
@@ -65,6 +74,8 @@ public class GLFWriter extends PamObserverAdapter {
 	
 	private GLFFileCatalog glfFileCatalog;
 	
+	private ImageDataUnit lastWrittenRecord;
+		
 	public GLFWriter(ImageDataBlock databuffer) {
 		super();
 		this.databuffer = databuffer;
@@ -118,6 +129,7 @@ public class GLFWriter extends PamObserverAdapter {
 			// need to write a short header before writing each record. 
 			glfFileCatalog.writeGLFHeader(glfRecord, outputStream);
 			glfFileCatalog.writeGLFReecord(glfRecord, outputStream);
+			lastWrittenRecord = idu;
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -166,7 +178,7 @@ public class GLFWriter extends PamObserverAdapter {
 		// whatever...
 		if (countingOutput.getByteCount() > 0) {
 			GLFZipper zipper = new GLFZipper(currentDATFile, currentGLFFile);
-			new Thread(zipper).run();
+			new Thread(zipper).start();
 		}
 		
 		outputStream = null;
@@ -188,35 +200,93 @@ public class GLFWriter extends PamObserverAdapter {
 
 		@Override
 		public void run() {
+//			boolean ok = zipOld();
+			boolean ok = zipApache();
+			if (ok) {
+				// finally delete the .dat file
+//				datFile.delete();
+
+				// finally, while we're in a separate thread, catalogue it. 
+				// would really be better to do this on the fly, but this will do for now
+				try {
+					GLFFileCatalog.getFileCatalog(glfFile.getAbsolutePath(), true);
+				} catch (CatalogException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+		private boolean zipApache() {
 			try {
+				ZipArchiveOutputStream zipOut = new ZipArchiveOutputStream(glfFile);
+				zipOut.setLevel(0);
+				zipOut.setMethod(0);
+				ZipArchiveEntry zipEnt = zipOut.createArchiveEntry(datFile, datFile.getName());
+				zipEnt.setMethod(0);
+				zipOut.putArchiveEntry(zipEnt);
+				Path datPath = datFile.toPath();
+				InputStream input = new FileInputStream(datFile);
+				IOUtils.copy(input, zipOut);
+				zipOut.closeArchiveEntry();
+				zipOut.finish();
+				zipOut.close();
+				input.close();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+				return false;
+			}
+			
+			return true;
+			
+		}
+		private boolean zipOld() {
+			try {
+				/*
+				 * Having a bit of trouble getting correct size data in here. 
+				 * Some info at https://stackoverflow.com/questions/1206970/how-to-create-uncompressed-zip-archive-in-java
+				 */
+				
 				FileOutputStream fos = new FileOutputStream(glfFile);
 				ZipOutputStream zos = new ZipOutputStream(fos);
-				zos.setLevel(ZipOutputStream.STORED);
+				zos.setMethod(ZipOutputStream.DEFLATED);
+				zos.setLevel(0);
+//				ZipOutputStream.
 				ZipEntry zEnt = new ZipEntry(datFile.getName());
+//				zEnt.setCompressedSize(datFile.length());
+				zEnt.setSize(datFile.length());
+				zEnt.setCrc(maxFileSize);
+//				zEnt.setMethod(0);
 				zos.putNextEntry(zEnt);
-				
+
+		        CRC32 crc = new CRC32();
+		        
 				BufferedInputStream bis = new BufferedInputStream(new FileInputStream(datFile));
 				int n = 1048576;
 				byte[] data = new byte[n];
 				int read;
 				while ((read = bis.read(data)) > 0) {
+					crc.update(data, 0, read);
 					zos.write(data, 0, read);
 				}
+//				zEnt.setCrc(crc.getValue());
+				zos.closeEntry();
+				zos.flush();
+				zos.finish();
 				zos.close();
 				fos.close();
 				bis.close();
 				
-				// finally delete the .dat file
-				datFile.delete();
 				
 			} catch (FileNotFoundException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
+				return false;
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
+				return false;
 			}
-			
+			return true;			
 		}
 		
 	}
@@ -318,5 +388,9 @@ public class GLFWriter extends PamObserverAdapter {
 	 */
 	public File getCurrentDATFile() {
 		return currentDATFile;
+	}
+
+	public ImageDataUnit getLastWrittenRecord() {
+		return lastWrittenRecord;
 	}
 }

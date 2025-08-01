@@ -2,6 +2,7 @@ package tritechplugins.record;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Set;
 
 import PamController.PamController;
 import PamUtils.PamCalendar;
@@ -10,19 +11,22 @@ import PamguardMVC.PamDataUnit;
 import PamguardMVC.PamObservable;
 import PamguardMVC.PamObserverAdapter;
 import PamguardMVC.PamProcess;
+import PamguardMVC.dataSelector.DataSelector;
+import difar.DifarParameters.DifarTriggerParams;
 import tritechgemini.imagedata.GLFImageRecord;
 import tritechgemini.imagedata.GeminiImageRecordI;
 import tritechplugins.acquire.ImageDataBlock;
 import tritechplugins.acquire.ImageDataUnit;
+import tritechplugins.record.logging.GLFRecorderLogging;
 
 public class GLFRecorderProcess extends PamProcess {
 
 	private GLFRecorderCtrl recorderCtrl;
-	
+
 	private ImageDataBlock dataBuffer, finalBuffer;
 
 	private boolean preparedOK;
-	
+
 	private volatile boolean shouldRecord;
 	/**
 	 * We're dealing with three image datablocks here. Could possibly manage with 
@@ -35,10 +39,18 @@ public class GLFRecorderProcess extends PamProcess {
 	 * a lock does not need to be held on the original block while the writing takes place, all 
 	 * happening in a different thread in any case.  
 	 */
-	
+
 	private Object combinedBufferSynch = new Object();
-	
+
 	private GLFWriter glfWriter;
+
+	private ArrayList<TriggerMonitor> triggerMonitors = new ArrayList<>();
+
+	private long recordEndTime;
+
+	private GLFRecorderDataBlock recorderDataBlock;
+
+	private GLFRecorderDataUnit currentDataUnit;
 
 	public GLFRecorderProcess(GLFRecorderCtrl glfRecorderCtrl) {
 		super(glfRecorderCtrl, null);
@@ -47,10 +59,14 @@ public class GLFRecorderProcess extends PamProcess {
 		finalBuffer = new ImageDataBlock(null);
 		finalBuffer.setNaturalLifetime(Integer.MAX_VALUE);
 		finalBuffer.addObserver(glfWriter = new GLFWriter(finalBuffer));
+		recorderDataBlock = new GLFRecorderDataBlock(glfRecorderCtrl, this);
+		recorderDataBlock.SetLogging(new GLFRecorderLogging(recorderCtrl, recorderDataBlock));
+		addOutputDataBlock(recorderDataBlock);
 	}
 
 	@Override
 	public void pamStart() {
+		recordEndTime = 0;
 		GLFRecorderParams params = recorderCtrl.getRecorderParams();
 		if (params.initialState == GLFRecorderParams.START_RECORD) {
 			startRecording();
@@ -59,17 +75,13 @@ public class GLFRecorderProcess extends PamProcess {
 
 	@Override
 	public void pamStop() {
-		glfWriter.pamStop();
+		stopRecording();
 	}
-	
+
 	public boolean startRecording() {
-		return startRecording(PamCalendar.getTimeInMillis());
+		return startRecording(PamCalendar.getTimeInMillis(), Long.MAX_VALUE);
 	}
-	
-	public void stopRecording() {
-		stopRecording(PamCalendar.getTimeInMillis());
-	}
-	
+
 	/**
 	 * Get information about the data buffer. 
 	 * @return
@@ -84,10 +96,10 @@ public class GLFRecorderProcess extends PamProcess {
 			lastTime = lu.getTimeMilliseconds();
 		}
 		GLFRecorderParams params = recorderCtrl.getRecorderParams();
-		
+
 		return new BufferState(firstTime, lastTime, nu, params.bufferSeconds);		
 	}
-	
+
 	/**
 	 * Get the current file being recorded. 
 	 * @return
@@ -95,7 +107,7 @@ public class GLFRecorderProcess extends PamProcess {
 	public File getCurrentFile() {
 		return glfWriter.getCurrentGLFFile();
 	}
-	
+
 	/**
 	 * Get information about if recording (or if should be recording). 
 	 * @return
@@ -103,19 +115,42 @@ public class GLFRecorderProcess extends PamProcess {
 	public boolean getRecordState() {
 		return shouldRecord;
 	}
-	
+
+	/**
+	 * Start a recording that will go forever. If possible, take data from buffer. 
+	 * @param start
+	 */
+	public boolean startRecording(long start) {
+		return startRecording(start, Long.MAX_VALUE);
+	}
+
 	/**
 	 * Start recording, using the buffer as necessary to take data 
 	 * from the given start time. 
 	 * @param startTime start time for recording - should be now or in the very recent past. 
 	 * @return true if started. 
 	 */
-	public boolean startRecording(long startTime) {
+	public boolean startRecording(long startTime, long endTime) {
+		return startRecording(startTime, endTime, null);
+	}
+
+	/**
+	 * Start a recording from given start time, to given end time. 
+	 * @param startTime
+	 * @param endTime
+	 * @param triggerData passed through so can add trigger info to database record. 
+	 * @return true on success
+	 */
+	public boolean startRecording(long startTime, long endTime, GLFTriggerData triggerData) {
+		recordEndTime = Math.max(recordEndTime, endTime);
 		if (shouldRecord) {
 			return true; // no need to do anything 
 		}
 		synchronized (combinedBufferSynch) {
 			shouldRecord = true;
+			// prepare a data unit. 
+			currentDataUnit = new GLFRecorderDataUnit(startTime, endTime, triggerData);
+
 			// and copy content from dataBuffer to finalBuffer
 			ArrayList<ImageDataUnit> copy = null;
 			synchronized (dataBuffer.getSynchLock()) {
@@ -139,25 +174,113 @@ public class GLFRecorderProcess extends PamProcess {
 		// copy content of 
 		return true;
 	}
-	
+
 	/**
 	 * Stop recording. 
 	 */
-	public void stopRecording(long timeMilliseconds) {
+	public void stopRecording() {
 		synchronized (combinedBufferSynch) {
 			shouldRecord = false; // data will divert back to the storage buffer
 			// this may cause some delay, but I don't see a way around it. Need 
 			// to complete clear the finalBuffer before we can put anything else into it. 
+
 			glfWriter.flushAndClose();
+			recordEndTime = 0;
+
+			ImageDataUnit lastRec = glfWriter.getLastWrittenRecord();
+			if (lastRec != null && currentDataUnit != null) {
+				currentDataUnit.setEndTime(lastRec.getTimeMilliseconds());
+				recorderDataBlock.addPamData(currentDataUnit);
+				currentDataUnit = null;
+			}
 		}
 	}
-	
+
+	/**
+	 * Setup however many triggers there are that will initiate automatic recording. 
+	 */
+	public void setupTriggers() {
+		clearTriggers();
+		GLFRecorderParams params = recorderCtrl.getRecorderParams();
+		Set<String> keys = params.getTriggerHashKeys();
+		for (String aKey : keys) {
+			GLFTriggerData trigParams = params.getTriggerData(aKey, false);
+			if (trigParams == null || trigParams.enabled == false) {
+				continue;
+			}
+			PamDataBlock dataBlock = PamController.getInstance().getDataBlockByLongName(aKey);
+			TriggerMonitor trigMon = new TriggerMonitor(dataBlock, trigParams);
+			dataBlock.addObserver(trigMon, false);
+			triggerMonitors.add(trigMon);
+		}
+	}
+
+	/**
+	 * Clear all trigger monitors prior to rebuilding
+	 */
+	public void clearTriggers() {
+		for (TriggerMonitor aMonitor : triggerMonitors) {
+			clearTrigger(aMonitor);
+		}
+		triggerMonitors.clear();
+	}
+
+	private void clearTrigger(TriggerMonitor aMonitor) {
+		aMonitor.dataBlock.deleteObserver(aMonitor);
+	}
+
+	/**
+	 * fire a trigger when a new dataunit arrives. 
+	 * @param dataBlock
+	 * @param pamDataUnit
+	 * @param trigParams
+	 */
+	public void fireTrigger(PamDataBlock dataBlock, PamDataUnit pamDataUnit, GLFTriggerData trigParams) {
+		/*
+		 * Check the dataselector for this data
+		 */
+		DataSelector ds = dataBlock.getDataSelector(GLFRecorderCtrl.DATASELECTNAME, false);
+		if (ds != null) {
+			double score = ds.scoreData(pamDataUnit);
+			if (score <= 0) {
+				return;
+			}
+		}
+		// if recording is already running, then pass to continuetrigger to push back the end time. 
+		synchronized (combinedBufferSynch) {
+			//			if (shouldRecord) {
+			//				// probably already recording, so push back
+			//				continueTrigger(dataBlock, pamDataUnit, trigParams);
+			//			}
+			//			else {
+			/**
+			 * Can just make the call to startRecording since it will extend to the end
+			 * time and will already just continue if it's running a recording. 
+			 */
+			long s = pamDataUnit.getTimeMilliseconds() - trigParams.preSeconds*1000;
+			long e = pamDataUnit.getEndTimeInMilliseconds() + trigParams.postSeconds*1000;
+			startRecording(s, e, trigParams);
+			//			}
+		}
+
+	}
+
+	//	/**
+	//	 * continue a trigger when a new dataunit arrives. 
+	//	 * @param dataBlock
+	//	 * @param pamDataUnit
+	//	 * @param trigParams
+	//	 */
+	//	public void continueTrigger(PamDataBlock dataBlock, PamDataUnit pamDataUnit, GLFTriggerData trigParams) {
+	//		
+	//	}
+
 	@Override
 	public void newData(PamObservable o, PamDataUnit arg) {
 		if (o == getParentDataBlock()) {
 			newParentData(arg);
 		}
-		
+
 	}
 
 	private void newParentData(PamDataUnit arg) {
@@ -170,11 +293,21 @@ public class GLFRecorderProcess extends PamProcess {
 		if (imageRecord instanceof GLFImageRecord == false) {
 			return; // can't do anything with this at the moment. 
 		}
-		/**
-		 * If we're already recording, then copy the data straight into the final buffer.
-		 * If we're not yet recording, then copy the data into the intermediate buffer
-		 */
 		synchronized (combinedBufferSynch) {
+			/*
+			 * Whenever recording is started, we set an end time. If we're now
+			 * beyond this, then we should stop recording. 
+			 */
+			if (imageData.getTimeMilliseconds() > recordEndTime) {
+				if (shouldRecord) {
+					stopRecording();
+				}
+				shouldRecord = false;
+			}
+			/*
+			 * If we're already recording, then copy the data straight into the final buffer.
+			 * If we're not yet recording, then copy the data into the intermediate buffer
+			 */
 			if (shouldRecord) {
 				finalBuffer.addPamData(imageData);
 			}
@@ -183,7 +316,7 @@ public class GLFRecorderProcess extends PamProcess {
 			}
 		}		
 	}
-	
+
 
 
 	/**
@@ -197,9 +330,37 @@ public class GLFRecorderProcess extends PamProcess {
 		@Override
 		public void run() {
 			// TODO Auto-generated method stub
-			
+
 		}
-		
+
+	}
+
+	private class TriggerMonitor extends PamObserverAdapter {
+
+		private PamDataBlock dataBlock;
+		private GLFTriggerData trigParams;
+
+		public TriggerMonitor(PamDataBlock dataBlock, GLFTriggerData trigParams) {
+			super();
+			this.dataBlock = dataBlock;
+			this.trigParams = trigParams;
+		}
+
+		@Override
+		public String getObserverName() {
+			return recorderCtrl.getUnitName() + " trigger monitor";
+		}
+
+		@Override
+		public void addData(PamObservable observable, PamDataUnit pamDataUnit) {
+			fireTrigger(dataBlock, pamDataUnit, trigParams);
+		}
+
+		@Override
+		public void updateData(PamObservable observable, PamDataUnit pamDataUnit) {
+			fireTrigger(dataBlock, pamDataUnit, trigParams);
+		}
+
 	}
 
 	@Override
@@ -216,6 +377,7 @@ public class GLFRecorderProcess extends PamProcess {
 		preparedOK &= recorderCtrl.checkOutputFolder(true);
 		glfWriter.setMaxFileSize(params.maxSizeMegabytes);
 		glfWriter.setRootFolder(params.outputFolder);
+		setupTriggers();
 	}
 
 	@Override

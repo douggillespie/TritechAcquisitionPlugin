@@ -1,6 +1,7 @@
 package tritechplugins.record.swing;
 
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.FlowLayout;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
@@ -9,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.ListIterator;
+import java.util.Set;
 
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
@@ -17,6 +19,9 @@ import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 
 import PamController.PamController;
+import PamDetection.PamDetection;
+import PamView.dialog.PamDialog;
+import PamView.panel.PamAlignmentPanel;
 import PamguardMVC.PamDataBlock;
 import tritechplugins.record.GLFRecorderCtrl;
 import tritechplugins.record.GLFRecorderParams;
@@ -34,16 +39,23 @@ public class GLFTriggersPanel {
 	private GLFRecorderCtrl recorderControl;
 	private JButton addButton, removeButton;
 	private Window parent;
+	private GLFRecorderParams recorderParams;
 
-	private HashMap<String, GLFTriggerData> currentTriggers;
+//	private HashMap<String, GLFTriggerData> currentTriggers;
 
 	public GLFTriggersPanel(GLFRecorderCtrl recorderControl, Window parent) {
 		this.recorderControl = recorderControl;
 		this.parent = parent;
 		mainPanel = new JPanel(new BorderLayout());
-		trigsPanel = new JPanel();
+//		mainPanel = new PamAlignmentPanel(BorderLayout.NORTH);
+//		mainPanl
+//		trigsPanel = new PamAlignmentPanel(BorderLayout.NORTH);
+		trigsPanel = new JPanel(new BorderLayout());
 		trigsPanel.setLayout(new BoxLayout(trigsPanel, BoxLayout.Y_AXIS));
-		mainPanel.add(BorderLayout.CENTER, trigsPanel);
+		JPanel trigOuter = new PamAlignmentPanel(trigsPanel, BorderLayout.NORTH);
+		
+		mainPanel.add(BorderLayout.CENTER, trigOuter);
+		
 		JPanel ctrlPanel = new JPanel(new FlowLayout());
 		addButton = new JButton("Add trigger");
 		removeButton = new JButton("Remove trigger");
@@ -82,12 +94,13 @@ public class GLFTriggersPanel {
 
 	protected void removeButtonPress(ActionEvent e) {
 		JPopupMenu popMenu = new JPopupMenu();
-		Collection<GLFTriggerData> current = currentTriggers.values();
-		for (GLFTriggerData aTrig : current) {
-			JMenuItem menuItem = new JMenuItem(aTrig.triggerDataName);
-			menuItem.addActionListener(new RemoveAction(aTrig));
+		Set<String> keys = recorderParams.getTriggerHashKeys();
+		for (String setName : keys) {
+			JMenuItem menuItem = new JMenuItem(setName);
+			menuItem.addActionListener(new RemoveAction(setName));
 			popMenu.add(menuItem);
 		}
+
 		popMenu.show(removeButton, removeButton.getWidth()/2, removeButton.getHeight()/2);
 		
 	}
@@ -103,24 +116,64 @@ public class GLFTriggersPanel {
 
 		@Override
 		public void actionPerformed(ActionEvent e) {
-			// TODO Auto-generated method stub
-			
+			addTriggerPane(dataBlock);
 		}
 	}
+	
 	private class RemoveAction implements ActionListener {
 		
-		GLFTriggerData triggerData;
+		String setName;
 
-		public RemoveAction(GLFTriggerData triggerData) {
+		public RemoveAction(String setName) {
 			super();
-			this.triggerData = triggerData;
+			this.setName = setName;
 		}
 
 		@Override
 		public void actionPerformed(ActionEvent e) {
-			// TODO Auto-generated method stub
-			
+			removeTriggerPane(setName);
 		}
+	}
+	
+	private void addTriggerPane(PamDataBlock dataBlock) {
+		GLFTriggerPane trigPane = new GLFTriggerPane(parent, dataBlock);
+		trigsPanel.add(trigPane);
+		GLFTriggerData trigData = recorderParams.getTriggerData(dataBlock, true);
+		trigPane.setParams(trigData);
+		parent.pack();
+		enableControls();
+	}
+
+	public void removeTriggerPane(String setName) {
+		GLFTriggerPane trigPane = findTriggerPane(setName);
+		if (trigPane != null) {
+			trigsPanel.remove(trigPane);
+			recorderParams.removeTriggerData(setName);
+			parent.pack();
+		}
+		trigsPanel.invalidate();
+		trigsPanel.repaint();
+		parent.pack();
+		enableControls();
+	}
+
+	/**
+	 * find a trigger pane by name
+	 * @param longName
+	 * @return
+	 */
+	private GLFTriggerPane findTriggerPane(String longName) {
+		int n = trigsPanel.getComponentCount();
+		for (int i = 0; i < n; i++) {
+			Component comp = trigsPanel.getComponent(i);
+			if (comp instanceof GLFTriggerPane) {
+				GLFTriggerPane trigPane = (GLFTriggerPane) comp;
+				if (trigPane.getLongName().equals(longName)) {
+					return trigPane;
+				}
+			}
+		}
+		return null;
 	}
 	
 	/**
@@ -131,27 +184,55 @@ public class GLFTriggersPanel {
 	}
 
 	public void setParams(GLFRecorderParams recorderParams) {
-		currentTriggers = recorderParams.getTriggerDataHash();
+//		currentTriggers = recorderParams.getTriggerDataHash();
+		this.recorderParams = recorderParams;
 		rebuild();
 
 		enableControls();
 	}
 
 	public boolean getParams(GLFRecorderParams recorderParams) {
-
+		int n = trigsPanel.getComponentCount();
+		for (int i = 0; i < n; i++) {
+			Component comp = trigsPanel.getComponent(i);
+			if (comp instanceof GLFTriggerPane) {
+				GLFTriggerPane trigPane = (GLFTriggerPane) comp;
+				GLFTriggerData trigParams = recorderParams.getTriggerData(trigPane.getDataBlock(), true);
+				boolean ans = trigPane.getParams(trigParams);
+				if (ans) {
+					recorderParams.setTrigerData(trigPane.getDataBlock(), trigParams);
+				}
+				else {
+					return PamDialog.showWarning(parent, "Invalid trigger params", trigPane.getLongName());
+				}
+			}
+		}
 		return true;
 	}
 
 	public void rebuild() {
-
-
+		trigsPanel.removeAll();
+		
+		Set<String> keys = recorderParams.getTriggerHashKeys();
+		for (String aKey : keys) {
+			PamDataBlock dataBlock = PamController.getInstance().getDataBlockByLongName(aKey);
+			if (dataBlock == null) {
+				continue;
+			}
+			GLFTriggerPane trigPane = new GLFTriggerPane(parent, dataBlock);
+			trigPane.setParams(recorderParams.getTriggerData(dataBlock, true));
+			trigsPanel.add(trigPane);
+		}
+		
+		
 		parent.pack();
 	}
 
 	private void enableControls() {
 		ArrayList<PamDataBlock> newBlocks = getNewTriggerBlocks();
 		addButton.setEnabled(newBlocks.size() > 0);
-		removeButton.setEnabled(currentTriggers.isEmpty() == false);
+		int  n = trigsPanel.getComponentCount();
+		removeButton.setEnabled(n > 0);
 	}
 
 	/**
@@ -159,7 +240,7 @@ public class GLFTriggersPanel {
 	 * @return
 	 */
 	private ArrayList<PamDataBlock> getTriggerBlocks() {
-		return PamController.getInstance().getDataBlocks();
+		return PamController.getInstance().getDataBlocks(PamDetection.class, true);
 	}
 
 	/**
@@ -171,7 +252,7 @@ public class GLFTriggersPanel {
 		ListIterator<PamDataBlock> it = blocks.listIterator();
 		while (it.hasNext()) {
 			PamDataBlock aBlock = it.next();
-			if (currentTriggers.get(aBlock.getLoggingName()) != null) {
+			if (recorderParams.getTriggerData(aBlock, false) != null) {
 				it.remove();
 			}
 		}

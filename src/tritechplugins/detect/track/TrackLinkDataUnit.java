@@ -2,6 +2,7 @@ package tritechplugins.detect.track;
 
 import java.util.Iterator;
 
+import PamDetection.PamDetection;
 import PamUtils.PamCalendar;
 import PamguardMVC.DataUnitBaseData;
 import PamguardMVC.PamDataUnit;
@@ -9,7 +10,7 @@ import PamguardMVC.superdet.SubdetectionInfo;
 import PamguardMVC.superdet.SuperDetection;
 import tritechplugins.detect.threshold.RegionDataUnit;
 
-public class TrackLinkDataUnit extends SuperDetection<RegionDataUnit> {
+public class TrackLinkDataUnit extends SuperDetection<RegionDataUnit> implements PamDetection {
 	
 	private TrackChain trackChain;
 
