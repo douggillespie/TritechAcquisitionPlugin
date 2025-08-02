@@ -8,17 +8,28 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
+import java.nio.file.FileSystem;
+import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.TimeZone;
 import java.util.zip.CRC32;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
+import java.util.*;
+import java.net.URI;
+import java.nio.file.Path;
+import java.nio.file.*;
 
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream;
@@ -76,6 +87,25 @@ public class GLFWriter extends PamObserverAdapter {
 	
 	private ImageDataUnit lastWrittenRecord;
 		
+	public static void main(String[] args) {
+		new GLFWriter(null).test();
+		
+	}
+	
+	private void test() {
+		File datFile = new File("C:\\PAMGuardTest\\glftest\\20240927\\data_2024-09-27-183519.dat");
+		File glfFile = new File("C:\\PAMGuardTest\\glftest\\20240927\\log_2024-09-27-183519.glf");
+		glfFile.delete();
+		GLFZipper zipper = new GLFZipper(datFile, glfFile);
+		zipper.zipOld();
+		try {
+			GLFFileCatalog.getFileCatalog(glfFile.getAbsolutePath(), true);
+		} catch (CatalogException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+
 	public GLFWriter(ImageDataBlock databuffer) {
 		super();
 		this.databuffer = databuffer;
@@ -200,8 +230,9 @@ public class GLFWriter extends PamObserverAdapter {
 
 		@Override
 		public void run() {
-//			boolean ok = zipOld();
-			boolean ok = zipApache();
+			boolean ok = zipOld();
+//			boolean ok = zipSys();
+//			boolean ok = zipApache();
 			if (ok) {
 				// finally delete the .dat file
 //				datFile.delete();
@@ -215,10 +246,34 @@ public class GLFWriter extends PamObserverAdapter {
 				}
 			}
 		}
+//		private boolean zipSys() {
+//			// https://stackoverflow.com/questions/1091788/how-to-create-a-zip-file-in-java
+//			String zipName = glfFile.getAbsolutePath();
+//			zipName = zipName.replace(".glf", ".zip");
+//			File zipFile = new File(zipName);
+//			
+//			URI uri = zipFile.toURI();
+//	        Map<String, String> env = new HashMap<>(); 
+//	        env.put("create", "true");
+//	        
+//	        try (FileSystem zipfs = FileSystems.newFileSystem(uri, env)) {
+//	            Path externalTxtFile = Paths.get(zipName);
+//	            Path pathInZipfile = zipfs.getPath(datFile.getAbsolutePath());          
+//	            // copy a file into the zip file
+//	            Files.copy( externalTxtFile,pathInZipfile, 
+//	                    StandardCopyOption.REPLACE_EXISTING ); 
+//	        } catch (IOException e) {
+//				// TODO Auto-generated catch block
+//				e.printStackTrace();
+//			} 
+//			
+//			return false;
+//		}
+
 		private boolean zipApache() {
 			try {
 				ZipArchiveOutputStream zipOut = new ZipArchiveOutputStream(glfFile);
-				zipOut.setLevel(0);
+				zipOut.setLevel(ZipArchiveOutputStream.STORED);
 				zipOut.setMethod(0);
 				ZipArchiveEntry zipEnt = zipOut.createArchiveEntry(datFile, datFile.getName());
 				zipEnt.setMethod(0);
@@ -247,30 +302,41 @@ public class GLFWriter extends PamObserverAdapter {
 				 */
 				
 				FileOutputStream fos = new FileOutputStream(glfFile);
-				ZipOutputStream zos = new ZipOutputStream(fos);
-				zos.setMethod(ZipOutputStream.DEFLATED);
+				ZipOutputStream zos = new ZipOutputStream(new BufferedOutputStream(fos));
+				zos.setMethod(0);
 				zos.setLevel(0);
 //				ZipOutputStream.
+//				zos.s
 				ZipEntry zEnt = new ZipEntry(datFile.getName());
-//				zEnt.setCompressedSize(datFile.length());
 				zEnt.setSize(datFile.length());
-				zEnt.setCrc(maxFileSize);
+//				zEnt.setCrc(0);
+				zEnt.setCompressedSize(datFile.length());
+//				System.out.println("Set dat file size to " + datFile.length());
+//				zEnt.setCompressedSize(datFile.length());
+//				zEnt.setCrc(maxFileSize);
 //				zEnt.setMethod(0);
-				zos.putNextEntry(zEnt);
-
-		        CRC32 crc = new CRC32();
-		        
-				BufferedInputStream bis = new BufferedInputStream(new FileInputStream(datFile));
-				int n = 1048576;
+				// first get the CRC
+				int n = 1048576; // read in megabyte blocks
 				byte[] data = new byte[n];
 				int read;
+		        CRC32 crc = new CRC32();
+				BufferedInputStream bis = new BufferedInputStream(new FileInputStream(datFile));
 				while ((read = bis.read(data)) > 0) {
 					crc.update(data, 0, read);
+				}
+				zEnt.setCrc(crc.getValue());
+				
+				
+				zos.putNextEntry(zEnt);
+				bis.close();
+				// then go through again and write it. 
+				bis = new BufferedInputStream(new FileInputStream(datFile));
+				while ((read = bis.read(data)) > 0) {
 					zos.write(data, 0, read);
 				}
-//				zEnt.setCrc(crc.getValue());
+						
 				zos.closeEntry();
-				zos.flush();
+//				zos.flush();
 				zos.finish();
 				zos.close();
 				fos.close();

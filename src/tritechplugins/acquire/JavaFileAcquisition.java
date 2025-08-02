@@ -73,6 +73,8 @@ public class JavaFileAcquisition extends TritechDaqSystem  implements CatalogStr
 	 */
 	private int recordsSkipAtStart = 0;
 	private long restartFirstRecordTime = 0;
+
+	private volatile boolean stopPressed;
 	
 	public JavaFileAcquisition(TritechAcquisition tritechAcquisition, TritechDaqProcess tritechProcess) {
 		super(tritechAcquisition, tritechProcess);
@@ -163,6 +165,7 @@ public class JavaFileAcquisition extends TritechDaqSystem  implements CatalogStr
 
 	@Override
 	public boolean start() {
+		stopPressed = false;
 		continueStream = true;
 		lastCallbackTime = System.currentTimeMillis();
 		lastFrameTime = 0;
@@ -175,6 +178,7 @@ public class JavaFileAcquisition extends TritechDaqSystem  implements CatalogStr
 
 	@Override
 	public boolean stop() {
+		stopPressed = true;
 		continueStream = false;
 		synchronized (synchObject) {
 			if (currentCatalog != null) {
@@ -240,7 +244,7 @@ public class JavaFileAcquisition extends TritechDaqSystem  implements CatalogStr
 //					long firstRecordTime = currentCatalog.getFirstRecordTime();
 //					try {
 					CatalogStreamSummary streamSummary = currentCatalog.streamCatalog(JavaFileAcquisition.this);
-					if (streamSummary.endReason == CatalogStreamSummary.PROCESSSTOP) {
+					if (streamSummary.endReason == CatalogStreamSummary.PROCESSSTOP && stopPressed == false) {
 						/*
 						 *  this get's called when there is a gap in the file. This may be within a file
 						 *  or, more often, between files. If it's the first record of a new file, then all
