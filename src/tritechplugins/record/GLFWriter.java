@@ -7,33 +7,18 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.net.URI;
-import java.nio.file.FileSystem;
-import java.nio.file.FileSystems;
 import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.TimeZone;
 import java.util.zip.CRC32;
+import java.util.zip.Deflater;
 import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
-import java.util.*;
-import java.net.URI;
-import java.nio.file.Path;
-import java.nio.file.*;
-
-import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
-import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream;
-import org.apache.commons.compress.utils.IOUtils;
 
 import PamUtils.FileParts;
 import PamUtils.PamCalendar;
@@ -42,9 +27,9 @@ import PamguardMVC.PamObservable;
 import PamguardMVC.PamObserverAdapter;
 import binaryFileStorage.CountingOutputStream;
 import tritechgemini.fileio.CatalogException;
-import tritechgemini.fileio.CountingInputStream;
 import tritechgemini.fileio.GLFFileCatalog;
 import tritechgemini.fileio.LittleEndianDataOutputStream;
+import tritechgemini.fileio.UnzippedWriter;
 import tritechgemini.imagedata.GLFImageRecord;
 import tritechgemini.imagedata.GeminiImageRecordI;
 import tritechplugins.acquire.ImageDataBlock;
@@ -87,17 +72,126 @@ public class GLFWriter extends PamObserverAdapter {
 	
 	private ImageDataUnit lastWrittenRecord;
 		
-	public static void main(String[] args) {
-		new GLFWriter(null).test();
-		
-	}
+//	public static void main(String[] args) {
+//		GLFWriter glfWriter = new GLFWriter(null);
+//		glfWriter.test();
+////		glfWriter.compareData();
+//		glfWriter.checkGCatalog();
+//	}
 	
+	private void checkGCatalog() {
+//		String fn = "C:\\ProjectData\\RobRiver\\Y5\\GLF\\log_2024-09-27-183519b.glf";
+		String fn = "C:\\PAMGuardTest\\glftest\\20240927\\log_2024-09-27-183519.glf";
+
+		try {
+			GLFFileCatalog.getFileCatalog(fn, true);
+		} catch (CatalogException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+
+	private void compareData() {
+		/*
+		 * Check the self zipped and original file are identical. They are. 
+		 */
+		File f1 = new File("C:\\PAMGuardTest\\glftest\\20240927\\log_2024-09-27-183519.glf");
+		File f2 = new File("C:\\ProjectData\\RobRiver\\Y5\\GLF\\log_2024-09-27-183519b.glf");
+		System.out.printf("\n");
+		try {
+			long l1 = f1.length();
+			long l2 = f2.length();
+			if (l1  != l2) {
+				System.out.printf("\nDifferent lengths by %d\n", l2-l1);
+			}
+			BufferedInputStream ip1 = new BufferedInputStream(new FileInputStream(f1));
+			BufferedInputStream ip2 = new BufferedInputStream(new FileInputStream(f2));
+			int bLen = 65536;
+			byte[] b1 = new byte[bLen];
+			byte[] b2 = new byte[bLen];
+			int r1, r2;
+			int totalRead = 0;
+			byte[] m1 = new byte[4];
+			byte[] m2 = new byte[4];
+			while (true) {
+				for (int i = 0; i < bLen; i++) {
+					b1[i] = b2[i] = 0;
+				}
+				r1 = ip1.read(b1);
+				r2 = ip2.read(b2);
+				if (r1+r2 <= 0) {
+					break;
+				}
+				if (r1 != r2) {
+					System.out.printf("Different n bytes read\n");
+				}
+				for (int i = 0; i < Math.max(r1,r2); i++) {
+					long mn1 = checkMagic(m1, b1[i]);
+					long mn2 = checkMagic(m2, b2[i]);
+					if (mn1+mn2 > 0) {
+						System.out.printf("Magic numbers at byte %d 0x%08x and 0x%08x\n" ,
+								totalRead+i, mn1, mn2);
+					}
+					if (b1[i] != b2[i]) {						
+						System.out.printf("Different data read at location %d %d/%d 0x%02X/0x%02X\n",
+								totalRead+i, Byte.toUnsignedInt(b1[i]), Byte.toUnsignedInt(b2[i]),
+								Byte.toUnsignedInt(b1[i]), Byte.toUnsignedInt(b2[i]));
+					}
+				}
+				totalRead += r1;
+			}
+			
+			
+			ip1.close();
+			ip2.close();
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+
+	private long checkMagic(byte[] m, byte r) {
+		for (int i = 0; i < 3; i++) {
+			m[i] = m[i+1];
+		}
+		m[3] = r;
+		long val = m[3]<<24 | m[2]<<16 | m[1]<<8 | m[0];
+		if (val == ZipInputStream.CENSIG) {
+			return ZipInputStream.CENSIG;
+		}
+		else if (val == ZipInputStream.ENDSIG) {
+			return ZipInputStream.ENDSIG;
+		}
+		else if (val == ZipInputStream.LOCSIG) {
+			return ZipInputStream.LOCSIG;
+		}
+		return 0;
+	}
+
 	private void test() {
 		File datFile = new File("C:\\PAMGuardTest\\glftest\\20240927\\data_2024-09-27-183519.dat");
 		File glfFile = new File("C:\\PAMGuardTest\\glftest\\20240927\\log_2024-09-27-183519.glf");
+//		File datFile = new File("C:\\ProjectData\\RobRiver\\Y5\\GLF\\data_2024-09-27-183519b.dat");
+//		File glfFile = new File("C:\\ProjectData\\RobRiver\\Y5\\GLF\\log_2024-09-27-183519b.glf");
+//		File datFilea = new File("C:\\ProjectData\\RobRiver\\Y5\\GLF\\data_2024-09-27-183519.dat");
+//		File glfFilea = new File("C:\\ProjectData\\RobRiver\\Y5\\GLF\\log_2024-09-27-183519.glf");
 		glfFile.delete();
 		GLFZipper zipper = new GLFZipper(datFile, glfFile);
-		zipper.zipOld();
+		zipper.zipDIY();
+		try {
+			long sDat = Files.size(datFile.toPath());
+			long sGLF = Files.size(glfFile.toPath()) ;
+//			long sData = Files.size(datFilea.toPath());
+//			long sGLFa = Files.size(glfFilea.toPath()) ;
+			System.out.printf("\nFile sizes dat=%d, GLF = %d,  diff = %d\n", 
+					sDat, sGLF,  sGLF-sDat);
+		}
+		catch (Exception e) {
+//			e.printStackTrace();
+		}
 		try {
 			GLFFileCatalog.getFileCatalog(glfFile.getAbsolutePath(), true);
 		} catch (CatalogException e) {
@@ -228,14 +322,30 @@ public class GLFWriter extends PamObserverAdapter {
 			this.glfFile = glfFile;
 		}
 
+		/**
+		 * Zip up the glf file using my own writer.
+		 * @return true if no exception. 
+		 */
+		public boolean zipDIY() {
+			UnzippedWriter uw = new UnzippedWriter();
+			try {
+				uw.writeArcive(glfFile, datFile);
+			} catch (IOException e) {
+				e.printStackTrace();
+				return false;
+			}
+			return true;
+		}
+
 		@Override
 		public void run() {
-			boolean ok = zipOld();
+//			boolean ok = zipOld();
 //			boolean ok = zipSys();
 //			boolean ok = zipApache();
+			boolean ok = zipDIY();
 			if (ok) {
 				// finally delete the .dat file
-//				datFile.delete();
+				datFile.delete();
 
 				// finally, while we're in a separate thread, catalogue it. 
 				// would really be better to do this on the fly, but this will do for now
@@ -246,6 +356,29 @@ public class GLFWriter extends PamObserverAdapter {
 				}
 			}
 		}
+//		private boolean zipNative() {
+//			String cmd = String.format("tar -zvcf \"%s\" \"%s\" ", 
+//					glfFile.getAbsolutePath(), datFile.getAbsolutePath());
+////			String cmd = String.format("tar -zcf \"%s\" ", 
+////					glfFile.getAbsolutePath());
+//			System.out.printf("\n");
+//			System.out.println(cmd);
+//			
+//			Process proc = null;
+//			int exitVal;
+//			try {
+//				 proc = Runtime.getRuntime().exec(cmd);
+//				 while (proc.isAlive()) {
+//					 Thread.sleep(10);
+//				 }
+//				 exitVal = proc.exitValue();
+//				 System.out.println("Tar exit value = " + exitVal);
+//			} catch (IOException | InterruptedException e) {
+//				e.printStackTrace();
+//				return false;
+//			}
+//			return true;
+//		}
 //		private boolean zipSys() {
 //			// https://stackoverflow.com/questions/1091788/how-to-create-a-zip-file-in-java
 //			String zipName = glfFile.getAbsolutePath();
@@ -270,30 +403,44 @@ public class GLFWriter extends PamObserverAdapter {
 //			return false;
 //		}
 
-		private boolean zipApache() {
-			try {
-				ZipArchiveOutputStream zipOut = new ZipArchiveOutputStream(glfFile);
-				zipOut.setLevel(ZipArchiveOutputStream.STORED);
-				zipOut.setMethod(0);
-				ZipArchiveEntry zipEnt = zipOut.createArchiveEntry(datFile, datFile.getName());
-				zipEnt.setMethod(0);
-				zipOut.putArchiveEntry(zipEnt);
-				Path datPath = datFile.toPath();
-				InputStream input = new FileInputStream(datFile);
-				IOUtils.copy(input, zipOut);
-				zipOut.closeArchiveEntry();
-				zipOut.finish();
-				zipOut.close();
-				input.close();
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-				return false;
-			}
-			
-			return true;
-			
-		}
+//		private boolean zipApache() {
+//			try {
+//				ZipArchiveOutputStream zipOut = new ZipArchiveOutputStream(glfFile);
+////				zipOut.setLevel(ZipArchiveOutputStream.STORED);
+//				zipOut.setMethod(ZipArchiveOutputStream.STORED);
+//				zipOut.setUseZip64(Zip64Mode.Never);
+//				ZipArchiveEntry zipEnt = new ZipArchiveEntry(datFile.getName());
+////				zipOut.addRawArchiveEntry(zipEnt, );
+//				zipEnt.setRawFlag(0);
+////				ZipArchiveEntry zipEnt = zipOut.createArchiveEntry(datFile, datFile.getName());
+//				zipEnt.setMethod(ZipArchiveOutputStream.STORED);
+//				zipOut.putArchiveEntry(zipEnt);
+//				Path datPath = datFile.toPath();
+//				InputStream input = new BufferedInputStream(new FileInputStream(datFile));
+//				byte[] data = new byte[65531];
+//				int bytesRead = 0;
+//				while (true) {
+//					bytesRead = input.read(data);
+//					zipOut.write(data, 0, bytesRead);
+//					if (bytesRead < data.length) {
+//						break;
+//					}
+//				}
+////				IOUtils.copy(input, zipOut);
+////				zipEnt.
+//				zipOut.closeArchiveEntry();
+//				zipOut.finish();
+//				zipOut.close();
+//				input.close();
+//			} catch (IOException e) {
+//				// TODO Auto-generated catch block
+//				e.printStackTrace();
+//				return false;
+//			}
+//			
+//			return true;
+//			
+//		}
 		private boolean zipOld() {
 			try {
 				/*
@@ -303,32 +450,36 @@ public class GLFWriter extends PamObserverAdapter {
 				
 				FileOutputStream fos = new FileOutputStream(glfFile);
 				ZipOutputStream zos = new ZipOutputStream(new BufferedOutputStream(fos));
-				zos.setMethod(0);
-				zos.setLevel(0);
+				zos.setMethod(ZipOutputStream.STORED);
+				zos.setLevel(Deflater.NO_COMPRESSION);
 //				ZipOutputStream.
 //				zos.s
 				ZipEntry zEnt = new ZipEntry(datFile.getName());
-				zEnt.setSize(datFile.length());
+//				zEnt.setSize(datFile.length());
+//				zEnt.setMethod(ZipOutputStream.STORED);
+				
+//				zEnt.
 //				zEnt.setCrc(0);
 				zEnt.setCompressedSize(datFile.length());
 //				System.out.println("Set dat file size to " + datFile.length());
-//				zEnt.setCompressedSize(datFile.length());
+				zEnt.setCompressedSize(datFile.length());
 //				zEnt.setCrc(maxFileSize);
 //				zEnt.setMethod(0);
 				// first get the CRC
 				int n = 1048576; // read in megabyte blocks
 				byte[] data = new byte[n];
 				int read;
+				BufferedInputStream bis;
 		        CRC32 crc = new CRC32();
-				BufferedInputStream bis = new BufferedInputStream(new FileInputStream(datFile));
+				bis = new BufferedInputStream(new FileInputStream(datFile));
 				while ((read = bis.read(data)) > 0) {
 					crc.update(data, 0, read);
 				}
-				zEnt.setCrc(crc.getValue());
-				
-				
-				zos.putNextEntry(zEnt);
 				bis.close();
+				zEnt.setCrc(crc.getValue());
+
+				zos.putNextEntry(zEnt);
+				
 				// then go through again and write it. 
 				bis = new BufferedInputStream(new FileInputStream(datFile));
 				while ((read = bis.read(data)) > 0) {
