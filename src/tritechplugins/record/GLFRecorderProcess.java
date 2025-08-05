@@ -58,7 +58,7 @@ public class GLFRecorderProcess extends PamProcess {
 		dataBuffer = new ImageDataBlock(null);
 		finalBuffer = new ImageDataBlock(null);
 		finalBuffer.setNaturalLifetime(Integer.MAX_VALUE);
-		finalBuffer.addObserver(glfWriter = new GLFWriter(finalBuffer));
+		finalBuffer.addObserver(glfWriter = new GLFWriter(finalBuffer), true);
 		recorderDataBlock = new GLFRecorderDataBlock(glfRecorderCtrl, this);
 		recorderDataBlock.SetLogging(new GLFRecorderLogging(recorderCtrl, recorderDataBlock));
 		addOutputDataBlock(recorderDataBlock);
@@ -369,7 +369,7 @@ public class GLFRecorderProcess extends PamProcess {
 		super.prepareProcess();
 		GLFRecorderParams params = recorderCtrl.getRecorderParams();
 		PamDataBlock sourceImages = PamController.getInstance().getDataBlockByLongName(params.imageDataSource);
-		setParentDataBlock(sourceImages);
+		setParentDataBlock(sourceImages, false);
 		if (sourceImages == null) {
 			preparedOK = false;
 		}

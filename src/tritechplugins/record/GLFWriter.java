@@ -63,6 +63,8 @@ public class GLFWriter extends PamObserverAdapter {
 	private LittleEndianDataOutputStream outputStream;
 	
 	private CountingOutputStream countingOutput;
+	
+	private FileOutputStream fos;
 
 	private static String dateformat = "yyyy-MM-dd-HHmmss";
 	
@@ -271,7 +273,7 @@ public class GLFWriter extends PamObserverAdapter {
 		currentDATFile = new File(folder, getDATName(timeMilliseconds));
 		currentGLFFile = new File(folder, getGLFName(timeMilliseconds));
 		try {
-			countingOutput = new CountingOutputStream(new BufferedOutputStream(new FileOutputStream(currentDATFile)));
+			countingOutput = new CountingOutputStream(new BufferedOutputStream(fos = new FileOutputStream(currentDATFile)));
 			outputStream = new LittleEndianDataOutputStream(countingOutput);
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
@@ -295,6 +297,7 @@ public class GLFWriter extends PamObserverAdapter {
 		// do everything
 		try {
 			countingOutput.close();
+			fos.close();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -345,7 +348,10 @@ public class GLFWriter extends PamObserverAdapter {
 			boolean ok = zipDIY();
 			if (ok) {
 				// finally delete the .dat file
-				datFile.delete();
+				boolean del = datFile.delete();
+				if (del == false) {
+					System.out.println("Unable to delete " + datFile.getAbsolutePath());
+				}
 
 				// finally, while we're in a separate thread, catalogue it. 
 				// would really be better to do this on the fly, but this will do for now
