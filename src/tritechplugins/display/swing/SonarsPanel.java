@@ -300,7 +300,7 @@ public class SonarsPanel extends PamPanel implements DataMenuParent {
 		Iterator<SonarOverlayData> it = dataBlocks.iterator();
 		while (it.hasNext()) {
 			SonarOverlayData overlay = it.next();
-			PamDataBlock aBlock = PamController.getInstance().getDataBlockByLongName(overlay.dataName);
+			PamDataBlock aBlock = tritechAcquisition.getPamConfiguration().getDataBlockByLongName(overlay.dataName);
 			if (aBlock instanceof RegionDataBlock) {
 				RegionDataBlock regionDataBlock = (RegionDataBlock) aBlock;
 				Set<Integer> sonarIds = regionDataBlock.getSonarIds();
@@ -641,7 +641,7 @@ public class SonarsPanel extends PamPanel implements DataMenuParent {
 		repaint();
 		Collection<SonarOverlayData> selBlocks = sonarOverlayManager.getSelectedDataBlocks();
 		for (SonarOverlayData selData : selBlocks) {
-			PamDataBlock dataBlock = PamController.getInstance().getDataBlockByLongName(selData.dataName);
+			PamDataBlock dataBlock = tritechAcquisition.getPamConfiguration().getDataBlockByLongName(selData.dataName);
 			if (dataBlock != null) {
 				dataBlock.addObserver(overlayObserver);
 				ArrayList<SuperDetDataBlock> superBlocks = OfflineSuperDetFilter.findPossibleSuperDetections(dataBlock);
