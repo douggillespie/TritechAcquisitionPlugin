@@ -57,7 +57,6 @@ public abstract class TritechDaqSystem {
 	 */
 	public abstract boolean stop();
 
-
 	/**
 	 * Called when PAMGuard is closing or when this sytem is no deselected
 	 */
@@ -187,4 +186,11 @@ public abstract class TritechDaqSystem {
 	 * @param sonarId sonar id or 0 for all sonars on system
 	 */
 	protected abstract void rebootSonar(int sonarId);
+	
+	/**
+	 * Set recording of GLF files off or on. 
+	 * @param record
+	 */
+	public void setRecording(boolean record) {
+	}
 }

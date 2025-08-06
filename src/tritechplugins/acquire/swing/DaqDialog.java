@@ -53,7 +53,7 @@ public class DaqDialog extends PamDialog {
 	/**
 	 * Automatically catalogue GLF files when acquiring online
 	 */
-	private JCheckBox autoCatalogue;
+	private JCheckBox logGLF, autoCatalogue;
 	
 	private TimeZonePanel timeZonePanel;
 	
@@ -73,8 +73,10 @@ public class DaqDialog extends PamDialog {
 		manualPingInterval = new JTextField(4);
 		manualPingInterval.setToolTipText("Minimum ping interval milliseconds");
 		allTheSame = new JCheckBox("Use same settings on all sonars");
-		autoCatalogue = new JCheckBox("Automatically catalogue complete GLF files");
-		autoCatalogue.setToolTipText("This will speed up viewing GLF files with the PAMGuard viewer");
+		logGLF = new JCheckBox("Log all data to GLF files");
+		logGLF.setToolTipText("Use Tritech inbuilt system to write continuous GLF files");
+		autoCatalogue = new JCheckBox("Catalogue complete GLF files");
+		autoCatalogue.setToolTipText("Cataloging GLF files will speed up loading of sonar data with the PAMGuard viewer");
 		timeZonePanel = new TimeZonePanel();
 		int[] rModes = TritechDaqParams.getRunModes();
 		runModes = new JRadioButton[rModes.length];
@@ -88,6 +90,13 @@ public class DaqDialog extends PamDialog {
 				}
 			});
 		}
+		logGLF.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				enableControls();
+			}
+		});
+		
 		JPanel outerPanel = new JPanel(new BorderLayout());
 		
 		JPanel mainPanel = new JPanel();
@@ -97,7 +106,7 @@ public class DaqDialog extends PamDialog {
 		
 		mainPanel.add(new JLabel("File Location"), c);
 		c.gridy++;
-		c.gridwidth = 5;
+		c.gridwidth = 6;
 		mainPanel.add(outputFolder.getFolderPanel(), c);
 		c.gridwidth = 2;
 		c.gridx = 0;
@@ -124,10 +133,15 @@ public class DaqDialog extends PamDialog {
 		
 		
 		c.gridx = 0;
-		c.gridwidth = 4;
+		c.gridwidth = 3;
 		c.gridy++;
+		mainPanel.add(logGLF, c);
+		c.gridx+=c.gridwidth;
+		c.gridwidth = 3;
 		mainPanel.add(autoCatalogue, c);
 		c.gridy++;
+		c.gridx = 0;
+		c.gridwidth = 4;
 		mainPanel.add(allTheSame, c);
 		
 		c.gridwidth = 1;
@@ -175,6 +189,7 @@ public class DaqDialog extends PamDialog {
 			runModes[i].setSelected(daqParams.getRunMode() == rModes[i]);
 		}
 		allTheSame.setSelected(daqParams.isAllTheSame());
+		logGLF.setSelected(daqParams.isStoreGLFFiles());
 		autoCatalogue.setSelected(daqParams.isAutoCatalogue());
 		freePingRate.setSelected(daqParams.isManualPingRate() == false);
 		manualPingInterval.setText(String.format("%d", daqParams.getManualPingInterval()));
@@ -223,7 +238,9 @@ public class DaqDialog extends PamDialog {
 		timeZonePanel.getComponent().setVisible(!acquire);
 		
 		allTheSame.setVisible(acquire);
+		logGLF.setVisible(acquire);
 		autoCatalogue.setVisible(acquire);
+		autoCatalogue.setEnabled(logGLF.isSelected());
 		
 		freePingRate.setEnabled(acquire);
 		manualPingInterval.setEnabled(acquire & freePingRate.isSelected()==false);
@@ -319,6 +336,9 @@ public class DaqDialog extends PamDialog {
 		String selTZ = timeZonePanel.getTimeZoneId();
 		daqParams.setOfflinetimeZoneId(selTZ);
 		
+		if (logGLF.isVisible()) {
+			daqParams.setStoreGLFFiles(logGLF.isSelected());
+		}
 		if (autoCatalogue.isVisible()) {
 			daqParams.setAutoCatalogue(autoCatalogue.isSelected());
 		}

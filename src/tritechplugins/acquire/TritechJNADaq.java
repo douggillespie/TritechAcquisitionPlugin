@@ -159,9 +159,14 @@ public abstract class TritechJNADaq extends Svs5JNADaqSystem {
 	}
 
 	private boolean startAcquisition() {
+		/*
+		 * The way this plugin is built, acquisition starts immediately
+		 * PAMGuard opens, so all we actually do here is start the logging, 
+		 * though that may not actually be wanted now !
+		 */
 		long err;
 		try {
-			err = setRecord(true);
+			err = setRecord(tritechAcquisition.getDaqParams().isStoreGLFFiles());
 		} catch (Svs5Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -203,6 +208,9 @@ public abstract class TritechJNADaq extends Svs5JNADaqSystem {
 		return true;
 	}
 
+//	public void setRecord(boolean record) {
+//		
+//	}
 
 	@Override
 	protected void newSonar(SonarStatusData sonarData) {
@@ -316,6 +324,7 @@ public abstract class TritechJNADaq extends Svs5JNADaqSystem {
 		}
 		
 	}
+
 	
 
 }

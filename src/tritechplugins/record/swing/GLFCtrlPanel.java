@@ -2,6 +2,7 @@ package tritechplugins.record.swing;
 
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
@@ -11,6 +12,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.Timer;
+import javax.swing.border.EmptyBorder;
 
 import PamUtils.PamCalendar;
 import PamView.dialog.PamButton;
@@ -44,9 +46,9 @@ public class GLFCtrlPanel implements StateObserver {
 		bufferStatus = new PamProgressBar(0, 100);
 		status = new PamLabel("Status");
 		file = new PamLabel("File");
-		start = new PamButton("Start");
-		startBuffer = new PamButton("Buffered");
-		stop = new PamButton("Stop");
+		start = new SmallButton("Start");
+		startBuffer = new SmallButton("Buffered");
+		stop = new SmallButton("Stop");
 		
 		c.gridwidth = 3;
 		mainPanel.add(new PamLabel("Buffer "), c);
@@ -108,6 +110,18 @@ public class GLFCtrlPanel implements StateObserver {
 			});
 			t.start();
 		}
+	}
+	
+	private class SmallButton extends PamButton {
+
+		public SmallButton(String text) {
+			super(text);
+			Insets insets = this.getInsets();
+			insets.left = insets.top*2;
+			insets.right = insets.top*2;
+			this.setBorder(new EmptyBorder(insets));
+		}
+		
 	}
 
 	protected void timerAction() {

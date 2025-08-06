@@ -18,6 +18,7 @@ import PamController.PamSettingManager;
 import PamController.PamSettings;
 import PamController.RawInputControlledUnit;
 import PamUtils.worker.PamWorkMonitor;
+import PamView.PamSidePanel;
 import PamguardMVC.PamDataBlock;
 import PamguardMVC.dataOffline.OfflineDataLoadInfo;
 import backupmanager.BackupInformation;
@@ -27,6 +28,7 @@ import pamScrollSystem.ViewLoadObserver;
 import tritechgemini.fileio.GeminiFileCatalog;
 import tritechplugins.acquire.backup.GLFBackup;
 import tritechplugins.acquire.offline.TritechOffline;
+import tritechplugins.acquire.swing.TritechSidePanel;
 import tritechplugins.acquire.swing.framerate.FrameRateDisplayProvider;
 import tritechplugins.display.swing.SonarPanelProvider;
 import tritechplugins.display.swing.SonarsPanelParams;
@@ -50,6 +52,8 @@ public class TritechAcquisition extends RawInputControlledUnit implements PamSet
 	private BackupInformation backupInformation;
 	
 	private SonarMarker sonarMarker;
+	
+	private TritechSidePanel daqSidePanel;
 	
 	public TritechAcquisition(String unitName) {
 		super(unitType, unitName);
@@ -272,6 +276,14 @@ public class TritechAcquisition extends RawInputControlledUnit implements PamSet
 	public InputStoreInfo getStoreInfo(PamWorkMonitor workerMonitor, boolean detail) {
 		// TODO Auto-generated method stub
 		return tritechDaqProcess.getStoreInfo(workerMonitor, detail);
+	}
+
+	@Override
+	public PamSidePanel getSidePanel() {
+		if (daqSidePanel == null) {
+			daqSidePanel = new TritechSidePanel(this);
+		}
+		return daqSidePanel;
 	}
 
 }

@@ -422,6 +422,13 @@ abstract public class Svs5JNADaqSystem extends TritechDaqSystem {
 		return svs5Commands.sendStringCommand(GeminiStructure.SVS5_CONFIG_FILE_LOCATION, filePath, 0);
 //		return 0;
 	}
+	
+	public long setConfigRecord(boolean record) throws Svs5Exception {
+		if (svs5Commands == null) {
+			return 0;
+		}
+		return svs5Commands.setBoolCommand(GeminiStructure.SVS5_CONFIG_REC, record, 0);
+	}
 
 	/** **** Do not call this function since it sets the output path to null and stuff everything ****<p>
 	 * Get the output file path. 
@@ -439,13 +446,23 @@ abstract public class Svs5JNADaqSystem extends TritechDaqSystem {
 		return null;
 	}
 
+	@Override
+	public void setRecording(boolean record) {
+		try {
+			this.setRecord(record);
+		} catch (Svs5Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+
 	/**
 	 * Set recording on or off
 	 * @param record record status. 
 	 * @return 0 if no error issuing command. 
 	 * @throws Svs5Exception 
 	 */
-	long setRecord(boolean record) throws Svs5Exception {
+	public long setRecord(boolean record) throws Svs5Exception {
 		GemRecord gemRecord = new GemRecord(record);
 		long err = svs5Commands.setConfiguration(gemRecord, 0);
 		return err;

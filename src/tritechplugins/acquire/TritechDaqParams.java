@@ -40,6 +40,11 @@ public class TritechDaqParams implements Serializable, Cloneable{
 	 */
 	private boolean autoCatalogue = true;
 	
+	/**
+	 * Always and continuously write GLF Files
+	 */
+	private Boolean storeGLFFiles = true;
+	
 	private int range = 60;
 	
 	private int gain = 50;
@@ -377,6 +382,23 @@ public class TritechDaqParams implements Serializable, Cloneable{
 	 */
 	public void setManualPingInterval(int manualPingInterval) {
 		this.manualPingInterval = manualPingInterval;
+	}
+
+	/**
+	 * @return the storeGLFFiles
+	 */
+	public boolean isStoreGLFFiles() {
+		if (storeGLFFiles == null) {
+			storeGLFFiles = true;
+		}
+		return storeGLFFiles;
+	}
+
+	/**
+	 * @param storeGLFFiles the storeGLFFiles to set
+	 */
+	public void setStoreGLFFiles(boolean storeGLFFiles) {
+		this.storeGLFFiles = storeGLFFiles;
 	}
 
 }

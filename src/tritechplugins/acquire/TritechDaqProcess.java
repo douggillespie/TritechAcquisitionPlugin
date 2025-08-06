@@ -31,7 +31,7 @@ import tritechplugins.acquire.swing.DaqDialog;
  * @author dg50
  *
  */
-public class TritechDaqProcess extends PamProcess implements TritechRunMode {
+public class TritechDaqProcess extends PamProcess implements TritechRunMode, ConfigurationObserver {
 	
 	private ImageDataBlock imageDataBlock;
 	private TritechAcquisition tritechAcquisition;
@@ -45,7 +45,6 @@ public class TritechDaqProcess extends PamProcess implements TritechRunMode {
 	 * to my own pure Java file reader. 
 	 */
 	private TritechDaqSystem tritechDaqSystem;
-	private boolean shouldLogGLF;
 	private OutputFileInfo lastFileInfo;
 	
 	private Timer logCheckTimer;
@@ -64,6 +63,8 @@ public class TritechDaqProcess extends PamProcess implements TritechRunMode {
 				runLogFileCheck();
 			}
 		});
+		
+		tritechAcquisition.addConfigurationObserver(this);
 	}
 	
 	/**
@@ -177,7 +178,7 @@ public class TritechDaqProcess extends PamProcess implements TritechRunMode {
 
 	@Override
 	public void pamStart() {
-		shouldLogGLF = tritechAcquisition.getDaqParams().getRunMode() == TritechDaqParams.RUN_ACQUIRE;
+//		shouldLogGLF = tritechAcquisition.getDaqParams().getRunMode() == TritechDaqParams.RUN_ACQUIRE;
 		if (tritechDaqSystem != null) {
 			tritechDaqSystem.start();
 		}
@@ -186,7 +187,7 @@ public class TritechDaqProcess extends PamProcess implements TritechRunMode {
 
 	@Override
 	public void pamStop() {
-		shouldLogGLF = false;
+//		shouldLogGLF = false;
 		logCheckTimer.stop();
 		if (tritechDaqSystem != null) {
 			tritechDaqSystem.stop();
@@ -394,7 +395,8 @@ public class TritechDaqProcess extends PamProcess implements TritechRunMode {
 	 * @return true if should be logging. 
 	 */
 	private boolean shouldLogging() {
-		return shouldLogGLF;
+		TritechDaqParams daqParams = tritechAcquisition.getDaqParams();
+		return daqParams.isStoreGLFFiles() && daqParams.getRunMode() == TritechDaqParams.RUN_ACQUIRE;
 	}
 
 	public void updateFrameRate(int frameRate, double trueFPS) {
@@ -496,6 +498,23 @@ public class TritechDaqProcess extends PamProcess implements TritechRunMode {
 
 	public ImageDataBlock getImageDataBlock() {
 		return imageDataBlock;
+	}
+
+	/**
+	 * Called from side panel when logging button has changed. 
+	 * though it gets is data from the mainparams set. 
+	 */
+	public void setGLFLogging() {
+		boolean log = shouldLogging();
+		/*
+		 * Then what do we do with this ? 
+		 */
+		this.tritechDaqSystem.setRecording(log);
+	}
+
+	@Override
+	public void configurationChanged() {
+		setGLFLogging();
 	}
 
 

@@ -24,6 +24,7 @@ public class GLFRecorderSidePanel implements PamSidePanel {
 		mainPanel = new PamPanel(new BorderLayout());
 		rename(glfRecorderCtrl.getUnitName());
 		ctrlPanel = new GLFCtrlPanel(glfRecorderCtrl, true);
+		ctrlPanel.getMainPanel().setToolTipText("PAMGuard inbuilt recorder. Good for making triggered GLF clips");
 		mainPanel.add(BorderLayout.CENTER, ctrlPanel.getMainPanel());
 	}
 
