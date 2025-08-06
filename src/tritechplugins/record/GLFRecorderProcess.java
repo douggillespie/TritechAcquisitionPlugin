@@ -208,10 +208,15 @@ public class GLFRecorderProcess extends PamProcess {
 			if (trigParams == null || trigParams.enabled == false) {
 				continue;
 			}
-			PamDataBlock dataBlock = PamController.getInstance().getDataBlockByLongName(aKey);
-			TriggerMonitor trigMon = new TriggerMonitor(dataBlock, trigParams);
-			dataBlock.addObserver(trigMon, false);
-			triggerMonitors.add(trigMon);
+			PamDataBlock dataBlock = recorderCtrl.getPamConfiguration().getDataBlockByLongName(aKey);
+			if (dataBlock != null) {
+				TriggerMonitor trigMon = new TriggerMonitor(dataBlock, trigParams);
+				dataBlock.addObserver(trigMon, false);
+				triggerMonitors.add(trigMon);
+			}
+			else {
+				System.out.println("GLF Recorder trigger missing datablock: " + aKey);
+			}
 		}
 	}
 
@@ -368,7 +373,7 @@ public class GLFRecorderProcess extends PamProcess {
 		preparedOK = true;
 		super.prepareProcess();
 		GLFRecorderParams params = recorderCtrl.getRecorderParams();
-		PamDataBlock sourceImages = PamController.getInstance().getDataBlockByLongName(params.imageDataSource);
+		PamDataBlock sourceImages = recorderCtrl.getPamConfiguration().getDataBlockByLongName(params.imageDataSource);
 		setParentDataBlock(sourceImages, false);
 		if (sourceImages == null) {
 			preparedOK = false;

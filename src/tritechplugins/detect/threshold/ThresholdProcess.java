@@ -64,7 +64,7 @@ public class ThresholdProcess extends PamProcess {
 	public void prepareProcess() {
 		super.prepareProcess();
 		ThresholdParams params = thresholdDetector.getThresholdParams();
-		imageDataBlock = (ImageDataBlock) PamController.getInstance().getDataBlockByLongName(processName);
+		imageDataBlock = (ImageDataBlock) thresholdDetector.getPamConfiguration().getDataBlockByLongName(processName);
 		if (imageDataBlock == null) {
 			imageDataBlock = findAnySource();
 			if (imageDataBlock != null) {
