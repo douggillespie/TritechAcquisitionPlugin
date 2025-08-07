@@ -52,6 +52,11 @@ import tritechplugins.acquire.ImageDataUnit;
  */
 public class GLFWriter extends PamObserverAdapter {
 
+	/*
+	 * GLF file termination code
+	 */
+	private static final int GLFTERMCODE = 0xDEDE;
+
 	private String rootFolder;
 	
 	private long maxFileSize;
@@ -296,6 +301,11 @@ public class GLFWriter extends PamObserverAdapter {
 		}
 		// do everything
 		try {
+			/*
+			 * Before closing, write the termination characters as the end of the file ...
+			 */
+			outputStream.writeShort(GLFTERMCODE);
+			// then close it. 
 			countingOutput.close();
 			fos.close();
 		} catch (IOException e) {
