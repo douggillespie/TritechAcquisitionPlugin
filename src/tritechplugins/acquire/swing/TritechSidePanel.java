@@ -5,6 +5,7 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.File;
 
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
@@ -24,6 +25,7 @@ import tritechplugins.acquire.SonarStatusData;
 import tritechplugins.acquire.SonarStatusObserver;
 import tritechplugins.acquire.TritechAcquisition;
 import tritechplugins.acquire.TritechDaqParams;
+import tritechplugins.acquire.TritechDaqProcess;
 
 public class TritechSidePanel implements PamSidePanel, ConfigurationObserver, SonarStatusObserver {
 	
@@ -32,16 +34,18 @@ public class TritechSidePanel implements PamSidePanel, ConfigurationObserver, So
 	
 	private JCheckBox logGLF;
 	private ScrollingPamLabel glfFile;
+	private TritechDaqProcess tritechDaqProcess;
 
 	public TritechSidePanel(TritechAcquisition tritechAcquisition) {
 		this.tritechAcquisition = tritechAcquisition;
+		this.tritechDaqProcess = tritechAcquisition.getTritechDaqProcess();
 		mainPanel = new PamPanel(new BorderLayout());
 		JPanel inPanel = new PamPanel(new GridBagLayout());
 		mainPanel.add(inPanel, BorderLayout.WEST);
 //		mainPanel.setLayout(new GridBagLayout());
 		rename(tritechAcquisition.getUnitName());
 		logGLF = new PamCheckBox("Log data to GLF Files");
-		glfFile = new ScrollingPamLabel(20, " ");
+		glfFile = new ScrollingPamLabel(25, " ");
 		logGLF.setToolTipText("Write all sonar data to GLF Files using the internal Tritech writer");
 		glfFile.setToolTipText("Current log file name");
 		GridBagConstraints c = new PamGridBagContraints(null, 0, 0);
@@ -49,6 +53,7 @@ public class TritechSidePanel implements PamSidePanel, ConfigurationObserver, So
 		c.gridy++;
 		inPanel.add(glfFile, c);
 		tritechAcquisition.addConfigurationObserver(this);
+		tritechAcquisition.getTritechDaqProcess().addStatusObserver(this);
 		
 		enableControls();
 		setData();
@@ -67,7 +72,6 @@ public class TritechSidePanel implements PamSidePanel, ConfigurationObserver, So
 		// not needed since it will come through as a configuration notification
 //		tritechAcquisition.getTritechDaqProcess().setGLFLogging();
 		tritechAcquisition.notifyConfigurationObservers();
-		tritechAcquisition.getTritechDaqProcess().addStatusObserver(this);
 	}
 
 	@Override
@@ -92,12 +96,16 @@ public class TritechSidePanel implements PamSidePanel, ConfigurationObserver, So
 	}
 	private void setData() {
 		logGLF.setSelected(tritechAcquisition.getDaqParams().isStoreGLFFiles());
+		if (tritechDaqProcess.shouldLogging() == false) {
+			updateOutputFileInfo(null);
+		}
 	}
 
 	@Override
 	public void updateStatus(SonarStatusData sonarStatusData) {
-		// TODO Auto-generated method stub
-		
+		if (tritechDaqProcess.shouldLogging() == false) {
+			updateOutputFileInfo(null);
+		}
 	}
 
 	@Override
@@ -120,11 +128,15 @@ public class TritechSidePanel implements PamSidePanel, ConfigurationObserver, So
 
 	@Override
 	public void updateOutputFileInfo(OutputFileInfo outputFileInfo) {
-		if (outputFileInfo == null) {
-			glfFile.setText(null);
+		if (outputFileInfo == null || tritechDaqProcess.shouldLogging() == false) {
+			glfFile.setText("Not logging");
 		}
 		else {
-			glfFile.setText(outputFileInfo.getM_strFileName());
+			if (logGLF.isSelected() == false) {
+				System.out.println("After stop");
+			}
+			File aFile = new File(outputFileInfo.getM_strFileName());
+			glfFile.setText(aFile.getName());
 		}
 	}
 

@@ -48,6 +48,7 @@ public class TritechDaqProcess extends PamProcess implements TritechRunMode, Con
 	private OutputFileInfo lastFileInfo;
 	
 	private Timer logCheckTimer;
+	private boolean pamStarted;
 	
 	public TritechDaqProcess(TritechAcquisition tritechAcquisition) {
 		super(tritechAcquisition, null);
@@ -179,6 +180,7 @@ public class TritechDaqProcess extends PamProcess implements TritechRunMode, Con
 	@Override
 	public void pamStart() {
 //		shouldLogGLF = tritechAcquisition.getDaqParams().getRunMode() == TritechDaqParams.RUN_ACQUIRE;
+		pamStarted = true;
 		if (tritechDaqSystem != null) {
 			tritechDaqSystem.start();
 		}
@@ -188,6 +190,7 @@ public class TritechDaqProcess extends PamProcess implements TritechRunMode, Con
 	@Override
 	public void pamStop() {
 //		shouldLogGLF = false;
+		pamStarted = false;
 		logCheckTimer.stop();
 		if (tritechDaqSystem != null) {
 			tritechDaqSystem.stop();
@@ -394,9 +397,9 @@ public class TritechDaqProcess extends PamProcess implements TritechRunMode, Con
 	 * check whether or not we should be logging data at this point. 
 	 * @return true if should be logging. 
 	 */
-	private boolean shouldLogging() {
+	public boolean shouldLogging() {
 		TritechDaqParams daqParams = tritechAcquisition.getDaqParams();
-		return daqParams.isStoreGLFFiles() && daqParams.getRunMode() == TritechDaqParams.RUN_ACQUIRE;
+		return pamStarted && daqParams.isStoreGLFFiles() && daqParams.getRunMode() == TritechDaqParams.RUN_ACQUIRE;
 	}
 
 	public void updateFrameRate(int frameRate, double trueFPS) {

@@ -427,6 +427,7 @@ abstract public class Svs5JNADaqSystem extends TritechDaqSystem {
 		if (svs5Commands == null) {
 			return 0;
 		}
+		System.out.println(" **************** Set config record = " + record);
 		return svs5Commands.setBoolCommand(GeminiStructure.SVS5_CONFIG_REC, record, 0);
 	}
 

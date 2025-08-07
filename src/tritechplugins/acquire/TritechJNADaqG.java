@@ -89,9 +89,18 @@ public class TritechJNADaqG extends TritechJNADaq {
 			if (lastSonarIndex >= activeSonarList.length) {
 				lastSonarIndex = 0;
 			}
+			/*
+			 *  lastSonarIndex may get updated in a different thread, so copy it locally
+			 *  and do a final validity check.  
+			 */			
+			int thisSonarIndex = lastSonarIndex;
+			if (thisSonarIndex < 0) {
+				System.out.printf("Unlikely sonar index %d of %d\n", lastSonarIndex, activeSonarList.length);
+				return;
+			}
 			lastPingTime = System.currentTimeMillis();
 			
-			int deviceId = activeSonarList[lastSonarIndex];
+			int deviceId = activeSonarList[thisSonarIndex];
 			SonarDaqParams sonarParams = daqParams.getSonarParams(deviceId);
 
 			if (pingCount++ < maxPingReports) {
@@ -106,7 +115,7 @@ public class TritechJNADaqG extends TritechJNADaq {
 				svs5Commands.gemxAutoPingConfig(deviceId, sonarParams.getRange(), 
 						sonarParams.getGain(), (float) sonarParams.getFixedSoundSpeed());
 //				svs5Commands.gemxSetRangeCompression(deviceId, 8, 1);
-				svs5Commands.gemxSendGeminiPingConfig(activeSonarList[lastSonarIndex]);
+				svs5Commands.gemxSendGeminiPingConfig(deviceId);
 			} catch (Svs5Exception e1) {
 				e1.printStackTrace();
 			}

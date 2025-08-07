@@ -2,6 +2,7 @@ package tritechplugins.acquire.swing;
 
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.io.File;
 
 import javax.swing.JComponent;
 import javax.swing.JPanel;
@@ -38,10 +39,12 @@ public class StatusTopPanel implements SonarStatusObserver {
 		topPanel.setOpaque(false);
 		GridBagConstraints c = new PamGridBagContraints();
 		
-		versionStrip = InfoStrip.addInfoStrip("svs5 Version", topPanel, c);
+		versionStrip = InfoStrip.addInfoStrip("Svs5 Version", topPanel, c);
 		errorStrip = InfoStrip.addInfoStrip("Error", topPanel, c);
 		frameRate = InfoStrip.addInfoStrip("Frame Rate", topPanel, c);
-		queueSize = InfoStrip.addInfoStrip("Svs5 queue size", topPanel, c);
+		queueSize = InfoStrip.addInfoStrip("Queue size", topPanel, c);
+		
+		updateOutputFileInfo(null);
 		
 		tritechDaqProcess.addStatusObserver(this);
 		
@@ -58,6 +61,10 @@ public class StatusTopPanel implements SonarStatusObserver {
 		
 		if (haveVersion == false) {
 			sayVersion();
+		}
+		
+		if (tritechDaqProcess.shouldLogging() == false) {
+			updateOutputFileInfo(null);
 		}
 	}
 
@@ -80,6 +87,8 @@ public class StatusTopPanel implements SonarStatusObserver {
 		}
 		else {
 //			int cpr = v.
+			v = v.replace("Copyright (C)", "(C)");
+			v = v.replace("International", "Intl.");
 			versionStrip.setText(v);
 			haveVersion = true;
 		}
@@ -94,7 +103,16 @@ public class StatusTopPanel implements SonarStatusObserver {
 	@Override
 	public void updateOutputFileInfo(OutputFileInfo outputFileInfo) {
 		errorStrip.setName("File");
-		errorStrip.setText(outputFileInfo.getM_strFileName());
+		if (outputFileInfo == null || tritechDaqProcess.shouldLogging() == false) {
+			errorStrip.setText("Not logging");
+			errorStrip.getValueLabel().setToolTipText("<html>Enable logging in the settings, or the side panel"+
+			"<br>Logging will only be active while PAMGuard is running (red button)</html>");
+		}
+		else {
+			File aFile = new File(outputFileInfo.getM_strFileName());
+			errorStrip.setText(aFile.getName());
+			errorStrip.getValueLabel().setToolTipText(outputFileInfo.getM_strFileName());
+		}
 	}
 
 	@Override

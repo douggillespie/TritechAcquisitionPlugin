@@ -1,0 +1,65 @@
+<html>
+
+<head>
+<LINK href="../pamHelpStylesheet.css" type="text/css" rel="STYLESHEET">
+<title>S</title>
+</head>
+
+<body>
+
+	<h1>Tritech Sonars</h1>
+	<h2>Acquisition</h2>
+	<h3>Add the module</h3>
+	<p>Once the Tritech plugin is installed, from the File / Add
+		modules menu, select Tritech / Tritech Acquisition. Only one Tritech
+		acquisition module can be added to a PAMguard configuration.</p>
+
+	<h3>Acquiring real time sonar data</h3>
+
+	<h4>Connecting the sonars</h4>
+
+	<p>Read the Tritech manual !</p>
+
+	<p>Data from Tritech sonars are acquired over Ethernet. Generally
+		it is best to use a separate Ethernet port to the one you use to
+		connect your computer to the Internet. If you're on a laptop, you'll
+		probably be using WiFi to connect to the Internet, so if you have an
+		Ethernet port on your laptop, you can use that for the sonar(s). If
+		you don't have an Ethernet port, or are already using the port for
+		Internet access, then purchase a USB to Ethernet adapter. These are
+		readily available for USB3 and USB-C from many retailers.</p>
+
+	<p>If you're using more than one sonar (you can have up to four)
+		then use a USB switch to connect multiple sonars to the one Ethernet
+		port on your computer</p>
+
+	<p>By default, most Ethernet adapters will try to get an Internet
+		address from the router they are connected to. This won't with the
+		sonars, so you need to configure the adapter to use a fixed ip
+		address.</p>
+
+
+	<p>
+		The PAMGuard module cannot fully configure Tritech sonars ip
+		addresses. You should first therefore use the <a
+			href="https://www.tritech.co.uk/support/software/genesis">Tritech
+			Genesis software</a> to set these up and test the sonars. Make sure that
+		PAMGuard is not running while you do this, since only one program can
+		connect to the sonars at a time. Follow the Tritech instructions. Once
+		it's working in Genesis, close Genesis and re-open PAMGuard. Apart from the
+		ip addresses, everything else can be configured from within PAMGuard. 
+	</p>
+	
+	
+
+
+
+	<br>
+	<p CLASS="prevLink">
+		<a href="tritechoverview.html">Previous: Tritech Overview</a>
+	</p>
+	<p CLASS="nextLink">
+		<a href="tritechdisplays.html">Next: Tritech Displays</a>
+	</p>
+	<br>
+</body>
