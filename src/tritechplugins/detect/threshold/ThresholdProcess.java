@@ -51,12 +51,14 @@ public class ThresholdProcess extends PamProcess {
 	@Override
 	public void newData(PamObservable o, PamDataUnit arg) {
 		ImageDataUnit imageData = (ImageDataUnit) arg;
-		ChannelDetector cd = findChannelDetector(imageData.getGeminiImage().getDeviceId(), true);
-		List<DetectedRegion> regions = cd.newData(imageData);
-		regions = thresholdDetector.getSpatialVetoManager().runVetos(regions);
-		TrackLinkProcess trackLinkProcess = thresholdDetector.getTrackLinkProcess();
-		if (trackLinkProcess != null) {
-			trackLinkProcess.newRegionsList(imageData.getGeminiImage().getDeviceId(), imageData.getTimeMilliseconds(), regions);
+		if (imageData.getGeminiImage() != null) {
+			ChannelDetector cd = findChannelDetector(imageData.getGeminiImage().getDeviceId(), true);
+			List<DetectedRegion> regions = cd.newData(imageData);
+			regions = thresholdDetector.getSpatialVetoManager().runVetos(regions);
+			TrackLinkProcess trackLinkProcess = thresholdDetector.getTrackLinkProcess();
+			if (trackLinkProcess != null) {
+				trackLinkProcess.newRegionsList(imageData.getGeminiImage().getDeviceId(), imageData.getTimeMilliseconds(), regions);
+			}
 		}
 	}
 

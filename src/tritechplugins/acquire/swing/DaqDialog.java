@@ -60,6 +60,10 @@ public class DaqDialog extends PamDialog {
 	private JPanel sonarsPanel;
 
 	private TritechDaqProcess tritechDaqProcess;
+
+	private JLabel intervalLabel;
+
+	private JLabel intervalLabel2;
 	
 	public static String helpPoint = "docs.tritechacquire";
 
@@ -129,11 +133,11 @@ public class DaqDialog extends PamDialog {
 		c.gridwidth = 1;
 		mainPanel.add(freePingRate, c);
 		c.gridx++;
-		mainPanel.add(new JLabel(" Interval", JLabel.RIGHT), c);
+		mainPanel.add(intervalLabel = new JLabel(" Interval", JLabel.RIGHT), c);
 		c.gridx++;
 		mainPanel.add(manualPingInterval, c);
 		c.gridx++;
-		mainPanel.add(new JLabel("ms", JLabel.LEFT), c);
+		mainPanel.add(intervalLabel2 = new JLabel("ms", JLabel.LEFT), c);
 		
 		
 		c.gridx = 0;
@@ -245,6 +249,11 @@ public class DaqDialog extends PamDialog {
 		logGLF.setVisible(acquire);
 		autoCatalogue.setVisible(acquire);
 		autoCatalogue.setEnabled(logGLF.isSelected());
+		freePingRate.setVisible(acquire);
+		manualPingInterval.setVisible(acquire);
+		intervalLabel.setVisible(acquire);
+		intervalLabel2.setVisible(acquire);
+		outputFolder.setEnabled(acquire == false || logGLF.isSelected());
 		
 		freePingRate.setEnabled(acquire);
 		manualPingInterval.setEnabled(acquire & freePingRate.isSelected()==false);

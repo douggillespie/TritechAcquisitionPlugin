@@ -170,6 +170,8 @@ abstract public class Svs5JNADaqSystem extends TritechDaqSystem {
 				tritechProcess.updateStatusData(sonarStatusData);
 				checkWatchdog(sonarStatusData);
 				sonarStatusData.interStatusImages = 0;
+				ImageDataUnit imageDataUnit = new ImageDataUnit(PamCalendar.getTimeInMillis(), 0, sonarStatusData);
+				tritechProcess.getImageDataBlock().addPamData(imageDataUnit);
 			}
 		}
 
@@ -235,6 +237,9 @@ abstract public class Svs5JNADaqSystem extends TritechDaqSystem {
 		SonarDaqParams sonarParams = tritechAcquisition.getDaqParams().getSonarParams(sonarStatusData.getDeviceId());
 		if (sonarParams.isSetOnline() == false) {
 //			System.out.println("No need to reboot sonar " + sonarStatusData.getDeviceId());
+			return;
+		}
+		if (isOOW(sonarStatusData)) {
 			return;
 		}
 		long gapTime = System.currentTimeMillis() - sonarStatusData.lastImageTime;

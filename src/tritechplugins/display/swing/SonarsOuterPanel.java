@@ -23,6 +23,7 @@ import tritechgemini.fileio.OfflineCatalogProgress;
 import tritechgemini.imagedata.GeminiImageRecordI;
 import tritechplugins.acquire.ConfigurationObserver;
 import tritechplugins.acquire.ImageDataUnit;
+import tritechplugins.acquire.SonarImageObserver;
 import tritechplugins.acquire.TritechAcquisition;
 import tritechplugins.acquire.TritechDaqParams;
 import tritechplugins.acquire.TritechDaqSystem;
@@ -272,7 +273,7 @@ public class SonarsOuterPanel implements ConfigurationObserver {
 		sonarsPanel.newScrollRange(minimumMillis, maximumMillis);
 	}
 
-	private class ImageObserver extends PamObserverAdapter {
+	private class ImageObserver extends SonarImageObserver {
 
 		@Override
 		public String getObserverName() {
@@ -280,11 +281,16 @@ public class SonarsOuterPanel implements ConfigurationObserver {
 		}
 
 		@Override
-		public void addData(PamObservable observable, PamDataUnit pamDataUnit) {
-			ImageDataUnit imageDataUnit = (ImageDataUnit) pamDataUnit;
+		public void addImageData(PamObservable observable, ImageDataUnit imageDataUnit) {
 //			sonarsPanel.setNumSonars(tritechAcquisition.get);
 			int index = getSonarIndex(imageDataUnit.getGeminiImage().getDeviceId());
-			sonarsPanel.setImageRecord(index, imageDataUnit.getGeminiImage());
+			sonarsPanel.setImageRecord(index, imageDataUnit.getGeminiImage());			
+		}
+
+		@Override
+		public void addStatusData(PamObservable observable, ImageDataUnit imageDataUnit) {
+			// TODO Auto-generated method stub
+			
 		}
 
 	}

@@ -294,10 +294,10 @@ public class GLFRecorderProcess extends PamProcess {
 		 *  check it's actually got GLF data - can't handle anything else at the moment,
 		 *  but hope to resolve this in future.  
 		 */
-		GeminiImageRecordI imageRecord = imageData.getGeminiImage();
-		if (imageRecord instanceof GLFImageRecord == false) {
-			return; // can't do anything with this at the moment. 
-		}
+//		GeminiImageRecordI imageRecord = imageData.getGeminiImage();
+//		if (imageRecord instanceof GLFImageRecord == false) {
+//			return; // can't do anything with this at the moment. 
+//		}
 		synchronized (combinedBufferSynch) {
 			/*
 			 * Whenever recording is started, we set an end time. If we're now

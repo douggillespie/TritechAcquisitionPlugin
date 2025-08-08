@@ -5,6 +5,8 @@
  <tocitem text="Tritech ">
   <tocitem text="Overview " target="docs.tritechoverview" image="topic"/>
 
+  <tocitem text="Connecting Sonars " target="docs.tritechconnect" image="topic"/>
+
   <tocitem text="Tritech Acquisition " target="docs.tritechacquire" image="topic"/>
 
   <tocitem text="Displays " target="docs.tritechdisplays" image="topic"/>

@@ -1,0 +1,84 @@
+<html>
+
+<head>
+<LINK href="../pamHelpStylesheet.css" type="text/css" rel="STYLESHEET">
+<title>S</title>
+</head>
+
+<body>
+
+	<h1>Tritech Sonars</h1>
+	<br>
+	<p>If you are only interested in processing data from archived
+		files, or are just using the PAMGuard viewer to review sonar data,
+		then you don't need to follow the instructions below, which are only
+		for acquiring and processing sonar data in real time.</p>
+
+	<h2>Connecting Sonars</h2>
+
+
+	<p>Read the Tritech manual !</p>
+
+	<p>Data from Tritech sonars are acquired over Ethernet. Generally
+		it is best to use a separate Ethernet port to the one you use to
+		connect your computer to the Internet. If you're on a laptop, you'll
+		probably be using WiFi to connect to the Internet, so if you have an
+		Ethernet port on your laptop, you can use that for the sonar(s). If
+		you don't have an Ethernet port, or are already using the port for
+		Internet access, then purchase a USB to Ethernet adapter. These are
+		readily available for USB3 and USB-C from many retailers.</p>
+
+	<p>If you're using more than one sonar (you can have up to four)
+		then use a USB switch to connect multiple sonars to the one Ethernet
+		port on your computer</p>
+
+	<p>By default, most Ethernet adapters will try to get an Internet
+		address from the router they are connected to. This won't with the
+		sonars, so you need to configure the adapter to use a fixed ip
+		address.</p>
+
+
+	<p>
+		The PAMGuard module cannot fully configure Tritech sonars ip
+		addresses. You should first therefore use the <a
+			href="https://www.tritech.co.uk/support/software/genesis">Tritech
+			Genesis software</a> to set these up and test the sonars. Make sure that
+		PAMGuard is not running while you do this, since only one program can
+		connect to the sonars at a time. Follow the Tritech instructions. Once
+		it's working in Genesis, close Genesis and re-open PAMGuard. Apart
+		from the ip addresses, everything else can be configured from within
+		PAMGuard.
+	</p>
+
+	<h2>Troubleshooting</h2>
+	<p>If you haven't successfully connected to a sonar using Genesis,
+		then you will not be able to connect to that sonar with PAMGuard.</p>
+	<p>If the sonars are working in Genesis, but not in PAMGuard, then
+		it's likely that one of three things is happening:</p>
+	<ol>
+		<li>You have not correctly installed the software libraries. Go
+			back to <a href="tritechoverview.html">the installation
+				instructions</a> and check that all libraries are in the correct folder.
+		</li>
+		<li>Genesis is still running, or you are running two PAMGuard
+			with Tritech Acquisition at the same time. The Tritech software only
+			allows one program to connect to a sonar at any one time, so check
+			other programmes are closes.</li>
+		<li>The firmware version (that the software on the sonars
+			themselves) is new and currently unsupported. <a
+			href="https://www.pamguard.org/contact.html">Contact the PAMGuard
+				team.</a>
+		</li>
+	</ol>
+
+
+
+	<br>
+	<p CLASS="prevLink">
+		<a href="tritechoverview.html">Previous: Tritech Overview</a>
+	</p>
+	<p CLASS="nextLink">
+		<a href="tritechacquire.html">Next: Tritech Acquisition</a>
+	</p>
+	<br>
+</body>

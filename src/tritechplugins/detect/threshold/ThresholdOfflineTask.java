@@ -57,6 +57,9 @@ public class ThresholdOfflineTask extends OfflineTask {
 			return false;
 		}
 		ImageDataUnit imageDataUnit = (ImageDataUnit) dataUnit;
+		if (imageDataUnit.getGeminiImage() == null) {
+			return false; // it's status data. 
+		}
 		GeminiImageRecordI record = imageDataUnit.getGeminiImage();
 		if (record.isFullyLoaded() == false) {
 			// really inefficient and needs serious sorting out. 

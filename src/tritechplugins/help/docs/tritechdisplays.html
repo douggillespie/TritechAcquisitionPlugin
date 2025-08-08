@@ -7,14 +7,115 @@
 
 <body>
 
-	<h1>Tritech Sonars</h1>
-	<h2>Displays</h2>
+	<h1>Sonar Displays</h1>
+	<br>
+	<p>
+		The Tritech modules do not automatically create any displays
+		automatically added to the PAMGuard <a
+			href="_mainHelp_overview/PamMasterHelp/docs/guiOverview.html">Graphical
+			User Interface</a>. You should create a new <a
+			href="_mainHelp_displays/userDisplayHelp/docs/userDisplayPanel.html">User
+			Display Panel</a> (as you would to add a spectrogram display to PAMGuard)
+		and add display components to the User Display Panel. This allows more
+		flexibility than a standard fixed display format, since you can
+		combine the sonar displays with displays from other modules. e.g. if
+		you were collecting both sonar data and PAM data, you could have a
+		sonar display and a <a
+			href="_mainHelp_displays/spectrogramDisplayHelp/docs/UserDisplay_Spectrogram.html">spectrogram
+			display</a> on the same panel.
+	</p>
+
+	<h2>Main Sonar Image Display</h2>
+	<img src="images/SonarDisplay.png">
+	<br>
+	<br>
+	<p>If multiple sonars are in use, the display will show the image
+		for each sonar separately.</p>
+
+	<h4>Sonar status panel</h4>
+	<p>The sonar status is shown in the top left corner. If multiple
+		sonars are in use, this panel will expand to show all devices. The
+		panel can be hidden to give a complete view of the main sonar display
+		using the small button in the top right hand corner.</p>
+
+	<h4>Processing files</h4>
+	<p>If your processing data from files, rather than real time
+		acquisition, the status panel will not show and instead a small
+		toolbar at the top of the display will show progress through the file
+		archive. Here you can also select how fast the analysis will proceed.
+		Free run will cause the system to process data as fast as possible.
+		Selecting other speeds can be useful for viewing and demonstrating
+		data as it processes.</p>
+	<img src="images/fileprogress.png">
+
+	<h4>Display options</h4>
+	<p>Display options are in the bottom right hand corner. These can
+		also be hidden using the small button in the corner of this panel. The
+		main options panel shows options that you might want to change often.
+		Click on the settings cog for further options.</p>
+	<p>Once hidden, in the same part of the screen as the display
+		options is information about individual frames.</p>
+	<h4>Zoom control</h4>
+	<p>You can zoom in on a region of the sonar image using the mouse
+		scroll wheel.</p>
+	<h4>Overlays</h4>
+	<p>Right click on the display for options to display detector and
+		other overlays on the display. The options available will depend on
+		which detectors are included in your PAMGuard configuration, and how
+		they are configured.</p>
+	<h4>Viewer mode</h4>
+	<p>When using the display in Viewer mode, appearance and available
+		controls will change slightly showing a scroll bar and standard
+		PAMGuard data scrolling tools. An internal map of raw sonar data is
+		created for the time period of the scroller, though raw sonar data is
+		only loaded for a single record at a time.</p>
+	<img src="images/viewerdisplay.png">
+
+
+	<br>
+	<br>
+	<h2>Frame Rate Display</h2>
+	<p>
+		<img src="images/framerate.png">
+	</p>
+	<p>This display shows a histogram and a scrolling time display of
+		the frame rate. If the frame rate is unstable or is lower than you
+		expected you may have to improve your Ethernet connection to the
+		sonar(s) or accept working at a lower ping rate.</p>
+
+	<br>
+	<h2>Signal Level Display</h2>
+	<p>This is part of the detection system, so is only available when
+		the detector module is loaded</p>
+	<p>
+		<img src="images/thresholdhistogram.png">
+	</p>
+	<p>
+		The signal levels in the sonar can be adjusted by changing the gain in
+		the <a href="tritechacquire.html">Acquisition dialog</a> (note that
+		this is not the same as the gain in the display options panel).
+	</p>
+	<p>Two lines are shown in the histogram. The 'raw' line is the
+		level of data coming out of the sonar, and the 'treated' line is the
+		level after background subtraction in the detector.</p>
+	<p>If the gain is too high, the the data will be distorted. On the
+		other hand, if the gain is too low, faint objects may not be visible.
+		Ideally, the signal should use most of the dynamic range of the
+		system. Ideally, the raw data should fill most of the dynamic range of
+		the system - so in the example here, where the raw data levels reach a value 
+		of about 130 (out maximum of 255) it might be possible to increase the gain 
+		slightly. </p>
 
 
 
-<br>
-<p CLASS="nextLink"><a href="tritechdetect.html">Previous: Tritech Detection</a></p>
-<p CLASS="prevLink"><a href="tritechdetect.html">Previous: Tritech Acquisition</a></p>
+
+	<br><br>
+	<p CLASS="nextLink">
+		<a href="tritechdetect.html">Next: Tritech Detection</a>
+	</p>
+	<p CLASS="prevLink">
+		<a href="tritechdetect.html">Previous: Tritech Acquisition</a>
+	</p>
 
 
 	<br>

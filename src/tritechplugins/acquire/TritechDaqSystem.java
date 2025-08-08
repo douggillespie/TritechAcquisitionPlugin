@@ -75,6 +75,38 @@ public abstract class TritechDaqSystem {
 	public abstract void unprepareProcess();
 
 	/**
+	 * See if the device is out of water. Returns false if there is no 
+	 * latest status data.  
+	 * @param deviceId device id
+	 * @return true if last status data packet has OOW set. 
+	 */
+	public boolean isOOW(int deviceId) {
+		SonarStatusData statusData = getSonarStatusData(deviceId);
+		return isOOW(statusData);
+	}
+	
+	/**
+	 * 
+	 * See if the device is out of water. Returns false if there is no 
+	 * latest status data.  
+	 * @param statusData status data for a device. 
+	 * @return true if last status data packet has OOW set. 
+	 */
+	public boolean isOOW(SonarStatusData statusData) {
+		if (statusData == null) {
+			return false;
+		}
+		GLFStatusData status = statusData.getStatusPacket();
+		if (status == null) {
+			return false;
+		}
+		if (status.isOutOfWater()) {
+			return true;
+		}
+		return false;
+	}
+	
+	/**
 	 * HashMap of device info. When working offline we need to ensure that live
 	 * sonars don't get added to this list and also probably clear it when 
 	 * starting a file analysis.  

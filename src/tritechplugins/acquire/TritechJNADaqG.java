@@ -1,7 +1,6 @@
 package tritechplugins.acquire;
 
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 
 import javax.swing.Timer;
 
@@ -14,6 +13,7 @@ import geminisdk.structures.ChirpMode;
 import geminisdk.structures.ConfigOnline;
 import geminisdk.structures.GeminiRange;
 import geminisdk.structures.RangeFrequencyConfig;
+import tritechgemini.imagedata.GLFStatusData;
 import warnings.PamWarning;
 import warnings.WarningSystem;
 
@@ -102,6 +102,14 @@ public class TritechJNADaqG extends TritechJNADaq {
 			
 			int deviceId = activeSonarList[thisSonarIndex];
 			SonarDaqParams sonarParams = daqParams.getSonarParams(deviceId);
+			
+			/**
+			 * Don't ping if it's out of the water.
+			 */
+			if (isOOW(deviceId)) { 
+//				System.out.println("Skip ping since out of water device " + deviceId);
+				return;
+			}
 
 			if (pingCount++ < maxPingReports) {
 				Thread currentThread = Thread.currentThread();
@@ -121,7 +129,7 @@ public class TritechJNADaqG extends TritechJNADaq {
 			}
 		}
 	}
-	
+
 	/**
 	 * Loop called in a separate thread which continuously pings the
 	 * next sonar soon after the previous ping was received. 
@@ -184,6 +192,7 @@ public class TritechJNADaqG extends TritechJNADaq {
 		if (pingActive == false) {
 			return true;
 		}
+		
 		long pingGap = System.currentTimeMillis() - lastPingTime;
 		if (pingGap > 500) {
 			int sonarID = -1;

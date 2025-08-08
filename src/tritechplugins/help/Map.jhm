@@ -6,6 +6,8 @@
 
 <mapID target="popup_icon" url="images/popup.gif "/>
 
+<mapID target="docs.tritechconnect" url="docs/tritechconnect.html"/>
+
 <mapID target="docs.tritechrecord" url="docs/tritechrecord.html"/>
 
 <mapID target="docs.tritechacquire" url="docs/tritechacquire.html"/>

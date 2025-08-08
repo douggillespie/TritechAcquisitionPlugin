@@ -17,7 +17,7 @@
 	<p>Currently, three modules are available to
 	<ul>
 		<li><a href="tritechacquire.html">Acquire sonar data</a> (in real
-			time or from file, just like the PAMGuard acquisition module)</li>
+			time or from file)</li>
 		<li><a href="tritechdetect.html">Automatically detect tracks</a>
 			in the sonar data</li>
 		<li><a href="tritechrecord.html">Record sonar data</a> to archive
@@ -25,23 +25,30 @@
 	</ul>
 
 	<h2>Installation</h2>
+	<p>If you're reading this in the PAMGuard Help, it's likely that
+		you've already installed everything and don't need to do any more. If
+		you're updating, or are having difficulties, then read on.</p>
 	<p>All three modules are packaged into a single PAMguard plugin,
 		called something like TritechAcquisitionV*_**.jar, where *_** is the
 		version number. This does not come as a standard part of a PAMGuard
-		installation. 
-		
-		Read  / copy the stuff in the released zip file. 
-		
-		To add Tritech modules to an installation, you should
-		add the latest TritechAcquisitionV*_**.jar file to the plugins folder
-		of your PAMGuard installation. The modules will then appear the next
-		time you start PAMGuard.</p>
-		<p>If you plan to use the module for real time acquisition from Tritech sonars
-		you also need to install a number of library files ...</p>
+		installation.</p>
+	<p>To acquire data directly from sonars, you also need some Windows
+		library files to manage communication between PAMGuard and the Tritech
+		devices.</p>
+	<p>
+		Both the TritechAcquisitionV*_**.jar plugin and the required libraries
+		are distributed together in zip archives <a
+			href="https://github.com/douggillespie/TritechAcquisitionPlugin/releases">through
+			GitHub</a>
+	<p>Follow the instructions for the latest GitHub release ensuring
+		that you copy files to the correct folders in your PAMGuard
+		installation.</p>
 
 
-<br>
-<p CLASS="nextLink"><a href="tritechacquire.html">Next: Tritech Acquisition</a></p>
+	<br>
+	<p CLASS="nextLink">
+		<a href="tritechacquire.html">Next: Tritech Acquisition</a>
+	</p>
 
 	<br>
 </body>

@@ -19,6 +19,7 @@ import pamMaths.HistogramDisplay;
 import pamMaths.PamHistogram;
 import tritechplugins.acquire.ConfigurationObserver;
 import tritechplugins.acquire.ImageDataUnit;
+import tritechplugins.acquire.SonarImageObserver;
 import tritechplugins.acquire.TritechAcquisition;
 import userDisplay.UserDisplayComponent;
 import userDisplay.UserDisplayControl;
@@ -129,52 +130,22 @@ public class FrameRateDisplayPanel implements UserDisplayComponent, Configuratio
 //		return hist;
 	}
 	
-	private class ImageObserver implements PamObserver {
-
-		@Override
-		public long getRequiredDataHistory(PamObservable observable, Object arg) {
-			return 0;
-		}
-
-		@Override
-		public void addData(PamObservable observable, PamDataUnit pamDataUnit) {
-			newImageFrame(pamDataUnit);
-		}
-
-		@Override
-		public void updateData(PamObservable observable, PamDataUnit pamDataUnit) {
-		}
-
-		@Override
-		public void removeObservable(PamObservable observable) {
-		}
-
-		@Override
-		public void setSampleRate(float sampleRate, boolean notify) {
-		}
-
-		@Override
-		public void noteNewSettings() {
-		}
+	private class ImageObserver extends SonarImageObserver {
 
 		@Override
 		public String getObserverName() {
-			return panelName;
+			return "Frame rate monitor";
 		}
 
 		@Override
-		public void masterClockUpdate(long milliSeconds, long sampleNumber) {
+		public void addImageData(PamObservable observable, ImageDataUnit imageDataUnit) {
+			newImageFrame(imageDataUnit);			
 		}
 
 		@Override
-		public PamObserver getObserverObject() {
-			return this;
+		public void addStatusData(PamObservable observable, ImageDataUnit imageDataUnit) {
+			// TODO Auto-generated method stub
 		}
-
-		@Override
-		public void receiveSourceNotification(int type, Object object) {
-		}
-		
 	}
 
 	@Override

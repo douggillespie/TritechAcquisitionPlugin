@@ -8,58 +8,128 @@
 <body>
 
 	<h1>Tritech Sonars</h1>
-	<h2>Acquisition</h2>
-	<h3>Add the module</h3>
-	<p>Once the Tritech plugin is installed, from the File / Add
-		modules menu, select Tritech / Tritech Acquisition. Only one Tritech
-		acquisition module can be added to a PAMguard configuration.</p>
-
-	<h3>Acquiring real time sonar data</h3>
-
-	<h4>Connecting the sonars</h4>
-
-	<p>Read the Tritech manual !</p>
-
-	<p>Data from Tritech sonars are acquired over Ethernet. Generally
-		it is best to use a separate Ethernet port to the one you use to
-		connect your computer to the Internet. If you're on a laptop, you'll
-		probably be using WiFi to connect to the Internet, so if you have an
-		Ethernet port on your laptop, you can use that for the sonar(s). If
-		you don't have an Ethernet port, or are already using the port for
-		Internet access, then purchase a USB to Ethernet adapter. These are
-		readily available for USB3 and USB-C from many retailers.</p>
-
-	<p>If you're using more than one sonar (you can have up to four)
-		then use a USB switch to connect multiple sonars to the one Ethernet
-		port on your computer</p>
-
-	<p>By default, most Ethernet adapters will try to get an Internet
-		address from the router they are connected to. This won't with the
-		sonars, so you need to configure the adapter to use a fixed ip
-		address.</p>
+	<h2>Tritech Acquisition</h2>
+	<p>Once the Tritech plugin and associated libaries are installed,
+		from the File / Add modules menu, select Tritech / Tritech
+		Acquisition.</p>
+	<p>Only one Tritech acquisition module can be added to a PAMGuard
+		configuration.</p>
 
 
+	<h2>Configuration</h2>
+	<p>To configure the module, go to the main PAMGuard settings menu
+		and select Tritech Acquisition / Settings...</p>
+	<p>The same configuration dialog is used for real time acquisition
+		and processing archived files, but will show different options for
+		each mode of operation.</p>
 	<p>
-		The PAMGuard module cannot fully configure Tritech sonars ip
-		addresses. You should first therefore use the <a
-			href="https://www.tritech.co.uk/support/software/genesis">Tritech
-			Genesis software</a> to set these up and test the sonars. Make sure that
-		PAMGuard is not running while you do this, since only one program can
-		connect to the sonars at a time. Follow the Tritech instructions. Once
-		it's working in Genesis, close Genesis and re-open PAMGuard. Apart from the
-		ip addresses, everything else can be configured from within PAMGuard. 
-	</p>
+		At the top of the dialog select either <em>Acquire sonar data</em> or
+		<em>Reprocess files</em>.
+	<h3>Acquiring Sonar Data (Real Time Acquisition)</h3>
 	
-	<h3>Configuration</h3>
-	<br>
 	<img src="images/daqdialog.png">
-	<br>
+	<br><br>
+	<h4>File location</h4>
+	<p>
+		The acquisition module can write sonar data files in the format used
+		by the Tritech Genesis Software. These are files of type .GLF (Genesis
+		log file?). This is the folder on your computer that GLF files will be
+		stored in if you chose to have the module write continuous sonar data
+		to file. See the page on <a href="tritechrecord.html">Recording
+			sonar data</a> for more information.
+	</p>
+	<h4>Sonar ping rate (frame rate)</h4>
+	<p>The sonars can generally acquire between 5 and 10 frames per
+		second. This depends on a number of factors including the range you've
+		set them to, the number of sonars in use, the quality of the Ethernet
+		connection between your computer and the sonars, and the processing
+		power of the computer. Sonars must ping sequentially, otherwise they
+		interfere with each other. So the more sonars you add, the slower the
+		frame rate will be for each sonar.</p>
+	<p>Select 'Free run' if you want the sonars to ping as fast as they
+		can. In this mode, as soon as data are received from a ping, the
+		command is sent to send the next ping.</p>
+	<p>Generally though it's better to set the frame rate you want to
+		work at. This is set as an Interval in milliseconds, i.e. and interval
+		of 200ms will be five frames per second. The Interval is the interval
+		between pings across all sonars, so if you have two sonars operating,
+		and want each one to ping at 5 frames per second, set the interval to
+		100ms, i.e. a total of 10 pings per second. As with 'free run', a
+		subsequent sonar ping will not be sent until the previous one has
+		returned data.
+	<p>
+		Use the frame rate <a href="tritechdisplays.html">display</a> to
+		monitor the frame rate. This does tend to 'glitch' occasionally, but
+		should mostly be stable. If it's not stable, then you are probably
+		trying to acquire data at a higher rate than the system can manage.
+	</p>
+	<h4>Logging</h4>
+	<p>
+		If you want the acquisition module to store all sonar data, select
+		'Log all data to GLF files'. See the page on <a
+			href="tritechrecord.html">Recording sonar data</a> for more
+		information.
+	</p>
+	<p>
+		PAMGuard has a GLF file indexing system, which significantly speeds up
+		access to data in GLF files when reviewing them in the <a href=href="_mainHelp_overview/PamMasterHelp/docs/normalMode.html">PAMGuard
+			Viewer</a>. The indexing process can take some time for a big dataset, so
+		it's best to build the index files as you go, otherwise the index
+		files will be created the first time you open the dataset in <a
+			href=href="_mainHelp_overview/PamMasterHelp/docs/normalMode.html">PAMGuard
+			Viewer</a> which may take several hours.
+	</p>
+	<h4>Sonar Settings</h4>
+	<p>If you have multiple sonars and want them to all be configured
+		in the exact same way, then select 'Use same settings on all sonars'.
+		Otherwise, if you un-check this option then a configuration panel for
+		each sonar will appear (this is of course irrelevant for a single
+		sonar).</p>
+	<p>If you've many sonars in your system, you can chose not to read
+		certain sonars by un-checking the Online (use sonar) button.</p>
+	<p>Select the gain and the maximum range you want from the sonar.
+		If you're using the detector you can also add Threshold Detector
+		histograms. These provide a graphical representation of the signal
+		levels in the sonar which can be useful in checking that you've set
+		the gain appropriately.</p>
+	<p>'Chirp mode', ' Auto Frequency mode', and 'high range
+		resolution' may not apply to all (older) sonar models. Check the
+		Tritech manuals for the sonar model you are using.</p>
+	<p>Fixed sound speed: the sonars have a built in sound speed
+		measurement. Generally, it's best to let the sonar measure it's own
+		sound speed and to use that when converting time to distance. However,
+		in some environments, or if the sound speed sensor is not working
+		well, operation can be more stable if you select using a fixed sound
+		speed.</p>
 
 
+
+	<h3>File Reprocessing</h3>
+	
+	<img src="images/daqdialog_file.png">
+	<br><br>
+	<p>The module can also be used to re-process data archived to GLF
+		files. In this case select 'Reprocess files' near the top of the
+		dialog.</p>
+	<p>File location: select the folder holding your GLF files. These
+		will probably be arranged in sub folders by date, so you'll probably
+		want the 'Include sub folders' option selected.</p>
+	<h4>Time Zones</h4>
+	<p>The time stamps recorded in GLF files use local time from the
+		computer that the data were collected on. This was decided by Tritech
+		and is different from all other data collection in PAMGuard which uses
+		only UTC time. The module will convert the times read from GLF files
+		to UTC time as the records are read. If the computer processing the
+		data is set to the same time zone as the computer used to collect the
+		data, then you should use that (default) time zone. If however, you
+		are processing data collected in a different time zone (e.g. sent to
+		you by a colleague in a different country) then you should set the
+		time zone for the analysis to that of the computer used to collect the
+		data.</p>
 
 	<br>
 	<p CLASS="prevLink">
-		<a href="tritechoverview.html">Previous: Tritech Overview</a>
+		<a href="tritechconnect.html">Previous: Connecting Sonars</a>
 	</p>
 	<p CLASS="nextLink">
 		<a href="tritechdisplays.html">Next: Tritech Displays</a>

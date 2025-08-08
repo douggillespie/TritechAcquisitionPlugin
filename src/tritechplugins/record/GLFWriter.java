@@ -31,9 +31,11 @@ import tritechgemini.fileio.GLFFileCatalog;
 import tritechgemini.fileio.LittleEndianDataOutputStream;
 import tritechgemini.fileio.UnzippedWriter;
 import tritechgemini.imagedata.GLFImageRecord;
+import tritechgemini.imagedata.GLFStatusData;
 import tritechgemini.imagedata.GeminiImageRecordI;
 import tritechplugins.acquire.ImageDataBlock;
 import tritechplugins.acquire.ImageDataUnit;
+import tritechplugins.acquire.SonarStatusData;
 
 /**
  * Writes a GLF file in the same format as Tritech software. 
@@ -81,14 +83,15 @@ public class GLFWriter extends PamObserverAdapter {
 		
 //	public static void main(String[] args) {
 //		GLFWriter glfWriter = new GLFWriter(null);
-//		glfWriter.test();
+////		glfWriter.test();
 ////		glfWriter.compareData();
 //		glfWriter.checkGCatalog();
 //	}
 	
 	private void checkGCatalog() {
 //		String fn = "C:\\ProjectData\\RobRiver\\Y5\\GLF\\log_2024-09-27-183519b.glf";
-		String fn = "C:\\PAMGuardTest\\glftest\\20240927\\log_2024-09-27-183519.glf";
+//		String fn = "C:\\PAMGuardTest\\glftest\\20240927\\log_2024-09-27-183519.glf";
+		String fn = "C:\\PAMGuardTest\\glftest\\pamguardwrite\\20250808\\log_2025-08-08-161706.glf";
 
 		try {
 			GLFFileCatalog.getFileCatalog(fn, true);
@@ -222,12 +225,12 @@ public class GLFWriter extends PamObserverAdapter {
 	public void addData(PamObservable observable, PamDataUnit pamDataUnit) {
 		// anything sent here, we want to write to the GLF. Start by doing file and folder checks.
 		ImageDataUnit imageData = (ImageDataUnit) pamDataUnit;
-		GeminiImageRecordI imageRecord = imageData.getGeminiImage();
-		if (imageRecord instanceof GLFImageRecord == false) {
-			System.out.println("no GLF data. Can't write to GLF file");
-			return; // can't do anything with this at the moment. 
-		}
-		checkFiles(imageData.getTimeMilliseconds());
+//		GeminiImageRecordI imageRecord = imageData.getGeminiImage();
+//		if (imageRecord instanceof GLFImageRecord == false) {
+//			System.out.println("no GLF data. Can't write to GLF file");
+//			return; // can't do anything with this at the moment. 
+//		}
+//		checkFiles(imageData.getTimeMilliseconds());
 		writeAllData();
 	}
 
@@ -255,6 +258,29 @@ public class GLFWriter extends PamObserverAdapter {
 	private void writeData(ImageDataUnit idu) {
 		checkFiles(idu.getTimeMilliseconds());
 
+		if (idu.getGeminiImage() != null) {
+			writeImageData(idu);
+		}
+		if (idu.getSonarStatusData() != null) {
+			writeStatusData(idu);
+		}
+	}
+	private void writeStatusData(ImageDataUnit idu) {
+//		System.out.println("Write status data unit for device " + idu.getSonarStatusData().getDeviceId());
+		SonarStatusData statusData = idu.getSonarStatusData();
+		GLFStatusData statusPacket = statusData.getStatusPacket();
+		try {
+			glfFileCatalog.writeStatusHeader(statusPacket, outputStream);
+			glfFileCatalog.writeStatusRecord(statusPacket, outputStream);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+	private void writeImageData(ImageDataUnit idu) {
+		if (idu.getGeminiImage() instanceof GLFImageRecord == false) {
+			return; // probably a status unit. 
+		}
 		GLFImageRecord glfRecord = (GLFImageRecord) idu.getGeminiImage();
 		try {
 			// need to write a short header before writing each record. 

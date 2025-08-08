@@ -37,7 +37,6 @@ public class TritechDaqProcess extends PamProcess implements TritechRunMode, Con
 	private TritechAcquisition tritechAcquisition;
 	private boolean isAcquire;
 		
-	
 	private ArrayList<SonarStatusObserver> statusObservers = new ArrayList();
 	
 	/**
