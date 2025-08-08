@@ -60,10 +60,14 @@ public class DaqDialog extends PamDialog {
 	private JPanel sonarsPanel;
 
 	private TritechDaqProcess tritechDaqProcess;
+	
+	public static String helpPoint = "docs.tritechacquire";
 
 	private DaqDialog(Window parentFrame, TritechDaqProcess tritechDaqProcess, String title) {
 		super(parentFrame, title, true);
 		this.tritechDaqProcess = tritechDaqProcess;
+		
+		setHelpPoint(helpPoint);
 		
 		outputFolder = new SelectFolder("Output folder", 40, true);
 //		chirpMode = new JComboBox<String>();

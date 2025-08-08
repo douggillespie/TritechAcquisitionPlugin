@@ -15,7 +15,7 @@ public class TritechDaqPlugin implements PamPluginInterface {
 
 	@Override
 	public String getHelpSetName() {
-		return "tritechplugins/help/TritechHelpProject.hs";
+		return "tritechplugins/help/TritechHelpProj.hs";
 	}
 
 	@Override

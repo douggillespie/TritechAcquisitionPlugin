@@ -50,6 +50,7 @@ import networkTransfer.receive.NetworkReceiver;
 import printscreen.PrintScreenControl;
 import rockBlock.RockBlockControl;
 import tritechplugins.acquire.TritechAcquisition;
+import tritechplugins.acquire.TritechDaqPlugin;
 import tritechplugins.detect.threshold.ThresholdDetector;
 import tritechplugins.record.GLFRecorderCtrl;
 import turbineops.TurbineOperationControl;
@@ -957,7 +958,8 @@ final public class PamModel implements PamModelInterface, PamSettings {
 		
 		// load any plugins in the plugin folder
 		loadPlugins(mi);
-		
+
+		pluginList.add(new TritechDaqPlugin());
 	}
 
 	/* (non-Javadoc)
@@ -1104,7 +1106,6 @@ final public class PamModel implements PamModelInterface, PamSettings {
 		// an echoDetector data unit.
 //		URLClassLoader cl = (URLClassLoader) this.getClass().getClassLoader();
 //		ClassLoader cl = this.getClass().getClassLoader();
-		
 		
 		// first, compile a list of all classes implementing the PamPluginInterface.  Have to jump through a
 		// lot of hoops to try and get the installed directory of the jar from a class running inside the
