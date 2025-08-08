@@ -301,7 +301,9 @@ public class JavaFileAcquisition extends TritechDaqSystem  implements CatalogStr
 		}
 		
 	}
-
+	
+	int gapCount = 0;
+ 
 	@Override
 	public boolean newImageRecord(GeminiImageRecordI glfImage) {
 		/*
@@ -320,7 +322,10 @@ public class JavaFileAcquisition extends TritechDaqSystem  implements CatalogStr
 		 */
 		if (lastRecordTime != null) {
 			long gap = glfImage.getRecordTime() - lastRecordTime;
-			if (gap > 10000L) {
+			if (gap > 10000L) {  // 10seconds
+				if (++gapCount > 10) {
+					System.out.println("Getting into lots of gap counts");
+				}
 				System.out.printf("GLF Cataloges have a %d day %s second gap between files at %s\n", 
 						gap/(3600L*24L*1000L), PamCalendar.formatTime(gap), PamCalendar.formatDBDateTime(glfImage.getRecordTime()));
 				System.out.printf("Record time %s, current PAM time %s\n", PamCalendar.formatDBDateTime(glfImage.getRecordTime()),
