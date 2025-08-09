@@ -1,6 +1,6 @@
 # TritechAcquisitionPlugin
 
-[Online help is available here](https://douggillespie.github.io/TritechAcquisitionPlugin/)
+[Online help is now available here](https://douggillespie.github.io/TritechAcquisitionPlugin/docs/tritechoverview.html)
 
 This is the PAMGuard Tritech acquisition plugin which allows PAMGuard to 
 1) Acquire data directly from Tritech Gemini sonars
@@ -122,3 +122,5 @@ SDK libraries.
 
 The main repository for PAMGuard source code is at 
 [https://github.com/PAMGuard/PAMGuard](https://github.com/PAMGuard/PAMGuard)
+
+
