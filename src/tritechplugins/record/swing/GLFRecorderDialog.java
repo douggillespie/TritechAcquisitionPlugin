@@ -42,9 +42,13 @@ public class GLFRecorderDialog extends PamDialog {
 	
 	private static GLFRecorderDialog singleInstance;
 
+	public static String helpPoint = "docs.tritechrecord";
+
 	public GLFRecorderDialog(GLFRecorderCtrl recorderControl, Window parentFrame) {
 		super(parentFrame, "GLF Recorder", true);
 		this.recorderControl = recorderControl;
+		
+		setHelpPoint(helpPoint);
 		
 		JPanel mainPanel = new JPanel(new BorderLayout());
 		JTabbedPane tabPane = new JTabbedPane();

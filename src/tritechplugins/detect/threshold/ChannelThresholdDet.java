@@ -33,6 +33,8 @@ public class ChannelThresholdDet extends ChannelDetector {
 	private long lastBackgroundWrite = 0;
 	
 	private ImageRangeFilter imageRangeFilter;
+
+	private boolean isOOW = false;
 	
 	public ChannelThresholdDet(ThresholdDetector thresholdDetector, ThresholdProcess thresholdProcess, int sonarId) {
 		super(thresholdDetector, thresholdProcess, sonarId);
@@ -51,6 +53,9 @@ public class ChannelThresholdDet extends ChannelDetector {
 	 * @param imageData
 	 */
 	public List<DetectedRegion> newData(ImageDataUnit imageDataUnit) {
+		if (isOOW) {
+			return null; // don't do anything if it's OOW.
+		}
 		if (lastBackgroundWrite == 0) {
 			lastBackgroundWrite = imageDataUnit.getTimeMilliseconds();
 		}
@@ -182,6 +187,15 @@ public class ChannelThresholdDet extends ChannelDetector {
 //		shrinker.setInput(bgnd);
 //		int nbytes = shrinker.deflate(bgnd);
 //		System.out.printf("Sonar %d Shrunk %d butes to %d = %3.2f%%\n", geminiImage.getDeviceId(), sz, nbytes, 100.*(double)nbytes/(double)sz);
+	}
+
+	@Override
+	protected void oowStateChange(boolean isOOW) {
+//		System.out.println("OOW state change to " + isOOW);
+		this.isOOW = isOOW;
+		if (isOOW == false) {
+			backgroundRemoval.resetUpdateCount();
+		}
 	}
 
 }

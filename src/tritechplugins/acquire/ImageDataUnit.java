@@ -30,6 +30,19 @@ public class ImageDataUnit extends PamDataUnit {
 	}
 
 	/**
+	 * Get the device id from either the image or status data. 
+	 * @return device id or -1 if invalid data. 
+	 */
+	public int getDeviceId() {
+		if (geminiImage != null) {
+			return geminiImage.getDeviceId();
+		}
+		if (sonarStatusData != null) {
+			return sonarStatusData.getDeviceId();
+		}
+		return -1;
+	}
+	/**
 	 * @return the geminiImage
 	 */
 	public GeminiImageRecordI getGeminiImage() {

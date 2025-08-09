@@ -15,8 +15,10 @@ import tritechgemini.detect.DetectedRegion;
 import tritechgemini.detect.RegionDetector;
 import tritechgemini.detect.TwoThresholdDetector;
 import tritechgemini.imagedata.GLFImageRecord;
+import tritechgemini.imagedata.GLFStatusData;
 import tritechgemini.imagedata.GeminiImageRecordI;
 import tritechplugins.acquire.ImageDataUnit;
+import tritechplugins.acquire.SonarStatusData;
 import tritechplugins.detect.threshold.background.ThresholdBackgroundDataUnit;
 import tritechplugins.detect.threshold.rangefilter.ImageRangeFilter;
 import tritechplugins.detect.track.TrackLinkProcess;
@@ -29,6 +31,7 @@ public abstract class ChannelDetector {
 	protected ThresholdProcess thresholdProcess;
 	protected int sonarId;
 
+	private boolean currentOutOfWater;
 	
 	/**
 	 * Detector for a single sonar. 
@@ -121,6 +124,36 @@ public abstract class ChannelDetector {
 		
 		return true;
 	}
+
+	/**
+	 * New status data. Now received in both real time and offline. 
+	 * @param imageData
+	 */
+	public void newStatusData(ImageDataUnit imageData) {
+		SonarStatusData statusData = imageData.getSonarStatusData();
+		GLFStatusData statusPacket = statusData.getStatusPacket();
+		if (statusPacket == null) {
+			return;
+		}
+		boolean oow = statusPacket.isOutOfWater();
+		checkOOWChange(oow);
+		currentOutOfWater = oow;
+	}
+
+
+	private void checkOOWChange(boolean oow) {
+		if (currentOutOfWater == oow) {
+			return;
+		}
+		oowStateChange(oow);
+	}
+
+
+	/**
+	 * Called whenever the out of water state for this detector changes. 
+	 * @param isOOW true if currently out of water. 
+	 */
+	protected abstract void oowStateChange(boolean isOOW);
 	
 	
 

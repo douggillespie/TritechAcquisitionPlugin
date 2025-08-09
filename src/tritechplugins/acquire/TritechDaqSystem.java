@@ -3,8 +3,13 @@ package tritechplugins.acquire;
 import java.util.Collection;
 import java.util.HashMap;
 
+import PamUtils.PamCalendar;
+import tritechgemini.imagedata.GLFImageRecord;
 import tritechgemini.imagedata.GLFStatusData;
+import tritechgemini.imagedata.GeminiImageRecordI;
 import tritechplugins.display.swing.SonarDisplayDecorations;
+import warnings.PamWarning;
+import warnings.WarningSystem;
 
 /**
  * There are multiple ways of getting data into this module
@@ -28,6 +33,10 @@ public abstract class TritechDaqSystem {
 	protected HashMap<Integer, OpsSonarStatusData> opsStatusData = new HashMap();
 	
 	protected int totalFrames;
+
+	protected int[] recordIndexes = new int[4];
+	
+	private PamWarning oowWarning = new PamWarning("Gemini"	, "", 2);
 
 	public TritechDaqSystem(TritechAcquisition tritechAcquisition, TritechDaqProcess tritechProcess) {
 		this.tritechAcquisition = tritechAcquisition;
@@ -225,4 +234,96 @@ public abstract class TritechDaqSystem {
 	 */
 	public void setRecording(boolean record) {
 	}
+	
+	public void newGLFLiveImage(GLFImageRecord glfImage) {
+		SonarStatusData sonarData = findSonarStatusData(glfImage.genericHeader.tm_deviceId);
+		if (sonarData != null) {
+			sonarData.totalImages++;
+			sonarData.lastImageTime = glfImage.getRecordTime();
+			sonarData.interStatusImages++;
+		}
+		else {
+//			System.out.printf("Unable to find sonar data for id %d\n", glfImage.genericHeader.tm_deviceId);
+		}
+		int chan = glfImage.getSonarIndex();
+		glfImage.recordIndex = recordIndexes[chan]++;;
+		long timeMS = glfImage.getRecordTime();
+		if (glfImage instanceof GeminiImageRecordI) {
+			totalFrames++;
+			ImageDataUnit imageDataUnit = new ImageDataUnit(timeMS, 1<<(chan-1), (GeminiImageRecordI) glfImage);
+			tritechProcess.getImageDataBlock().addPamData(imageDataUnit);
+		}
+	}
+
+	public void newStatusPacket(GLFStatusData statusData) {
+		// m_sonarId and m_deviceId are the same thing. 
+		//			System.out.printf("Sonar id %d device id = %d\n", statusPacket.m_sonarId, statusPacket.m_deviceID);
+		SonarStatusData sonarStatusData = checkDeviceInfo(statusData);
+		
+		checkOutOfWater(statusData);
+		
+		if (sonarStatusData != null) {
+			tritechProcess.updateStatusData(sonarStatusData);
+//			checkWatchdog(sonarStatusData);
+			sonarStatusData.interStatusImages = 0;
+			ImageDataUnit imageDataUnit = new ImageDataUnit(PamCalendar.getTimeInMillis(), 0, sonarStatusData);
+			tritechProcess.getImageDataBlock().addPamData(imageDataUnit);
+		}
+	}
+	public void checkOutOfWater(GLFStatusData statusData) {
+		if (statusData == null) {
+			return;
+		}
+		OpsSonarStatusData opsData = getOpsSonarStatusData(statusData.m_deviceID);
+		if (statusData.isOutOfWater() != opsData.outOfWater) {
+			opsData.outOfWater = statusData.isOutOfWater();
+//			System.out.println("OOW is " + opsData.outOfWater);
+			sayOOWWarning();
+		}
+	}
+
+
+	private void sayOOWWarning() {
+		int nOOW = 0;
+		int[] sonars = getSonarIDs();
+		String warning = "";
+		for (int i = 0; i < sonars.length; i++) {
+			OpsSonarStatusData opsData = getOpsSonarStatusData(sonars[i]);
+			if (opsData.outOfWater) {
+				if (nOOW == 0) {
+					warning = String.format("Sonar %d", sonars[i]);
+				}
+				else {
+					warning += String.format(" and sonar %d", sonars[i]);
+				}
+				nOOW++;
+			}
+		}
+		if (nOOW == 1) {
+			warning += " is out of water";
+		}
+		else if (nOOW > 1) {
+			warning += " are out of water";
+		}
+		if (nOOW == 0) {
+			WarningSystem.getWarningSystem().removeWarning(oowWarning);
+		}
+		else {
+			oowWarning.setWarningMessage(warning);
+			oowWarning.setWarnignLevel(2);
+			WarningSystem.getWarningSystem().addWarning(oowWarning);
+		}
+	}
+	public int[] getSonarIDs() {
+		// could probably actually use the keys since the sonar id's are the keys in the hash table.
+		Collection<SonarStatusData> devs = deviceInfo.values();
+		int n = devs.size();
+		int[] ids = new int[n];
+		int i = 0;
+		for (SonarStatusData sd : devs) {
+			ids[i++] = sd.getStatusPacket().m_deviceID;
+		}
+		return ids;
+	}
+
 }

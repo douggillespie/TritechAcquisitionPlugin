@@ -64,10 +64,13 @@ public class ThresholdDialog extends PamDialog {
 	
 	private JCheckBox filterRange;
 
+	public static String helpPoint = "docs.tritechdetect";
 
 	private ThresholdDialog(Window parentFrame, ThresholdDetector thresholdDetector) {
 		super(parentFrame, thresholdDetector.getUnitName() + " config ...", true);
 		this.thresholdDetector = thresholdDetector;
+		
+		setHelpPoint(helpPoint);
 
 		sourcePanel = new SourcePanel(this, ImageDataUnit.class, false, true);
 		thresholdOn = new JTextField(3);

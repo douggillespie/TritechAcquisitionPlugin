@@ -52,14 +52,36 @@ public class ThresholdProcess extends PamProcess {
 	public void newData(PamObservable o, PamDataUnit arg) {
 		ImageDataUnit imageData = (ImageDataUnit) arg;
 		if (imageData.getGeminiImage() != null) {
-			ChannelDetector cd = findChannelDetector(imageData.getGeminiImage().getDeviceId(), true);
-			List<DetectedRegion> regions = cd.newData(imageData);
-			regions = thresholdDetector.getSpatialVetoManager().runVetos(regions);
-			TrackLinkProcess trackLinkProcess = thresholdDetector.getTrackLinkProcess();
-			if (trackLinkProcess != null) {
-				trackLinkProcess.newRegionsList(imageData.getGeminiImage().getDeviceId(), imageData.getTimeMilliseconds(), regions);
-			}
+			newImageData(o, imageData);
 		}
+		if (imageData.getSonarStatusData() != null) {
+			newStatusData(o, imageData);
+		}
+	}
+	
+	/**
+	 * New image data unit (with image data, not status data)
+	 * @param o
+	 * @param imageData
+	 */
+	private void newImageData(PamObservable o, ImageDataUnit imageData) {
+		ChannelDetector cd = findChannelDetector(imageData.getGeminiImage().getDeviceId(), true);
+		List<DetectedRegion> regions = cd.newData(imageData);
+		regions = thresholdDetector.getSpatialVetoManager().runVetos(regions);
+		TrackLinkProcess trackLinkProcess = thresholdDetector.getTrackLinkProcess();
+		if (trackLinkProcess != null) {
+			trackLinkProcess.newRegionsList(imageData.getGeminiImage().getDeviceId(), imageData.getTimeMilliseconds(), regions);
+		}		
+	}
+
+	/**
+	 * New status data. 
+	 * @param o
+	 * @param imageData
+	 */
+	private void newStatusData(PamObservable o, ImageDataUnit imageData) {
+		ChannelDetector cd = findChannelDetector(imageData.getDeviceId(), true);
+		cd.newStatusData(imageData);
 	}
 
 	@Override

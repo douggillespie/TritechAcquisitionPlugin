@@ -19,6 +19,7 @@ import tritechgemini.fileio.CatalogException;
 import tritechgemini.fileio.CatalogStreamObserver;
 import tritechgemini.fileio.CatalogStreamSummary;
 import tritechgemini.fileio.GeminiFileCatalog;
+import tritechgemini.imagedata.GLFImageRecord;
 import tritechgemini.imagedata.GLFStatusData;
 import tritechgemini.imagedata.GeminiImageRecordI;
 import tritechplugins.acquire.offline.TritechFileFilter;
@@ -239,13 +240,13 @@ public class JavaFileAcquisition extends TritechDaqSystem  implements CatalogStr
 				JavaFileStatus fileStatus = new JavaFileStatus(fileList.length, currentFile, fileList[currentFile]);
 				this.publish(fileStatus);
 
-				try {
-					File aFile = new File(fileList[currentFile]);
-					System.out.println("Starting stream of file " + aFile.getName());
-				}
-				catch (Exception e) {
-					e.printStackTrace();
-				}
+//				try {
+//					File aFile = new File(fileList[currentFile]);
+//					System.out.println("Starting stream of file " + aFile.getName());
+//				}
+//				catch (Exception e) {
+//					e.printStackTrace();
+//				}
 				
 				try {
 					synchronized (synchObject) {
@@ -352,14 +353,15 @@ public class JavaFileAcquisition extends TritechDaqSystem  implements CatalogStr
 		}
 		lastRecordTime = glfImage.getRecordTime();
 		
-		
-		ImageDataBlock datablock = tritechProcess.getImageDataBlock();
-		ImageDataUnit imageDataUnit = new ImageDataUnit(glfImage.getRecordTime(), 0, glfImage);
-		
+		super.newGLFLiveImage((GLFImageRecord) glfImage);
+//		
+//		ImageDataBlock datablock = tritechProcess.getImageDataBlock();
+//		ImageDataUnit imageDataUnit = new ImageDataUnit(glfImage.getRecordTime(), 0, glfImage);
+//		
 		PamCalendar.setSoundFileTimeInMillis(glfImage.getRecordTime()-PamCalendar.getSessionStartTime());
 		delayPlayback(glfImage.getRecordTime());
-		
-		datablock.addPamData(imageDataUnit);
+//		
+//		datablock.addPamData(imageDataUnit);
 		return true;
 	}
 	
@@ -425,7 +427,8 @@ public class JavaFileAcquisition extends TritechDaqSystem  implements CatalogStr
 	@Override
 	public boolean newStatusData(GLFStatusData statusData) {
 		// this will arrive in the swing worker thread - that's fine. 
-//		System.out.println("Status data");
+//		System.out.println("Status data OOW  " + statusData.);
+		super.newStatusPacket(statusData);
 		return true;
 	}
 
