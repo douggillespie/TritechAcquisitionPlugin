@@ -27,3 +27,7 @@ hs_err_pid*
 /target/
 .classpath
 .classpath
+.Rproj.user
+
+# quarto help generated from online help
+/olhelp

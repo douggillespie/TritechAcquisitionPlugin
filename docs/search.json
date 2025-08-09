@@ -1,0 +1,165 @@
+[
+  {
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "Welcome to PAMGuard Help",
+    "section": "",
+    "text": "This is a web version of the PAMGuard online help.\nPlease note that not all of the functionality of the online help system translates perfectly to a web browser, so there may be functionality in the online help that is not replicated here.\nUse the sidebar navigation to find your way through the help pages.\nIf you cannot see the side bar, expand the width of your browser window and it will appear."
+  },
+  {
+    "objectID": "docs/tritechoverview.html",
+    "href": "docs/tritechoverview.html",
+    "title": "Overview",
+    "section": "",
+    "text": "The Tritech Sonars modules can be used to acquire and process data from Tritech Multibeam imaging sonars.\nCurrently, three modules are available to",
+    "crumbs": [
+      "PAMGuard Website",
+      "Tritech ",
+      "Overview"
+    ]
+  },
+  {
+    "objectID": "docs/tritechoverview.html#installation",
+    "href": "docs/tritechoverview.html#installation",
+    "title": "Overview",
+    "section": "Installation",
+    "text": "Installation\nIf you’re reading this in the PAMGuard Help, it’s likely that you’ve already installed everything and don’t need to do any more. If you’re updating, or are having difficulties, then read on.\nAll three modules are packaged into a single PAMguard plugin, called something like TritechAcquisitionV*_**.jar, where *_** is the version number. This does not come as a standard part of a PAMGuard installation.\nTo acquire data directly from sonars, you also need some Windows library files to manage communication between PAMGuard and the Tritech devices.\nBoth the TritechAcquisitionV*_**.jar plugin and the required libraries are distributed together in zip archives through GitHub\nFollow the instructions for the latest GitHub release ensuring that you copy files to the correct folders in your PAMGuard installation.\nNext: Tritech Acquisition",
+    "crumbs": [
+      "PAMGuard Website",
+      "Tritech ",
+      "Overview"
+    ]
+  },
+  {
+    "objectID": "docs/tritechdetect.html",
+    "href": "docs/tritechdetect.html",
+    "title": "Tritech Detection",
+    "section": "",
+    "text": "See Gillespie, D.; Hastie, G.; Montabaranom, J.; Longden, E.; Rapson, K.; Holoborodko, A.; Sparling, C. Automated Detection and Tracking of Marine Mammals in the Vicinity of Tidal Turbines Using Multibeam Sonar. J. Mar. Sci. Eng. 2023, 11, 2095. doi.org/10.3390/jmse11112095 for a description of how the detector works.\n\n\n\nprevLink”&gt; Previous: Tritech Displays\nNext: Tritech Recording",
+    "crumbs": [
+      "PAMGuard Website",
+      "Tritech ",
+      "Tritech Detection"
+    ]
+  },
+  {
+    "objectID": "docs/tritechacquire.html",
+    "href": "docs/tritechacquire.html",
+    "title": "Tritech Acquisition",
+    "section": "",
+    "text": "Once the Tritech plugin and associated libaries are installed, from the File / Add modules menu, select Tritech / Tritech Acquisition.\nOnly one Tritech acquisition module can be added to a PAMGuard configuration.",
+    "crumbs": [
+      "PAMGuard Website",
+      "Tritech ",
+      "Tritech Acquisition"
+    ]
+  },
+  {
+    "objectID": "docs/tritechacquire.html#configuration",
+    "href": "docs/tritechacquire.html#configuration",
+    "title": "Tritech Acquisition",
+    "section": "Configuration",
+    "text": "Configuration\nTo configure the module, go to the main PAMGuard settings menu and select Tritech Acquisition / Settings…\nThe same configuration dialog is used for real time acquisition and processing archived files, but will show different options for each mode of operation.\nAt the top of the dialog select either Acquire sonar data or Reprocess files.\n\nAcquiring Sonar Data (Real Time Acquisition)\n\n\nFile location\nThe acquisition module can write sonar data files in the format used by the Tritech Genesis Software. These are files of type .GLF (Genesis log file?). This is the folder on your computer that GLF files will be stored in if you chose to have the module write continuous sonar data to file. See the page on Recording sonar data for more information.\n\n\nSonar ping rate (frame rate)\nThe sonars can generally acquire between 5 and 10 frames per second. This depends on a number of factors including the range you’ve set them to, the number of sonars in use, the quality of the Ethernet connection between your computer and the sonars, and the processing power of the computer. Sonars must ping sequentially, otherwise they interfere with each other. So the more sonars you add, the slower the frame rate will be for each sonar.\nSelect ‘Free run’ if you want the sonars to ping as fast as they can. In this mode, as soon as data are received from a ping, the command is sent to send the next ping.\nGenerally though it’s better to set the frame rate you want to work at. This is set as an Interval in milliseconds, i.e. and interval of 200ms will be five frames per second. The Interval is the interval between pings across all sonars, so if you have two sonars operating, and want each one to ping at 5 frames per second, set the interval to 100ms, i.e. a total of 10 pings per second. As with ‘free run’, a subsequent sonar ping will not be sent until the previous one has returned data.\nUse the frame rate display to monitor the frame rate. This does tend to ‘glitch’ occasionally, but should mostly be stable. If it’s not stable, then you are probably trying to acquire data at a higher rate than the system can manage.\n\n\nLogging\nIf you want the acquisition module to store all sonar data, select ‘Log all data to GLF files’. See the page on Recording sonar data for more information.\nPAMGuard has a GLF file indexing system, which significantly speeds up access to data in GLF files when reviewing them in the PAMGuard Viewer. The indexing process can take some time for a big dataset, so it’s best to build the index files as you go, otherwise the index files will be created the first time you open the dataset in PAMGuard Viewer which may take several hours.\n\n\nSonar Settings\nIf you have multiple sonars and want them to all be configured in the exact same way, then select ‘Use same settings on all sonars’. Otherwise, if you un-check this option then a configuration panel for each sonar will appear (this is of course irrelevant for a single sonar).\nIf you’ve many sonars in your system, you can chose not to read certain sonars by un-checking the Online (use sonar) button.\nSelect the gain and the maximum range you want from the sonar. If you’re using the detector you can also add Threshold Detector histograms. These provide a graphical representation of the signal levels in the sonar which can be useful in checking that you’ve set the gain appropriately.\n‘Chirp mode’, ’ Auto Frequency mode’, and ‘high range resolution’ may not apply to all (older) sonar models. Check the Tritech manuals for the sonar model you are using.\nFixed sound speed: the sonars have a built in sound speed measurement. Generally, it’s best to let the sonar measure it’s own sound speed and to use that when converting time to distance. However, in some environments, or if the sound speed sensor is not working well, operation can be more stable if you select using a fixed sound speed.\n\n\n\nFile Reprocessing\n\nThe module can also be used to re-process data archived to GLF files. In this case select ‘Reprocess files’ near the top of the dialog.\nFile location: select the folder holding your GLF files. These will probably be arranged in sub folders by date, so you’ll probably want the ‘Include sub folders’ option selected.\n\nTime Zones\nThe time stamps recorded in GLF files use local time from the computer that the data were collected on. This was decided by Tritech and is different from all other data collection in PAMGuard which uses only UTC time. The module will convert the times read from GLF files to UTC time as the records are read. If the computer processing the data is set to the same time zone as the computer used to collect the data, then you should use that (default) time zone. If however, you are processing data collected in a different time zone (e.g. sent to you by a colleague in a different country) then you should set the time zone for the analysis to that of the computer used to collect the data.\nPrevious: Connecting Sonars\nNext: Tritech Displays",
+    "crumbs": [
+      "PAMGuard Website",
+      "Tritech ",
+      "Tritech Acquisition"
+    ]
+  },
+  {
+    "objectID": "docs/tritechconnect.html",
+    "href": "docs/tritechconnect.html",
+    "title": "Connecting Sonars",
+    "section": "",
+    "text": "If you are only interested in processing data from archived files, or are just using the PAMGuard viewer to review sonar data, then you don’t need to follow the instructions below, which are only for acquiring and processing sonar data in real time.",
+    "crumbs": [
+      "PAMGuard Website",
+      "Tritech ",
+      "Connecting Sonars"
+    ]
+  },
+  {
+    "objectID": "docs/tritechconnect.html#connecting-sonars",
+    "href": "docs/tritechconnect.html#connecting-sonars",
+    "title": "Connecting Sonars",
+    "section": "Connecting Sonars",
+    "text": "Connecting Sonars\nRead the Tritech manual !\nData from Tritech sonars are acquired over Ethernet. Generally it is best to use a separate Ethernet port to the one you use to connect your computer to the Internet. If you’re on a laptop, you’ll probably be using WiFi to connect to the Internet, so if you have an Ethernet port on your laptop, you can use that for the sonar(s). If you don’t have an Ethernet port, or are already using the port for Internet access, then purchase a USB to Ethernet adapter. These are readily available for USB3 and USB-C from many retailers.\nIf you’re using more than one sonar (you can have up to four) then use a USB switch to connect multiple sonars to the one Ethernet port on your computer\nBy default, most Ethernet adapters will try to get an Internet address from the router they are connected to. This won’t with the sonars, so you need to configure the adapter to use a fixed ip address.\nThe PAMGuard module cannot fully configure Tritech sonars ip addresses. You should first therefore use the Tritech Genesis software to set these up and test the sonars. Make sure that PAMGuard is not running while you do this, since only one program can connect to the sonars at a time. Follow the Tritech instructions. Once it’s working in Genesis, close Genesis and re-open PAMGuard. Apart from the ip addresses, everything else can be configured from within PAMGuard.",
+    "crumbs": [
+      "PAMGuard Website",
+      "Tritech ",
+      "Connecting Sonars"
+    ]
+  },
+  {
+    "objectID": "docs/tritechconnect.html#troubleshooting",
+    "href": "docs/tritechconnect.html#troubleshooting",
+    "title": "Connecting Sonars",
+    "section": "Troubleshooting",
+    "text": "Troubleshooting\nIf you haven’t successfully connected to a sonar using Genesis, then you will not be able to connect to that sonar with PAMGuard.\nIf the sonars are working in Genesis, but not in PAMGuard, then it’s likely that one of three things is happening:\n\nYou have not correctly installed the software libraries. Go back to the installation instructions and check that all libraries are in the correct folder.\nGenesis is still running, or you are running two PAMGuard with Tritech Acquisition at the same time. The Tritech software only allows one program to connect to a sonar at any one time, so check other programmes are closes.\nThe firmware version (that the software on the sonars themselves) is new and currently unsupported. Contact the PAMGuard team.\n\nPrevious: Tritech Overview\nNext: Tritech Acquisition",
+    "crumbs": [
+      "PAMGuard Website",
+      "Tritech ",
+      "Connecting Sonars"
+    ]
+  },
+  {
+    "objectID": "docs/tritechdisplays.html",
+    "href": "docs/tritechdisplays.html",
+    "title": "Displays",
+    "section": "",
+    "text": "The Tritech modules do not automatically create any displays automatically added to the PAMGuard Graphical User Interface. You should create a new User Display Panel (as you would to add a spectrogram display to PAMGuard) and add display components to the User Display Panel. This allows more flexibility than a standard fixed display format, since you can combine the sonar displays with displays from other modules. e.g. if you were collecting both sonar data and PAM data, you could have a sonar display and a spectrogram display on the same panel.",
+    "crumbs": [
+      "PAMGuard Website",
+      "Tritech ",
+      "Displays"
+    ]
+  },
+  {
+    "objectID": "docs/tritechdisplays.html#main-sonar-image-display",
+    "href": "docs/tritechdisplays.html#main-sonar-image-display",
+    "title": "Displays",
+    "section": "Main Sonar Image Display",
+    "text": "Main Sonar Image Display\n\nIf multiple sonars are in use, the display will show the image for each sonar separately.\n\nSonar status panel\nThe sonar status is shown in the top left corner. If multiple sonars are in use, this panel will expand to show all devices. The panel can be hidden to give a complete view of the main sonar display using the small button in the top right hand corner.\n\n\nProcessing files\nIf your processing data from files, rather than real time acquisition, the status panel will not show and instead a small toolbar at the top of the display will show progress through the file archive. Here you can also select how fast the analysis will proceed. Free run will cause the system to process data as fast as possible. Selecting other speeds can be useful for viewing and demonstrating data as it processes.\n\n\n\nDisplay options\nDisplay options are in the bottom right hand corner. These can also be hidden using the small button in the corner of this panel. The main options panel shows options that you might want to change often. Click on the settings cog for further options.\nOnce hidden, in the same part of the screen as the display options is information about individual frames.\n\n\nZoom control\nYou can zoom in on a region of the sonar image using the mouse scroll wheel.\n\n\nOverlays\nRight click on the display for options to display detector and other overlays on the display. The options available will depend on which detectors are included in your PAMGuard configuration, and how they are configured.\n\n\nViewer mode\nWhen using the display in Viewer mode, appearance and available controls will change slightly showing a scroll bar and standard PAMGuard data scrolling tools. An internal map of raw sonar data is created for the time period of the scroller, though raw sonar data is only loaded for a single record at a time.",
+    "crumbs": [
+      "PAMGuard Website",
+      "Tritech ",
+      "Displays"
+    ]
+  },
+  {
+    "objectID": "docs/tritechdisplays.html#frame-rate-display",
+    "href": "docs/tritechdisplays.html#frame-rate-display",
+    "title": "Displays",
+    "section": "Frame Rate Display",
+    "text": "Frame Rate Display\n\nThis display shows a histogram and a scrolling time display of the frame rate. If the frame rate is unstable or is lower than you expected you may have to improve your Ethernet connection to the sonar(s) or accept working at a lower ping rate.",
+    "crumbs": [
+      "PAMGuard Website",
+      "Tritech ",
+      "Displays"
+    ]
+  },
+  {
+    "objectID": "docs/tritechdisplays.html#signal-level-display",
+    "href": "docs/tritechdisplays.html#signal-level-display",
+    "title": "Displays",
+    "section": "Signal Level Display",
+    "text": "Signal Level Display\nThis is part of the detection system, so is only available when the detector module is loaded\n\nThe signal levels in the sonar can be adjusted by changing the gain in the Acquisition dialog (note that this is not the same as the gain in the display options panel which only changes the display, not the underlying data).\nTwo lines are shown in the histogram. The ‘raw’ line is the level of data coming out of the sonar, and the ‘treated’ line is the level after background subtraction in the detector.\nIf the gain is too high, the the data will be distorted. On the other hand, if the gain is too low, faint objects may not be visible. Ideally, the signal should use most of the dynamic range of the system. Ideally, the raw data should fill most of the dynamic range of the system - so in the example here, where the raw data levels reach a value of about 130 (out maximum of 255) it might be possible to increase the gain slightly.\nNext: Tritech Detection\nPrevious: Tritech Acquisition",
+    "crumbs": [
+      "PAMGuard Website",
+      "Tritech ",
+      "Displays"
+    ]
+  },
+  {
+    "objectID": "docs/tritechrecord.html",
+    "href": "docs/tritechrecord.html",
+    "title": "Tritech Recording",
+    "section": "",
+    "text": "Tritech sonars record data to GLF files. These are in a format developed by Tritech International following their own bespoke data format. These files can be opened for review using the Tritech Genesis software. PAMGuard can read GLF files, either to process data in PAMGuard normal operation mode or to review data using the PAMGuard viewer.\nThere are two ways of recording GLF data files from PAMGuard. One is built into the Tritech Acquisition module and uses Tritech’s own software libraries to write the file, the second method uses a bespoke writer written as a PAMGuard plugin.\nNote that GLF files can be pretty big and you may be collecting 200 to 400 Gigabytes of data per day if you record continuously, so consider either an external hard drive or using the PAMGuard backup manager to move files regularly to an external device.\n\nUsing the built in GLF writer\nThis is the most sensible option if you’re recording data continuously, or over extended time periods. The GLF log files are created using Tritech’s own software, so are guaranteed to use their correct data format. As well as the main records of sonar image data the files will contain some additional metadata files about the sonar configuration.\nTo make recordings using the built in writer, go to the Acquisition settings for the Tritech sonars and make sure you’ve checked the ‘Log all data to GLF files’ option. GLF logging can also be started and stopped from a small side panel that forms part of the Tritech Acquisition module.\n\nNote that logging will only occur when PAMGuard is running, even though Tritech data are acquired even when PAMGuard is idle.\n\n\nUsing the PAMGuard GLF Recorder module\nThis method of writing GLF files uses code written in Java that mimics the behaviour of the Tritech software. The big advantage of using this method is that it can respond to events in PAMGuard detectors and initiate recording only when something has been detected. In addition, it can hold some 10’s of seconds of data in a buffer, so when a trigger event occurs, it’s possible to record from some time prior to the trigger event.\nTo use this module, from the File / Add Modules menu, select Tritech / GLF Recorder.\n\nConfiguration\nFrom the settings menu, select GLF Recorder settings… to open the dialog, which has to tabs, one for general recording options, the other for setting up triggers.\n\nSet the image data source, which will be from the Tritech Acquisition module. Set the location the files should write to.\nSet the buffer length in seconds, but beware of making this too big. As a rule of thumb, each Gemini record uses nearly a megabyte of memory, so a 10s buffer at 5 frames per second is going to require 50 Megabytes of memory, which will be fine, but abuffering several minutes of data might start to cause memory issues.\nSet the maximum file size in Megabytes. Tritech recommend 300 Megabytes, though up to 1000 Megabytes will be OK and will generate fewer files.\nSet the initial state: this controls whether it will start continuous recording as soon as PAMGuard processing starts.\n\n\nTriggering\n\nTriggering of recordings is controlled from the Triggers tab. you can add as many triggers as you like and don’t have to restrict yourself to triggering of the Tritech Detector. i.e. you could trigger GLF recording in the event of a detection in any of PAMGuard’s acoustic processing modules.\nUse the ‘Add trigger’ and ‘Remove trigger’ buttons to add and remove trigger. For each trigger you can set the number of seconds of data to take from the buffer prior to the trigger event and the number of seconds after the event.\nSome trigger events, such as track detection in the sonar data can go on for several seconds (or minutes in the case of some cetacean tracks). It can also take a few seconds for many detectors to create an event. For example, if an animal track is detect in the sonar data, it can take several seconds for the algorithm to decide that it’s a genuine track. You should therefore make the data buffer in the recorder a few seconds longer than the pre seconds you want to record for each trigger.\nIf multiple triggers occur close in time, or a triggering event updates (e.g. as a track get’s longer) then the recording time is simply extended to the ‘post seconds’ after the end of the last event update time.\nA small side panel provides controls to manually start and stop recording.\n\nIf the ‘buffered’ button is pressed, then the entire contents of the buffer will be written to the GLF log file.\nPrevious: Tritech Detection",
+    "crumbs": [
+      "PAMGuard Website",
+      "Tritech ",
+      "Tritech Recording"
+    ]
+  }
+]

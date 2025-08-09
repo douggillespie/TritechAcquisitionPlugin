@@ -30,6 +30,20 @@ eye on performance.
 
 Latest Features and bug fixes
 
+**V1.4?**
+
+Handling out of water (OOW) alarms. When an OOW occurs, detection in GLF file data is paused.
+When acquiring data, the sonars stop pinging until the OOW alarm clears. When the alarm clears
+the background measurements are reset to avoid a flurry of false detections when the 
+sonar re-enters the water. 
+
+GLF Recorder: Addition of a GLF Recorder module. This includes a trigger mechanism and
+a data buffer, so recording can start some time before the trigger occurs. 
+
+Online Help: Wrote some online help pages. Available online at 
+
+
+
 **V1.43**
 
 Larger field for text in time tail dialog.
