@@ -1,10 +1,13 @@
 # TritechAcquisitionPlugin
 
+[Online help is available here](https://douggillespie.github.io/TritechAcquisitionPlugin/)
+
 This is the PAMGuard Tritech acquisition plugin which allows PAMGuard to 
 1) Acquire data directly from Tritech Gemini sonars
 2) Run track detectors in real time on the sonar data
-3) Process data from Tritech GLF data files offline
-4) View and annotate detection data using the PAMGuard viewer. 
+3) Make triggered recordings of Tritech data
+4) Process data from Tritech GLF data files offline
+5) View and annotate detection data using the PAMGuard viewer. 
 
 
 ## Installation
@@ -30,7 +33,7 @@ eye on performance.
 
 Latest Features and bug fixes
 
-**V1.4?**
+**V1.4? (pending)**
 
 Handling out of water (OOW) alarms. When an OOW occurs, detection in GLF file data is paused.
 When acquiring data, the sonars stop pinging until the OOW alarm clears. When the alarm clears
