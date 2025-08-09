@@ -102,8 +102,9 @@ public class JavaFileAcquisition extends TritechDaqSystem  implements CatalogStr
 			 * pragmatic and keep going until a file has a time. 
 			 */
 			if (extractStartTime(allFiles[i])) {
-				System.out.printf("Preparing Tritech File Acquisition on file %d start time %s\n", 
-						i, PamCalendar.formatDBDateTime(PamCalendar.getSessionStartTime()));
+				File aFile = new File(allFiles[i]);
+				System.out.printf("Preparing Tritech File Acquisition on file %d %s start time %s\n", 
+						i, aFile.getName(), PamCalendar.formatDBDateTime(PamCalendar.getSessionStartTime()));
 				return true;
 			};
 		}
@@ -237,12 +238,22 @@ public class JavaFileAcquisition extends TritechDaqSystem  implements CatalogStr
 			while (currentFile < fileList.length && continueStream) {
 				JavaFileStatus fileStatus = new JavaFileStatus(fileList.length, currentFile, fileList[currentFile]);
 				this.publish(fileStatus);
+
+				try {
+					File aFile = new File(fileList[currentFile]);
+					System.out.println("Starting stream of file " + aFile.getName());
+				}
+				catch (Exception e) {
+					e.printStackTrace();
+				}
+				
 				try {
 					synchronized (synchObject) {
 						currentCatalog = GeminiFileCatalog.getFileCatalog(fileList[currentFile], false);
 					}
 //					long firstRecordTime = currentCatalog.getFirstRecordTime();
 //					try {
+					
 					CatalogStreamSummary streamSummary = currentCatalog.streamCatalog(JavaFileAcquisition.this);
 					if (streamSummary.endReason == CatalogStreamSummary.PROCESSSTOP && stopPressed == false) {
 						/*
@@ -311,7 +322,7 @@ public class JavaFileAcquisition extends TritechDaqSystem  implements CatalogStr
 		 * zero, but if there has been a restart after a gap, then it will
 		 * be non-zero and all records prior to that time should be ignored
 		 */
-		if (glfImage.getRecordTime() < restartFirstRecordTime) {
+		if (glfImage.getRecordTime() <= restartFirstRecordTime) {
 			return true;
 		}
 		

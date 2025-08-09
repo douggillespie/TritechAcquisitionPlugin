@@ -55,13 +55,16 @@ public class GLFRecorderProcess extends PamProcess {
 	public GLFRecorderProcess(GLFRecorderCtrl glfRecorderCtrl) {
 		super(glfRecorderCtrl, null);
 		this.recorderCtrl = glfRecorderCtrl;
-		dataBuffer = new ImageDataBlock(null);
-		finalBuffer = new ImageDataBlock(null);
+		dataBuffer = new ImageDataBlock(null, "GLF Recording Buffer");
+		finalBuffer = new ImageDataBlock(null, "GLF Record output");
 		finalBuffer.setNaturalLifetime(Integer.MAX_VALUE);
 		finalBuffer.addObserver(glfWriter = new GLFWriter(finalBuffer), true);
 		recorderDataBlock = new GLFRecorderDataBlock(glfRecorderCtrl, this);
 		recorderDataBlock.SetLogging(new GLFRecorderLogging(recorderCtrl, recorderDataBlock));
 		addOutputDataBlock(recorderDataBlock);
+		
+		addOutputDataBlock(dataBuffer);
+		addOutputDataBlock(finalBuffer);
 	}
 
 	@Override

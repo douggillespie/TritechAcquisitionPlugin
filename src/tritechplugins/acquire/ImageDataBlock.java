@@ -31,6 +31,11 @@ public class ImageDataBlock extends PamDataBlock<ImageDataUnit> {
 		this.tritechDaqProcess = parentProcess;
 	
 	}
+	public ImageDataBlock(TritechDaqProcess parentProcess, String blockName) {
+		super(ImageDataUnit.class, blockName, parentProcess, 0);
+		this.tritechDaqProcess = parentProcess;
+	
+	}
 
 //	@SuppressWarnings("unchecked")
 	@Override
@@ -91,6 +96,12 @@ public class ImageDataBlock extends PamDataBlock<ImageDataUnit> {
 		}
 		MultiFileCatalog fileCatalog = tritechOffline.getMultiFileCatalog();
 		return fileCatalog;		
+	}
+
+	@Override
+	public float getSampleRate() {
+		// TODO Auto-generated method stub
+		return 0;
 	}
 	
 //	/**

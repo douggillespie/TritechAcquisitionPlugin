@@ -18,7 +18,7 @@ public class SonarPanelProvider implements UserDisplayProvider {
 
 	@Override
 	public String getName() {
-		return "Sonar image display";
+		return "Gemini image display";
 	}
 
 	@Override
