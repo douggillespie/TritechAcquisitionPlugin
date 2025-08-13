@@ -258,6 +258,12 @@ public abstract class TritechDaqSystem {
 	public void newStatusPacket(GLFStatusData statusData) {
 		// m_sonarId and m_deviceId are the same thing. 
 		//			System.out.printf("Sonar id %d device id = %d\n", statusPacket.m_sonarId, statusPacket.m_deviceID);
+		boolean shouldLog = shouldLogStatus(statusData);
+		if (shouldLog) {
+			// this will only happen if the shutdownstatus in the packet has changed. 
+			tritechProcess.saveStatusData(statusData);
+		}
+		
 		SonarStatusData sonarStatusData = checkDeviceInfo(statusData);
 		
 		checkOutOfWater(statusData);
@@ -270,6 +276,29 @@ public abstract class TritechDaqSystem {
 			tritechProcess.getImageDataBlock().addPamData(imageDataUnit);
 		}
 	}
+	
+	/**
+	 * Should we log status data ? Will do this if the state has
+	 * changed or if the data are new new (at the start of a run). 
+	 * @param statusData
+	 * @return
+	 */
+	private boolean shouldLogStatus(GLFStatusData statusData) {
+		SonarStatusData previousStatus = findSonarStatusData(statusData.m_deviceID);
+		if (previousStatus == null) {
+			return true;
+		}
+		GLFStatusData prevState = previousStatus.getStatusPacket();
+		if (prevState == null) {
+			return true;
+		}
+		if (prevState.m_shutdownStatus != statusData.m_shutdownStatus) { // OOW and over temp flags
+			return true;
+		}	
+		
+		return false;
+	}
+
 	public void checkOutOfWater(GLFStatusData statusData) {
 		if (statusData == null) {
 			return;

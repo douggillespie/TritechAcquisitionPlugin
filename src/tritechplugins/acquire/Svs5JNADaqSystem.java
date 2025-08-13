@@ -207,6 +207,29 @@ abstract public class Svs5JNADaqSystem extends TritechDaqSystem {
 			tritechProcess.updateFileIndex(fileIndex);
 		}
 
+		@Override
+		public String getSoftwareName() {
+			// TODO Auto-generated method stub
+			return "Svs5 " + getLibVersionOnly();
+		}
+
+	}
+	
+	/**
+	 * Get only the library version. The standars string
+	 * also has the Copyright info, so remove that. 
+	 * @return
+	 */
+	public String getLibVersionOnly() {
+		String ver = getLibVersion();
+		if (ver == null) {
+			return null;
+		}
+		int cp = ver.indexOf("Copy");
+		if (cp > 0) {
+			ver = ver.substring(0, cp-2); // -1 because there was a CR before the "Copy"
+		}
+		return ver;
 	}
 
 	public String getLibVersion() {

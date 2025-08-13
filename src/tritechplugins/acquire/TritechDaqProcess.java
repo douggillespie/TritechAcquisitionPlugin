@@ -16,12 +16,16 @@ import javax.swing.Timer;
 import PamController.DataInputStore;
 import PamController.InputStoreInfo;
 import PamController.PamController;
+import PamUtils.PamCalendar;
 import PamUtils.worker.PamWorkMonitor;
 import PamguardMVC.PamProcess;
 import geminisdk.OutputFileInfo;
 import geminisdk.Svs5Exception;
 import geminisdk.structures.LoggerPlaybackUpdate;
+import tritechgemini.fileio.GLFCatalogCheck;
+import tritechgemini.fileio.GLFFileCatalog;
 import tritechgemini.fileio.GeminiFileCatalog;
+import tritechgemini.imagedata.GLFStatusData;
 import tritechplugins.acquire.swing.DaqDialog;
 
 /**
@@ -39,6 +43,7 @@ public class TritechDaqProcess extends PamProcess implements TritechRunMode, Con
 		
 	private ArrayList<SonarStatusObserver> statusObservers = new ArrayList();
 	
+	private SonarStatusDataBlock sonarStatusDataBlock;
 	/**
 	 * This is a variety of ways of getting data in - from real time using svs5 via JNA
 	 * to my own pure Java file reader. 
@@ -54,8 +59,12 @@ public class TritechDaqProcess extends PamProcess implements TritechRunMode, Con
 		this.tritechAcquisition = tritechAcquisition;
 		imageDataBlock = new ImageDataBlock(this);
 		addOutputDataBlock(imageDataBlock);
+		sonarStatusDataBlock = new SonarStatusDataBlock(this);
+		addOutputDataBlock(sonarStatusDataBlock);
+		sonarStatusDataBlock.SetLogging(new SonarStatusLogging(sonarStatusDataBlock));
 		
 		sortDaqSystem();
+		
 		
 		logCheckTimer = new Timer(5000, new ActionListener() {
 			@Override
@@ -184,6 +193,7 @@ public class TritechDaqProcess extends PamProcess implements TritechRunMode, Con
 			tritechDaqSystem.start();
 		}
 		logCheckTimer.start();
+		logCurrentStatus();
 	}
 
 	@Override
@@ -194,6 +204,7 @@ public class TritechDaqProcess extends PamProcess implements TritechRunMode, Con
 		if (tritechDaqSystem != null) {
 			tritechDaqSystem.stop();
 		}
+		logCurrentStatus();
 	}
 
 	/**
@@ -399,6 +410,40 @@ public class TritechDaqProcess extends PamProcess implements TritechRunMode, Con
 	public boolean shouldLogging() {
 		TritechDaqParams daqParams = tritechAcquisition.getDaqParams();
 		return pamStarted && daqParams.isStoreGLFFiles() && daqParams.getRunMode() == TritechDaqParams.RUN_ACQUIRE;
+	}
+	
+	/**
+	 * Log whatever the current sonar status is (if it exists)
+	 * called from pamStart and pamStop
+	 */
+	private void logCurrentStatus() {
+		// do for all existing sonars.
+		if (tritechDaqSystem == null) {
+			return;
+		}
+		int[] sonarIds = tritechDaqSystem.getSonarIDs();
+		if (sonarIds == null) {
+			return;
+		}
+		for (int i = 0; i < sonarIds.length; i++) {
+			SonarStatusData status = tritechDaqSystem.getSonarStatusData(sonarIds[i]);
+			saveStatusData(status.getStatusPacket());
+		}
+	}
+	/**
+	 * Save status data to database (i.e. put it in data unit and datablock
+	 * and it will automatically save). 
+	 * @param statusData
+	 */
+	public void saveStatusData(GLFStatusData statusData) {
+		if (statusData == null) {
+			return;
+		}
+////		long millis = GLFFileCatalog.cDateToMillis(statusData.m_fpgaTime);
+//		long millis = PamCalendar.getTimeInMillis();
+		long millis = GLFFileCatalog.cDateToMillis(statusData.genericHeader.m_timestamp);
+		SonarStatusDataUnit ssdu = new SonarStatusDataUnit(millis, pamStarted, statusData);
+		sonarStatusDataBlock.addPamData(ssdu);
 	}
 
 	public void updateFrameRate(int frameRate, double trueFPS) {

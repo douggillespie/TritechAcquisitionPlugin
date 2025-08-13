@@ -11,6 +11,7 @@ import PamguardMVC.PamDataUnit;
 import PamguardMVC.PamObservable;
 import PamguardMVC.PamObserverAdapter;
 import PamguardMVC.PamProcess;
+import PamguardMVC.ThreadedObserver;
 import PamguardMVC.dataSelector.DataSelector;
 import difar.DifarParameters.DifarTriggerParams;
 import tritechgemini.imagedata.GLFImageRecord;
@@ -48,6 +49,9 @@ public class GLFRecorderProcess extends PamProcess {
 
 	private long recordEndTime;
 
+	/**
+	 * GLF Recorder bookkeeping
+	 */
 	private GLFRecorderDataBlock recorderDataBlock;
 
 	private GLFRecorderDataUnit currentDataUnit;
@@ -59,6 +63,10 @@ public class GLFRecorderProcess extends PamProcess {
 		finalBuffer = new ImageDataBlock(null, "GLF Record output");
 		finalBuffer.setNaturalLifetime(Integer.MAX_VALUE);
 		finalBuffer.addObserver(glfWriter = new GLFWriter(finalBuffer), true);
+		ThreadedObserver threadObs = finalBuffer.findThreadedObserver(glfWriter);
+		if (threadObs != null) {
+//			threadObs.setMaxJitter(30000);
+		}
 		recorderDataBlock = new GLFRecorderDataBlock(glfRecorderCtrl, this);
 		recorderDataBlock.SetLogging(new GLFRecorderLogging(recorderCtrl, recorderDataBlock));
 		addOutputDataBlock(recorderDataBlock);
