@@ -88,6 +88,29 @@ public class ImageDataBlock extends PamDataBlock<ImageDataUnit> {
 		
 		return true;
 	}
+	
+	/**
+	 * Get a count of the number of units with images and 
+	 * the number with status data. Do together so only 
+	 * have to go through the array once. 
+	 * @return 2 element array with number of images and number of status 
+	 */
+	public int[] getImageTypesCount() {
+		int[] data = new int[2];
+		synchronized (getSynchLock()) {
+			ListIterator<ImageDataUnit> it = getListIterator(0);
+			while (it.hasNext()) {
+				ImageDataUnit u = it.next();
+				if (u.getGeminiImage() != null) {
+					data[0]++;
+				}
+				else {
+					data[1]++;
+				}
+			}
+		}
+		return data;
+	}
 
 	public MultiFileCatalog findFileCatalog() {
 		TritechOffline tritechOffline = tritechDaqProcess.getTritechAcquisition().getTritechOffline();

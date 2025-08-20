@@ -3,14 +3,14 @@ package tritechplugins.record;
 public class BufferState {
 
 	private long firstTime, lastTime;
-	private int nImage;
+	private int[] typesCount;
 	private int bufferSeconds;
 	
-	public BufferState(long firstTime, long lastTime, int nImage, int bufferSeconds) {
+	public BufferState(long firstTime, long lastTime, int[] typesCount, int bufferSeconds) {
 		super();
 		this.firstTime = firstTime;
 		this.lastTime = lastTime;
-		this.nImage = nImage;
+		this.typesCount = typesCount;
 		this.bufferSeconds = bufferSeconds;
 	}
 	
@@ -33,6 +33,13 @@ public class BufferState {
 		double p = getBufferedSeconds() / (double) bufferSeconds * 100;
 		p = Math.min(p,  100);
 		return p;
+	}
+
+	/**
+	 * @return the typesCount
+	 */
+	public int[] getTypesCount() {
+		return typesCount;
 	}
 	
 

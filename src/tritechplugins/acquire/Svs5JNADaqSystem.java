@@ -60,6 +60,12 @@ abstract public class Svs5JNADaqSystem extends TritechDaqSystem {
 		long ans1 = gSerialiser.svs5StartSvs5(geminiCallback = new GeminiCallback());
 
 //		try {
+//			Thread.sleep(2000);
+//		} catch (InterruptedException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
+//		try {
 
 			setOnline(false, 0);
 //			Boolean isOn1 = getOnline(0);
@@ -158,6 +164,20 @@ abstract public class Svs5JNADaqSystem extends TritechDaqSystem {
 
 		@Override
 		public void newStatusPacket(GLFStatusData statusData) {
+			/*
+			 * If this is the first time a status packet arrives for a sonar
+			 * we probably want to send it a stop, since they seem to start
+			 * up in go mode with latest SVS5 library. 
+			 */
+			SonarStatusData exStat = getSonarStatusData(statusData.m_deviceID);
+			if (exStat == null) {
+				setOnline(false, statusData.m_deviceID);
+				/*
+				 *  also need to shout that we have a new sonar to rebuild list of in use
+				 *  devices
+				 */
+//				newSonar(exStat);
+			}
 			
 			Svs5JNADaqSystem.this.newStatusPacket(statusData);
 			// m_sonarId and m_deviceId are the same thing. 
@@ -266,7 +286,7 @@ abstract public class Svs5JNADaqSystem extends TritechDaqSystem {
 			return;
 		}
 		long gapTime = System.currentTimeMillis() - sonarStatusData.lastImageTime;
-		if (gapTime > 5000 && System.currentTimeMillis() - sonarStatusData.lastReboot > 60000) {
+		if (gapTime > 5000 && System.currentTimeMillis() - sonarStatusData.lastReboot > 120000) {
 			// we've gone five seconds without receiving any data, so reboot and haven't rebooted for > 1 minute
 			System.out.printf("%s: No data received from sonar %d in %3.1f seconds. Reboot it\n", 
 					PamCalendar.formatDBDateTime(System.currentTimeMillis()),
@@ -321,6 +341,13 @@ abstract public class Svs5JNADaqSystem extends TritechDaqSystem {
 	}
 
 
+	/**
+	 * Set the device range in metres
+ 	 * @param range range in metres
+	 * @param deviceId device id or 0 for all devices. 
+	 * @return 0 on success, or an error code. 
+	 * @throws Svs5Exception
+	 */
 	public int setRange(int range, int deviceId) throws Svs5Exception {
 		GeminiRange rangeObj = new GeminiRange(range);
 		int err = 0;
@@ -344,6 +371,13 @@ abstract public class Svs5JNADaqSystem extends TritechDaqSystem {
 		return rangeObj.range;
 	}
 	
+	/**
+	 * Set the chirp mode. 0, 1 or 2
+	 * @param chipMode ChirpMode.CHIRP_DISABLED, ChirpMode.CHIRP_ENABLED or ChirpMode.CHIRP_AUTO
+	 * @param deviceId device id or 0 for all devices. 
+	 * @return
+	 * @throws Svs5Exception
+	 */
 	public int setChirpMode(int chipMode, int deviceId) throws Svs5Exception {
 
 		if (svs5Commands == null) {
@@ -357,6 +391,13 @@ abstract public class Svs5JNADaqSystem extends TritechDaqSystem {
 		return err;
 	}
 	
+	/**
+	 * Set the device gain
+	 * @param gain 0 to 100
+	 * @param deviceId device id or 0 for all devices. 
+	 * @return
+	 * @throws Svs5Exception
+	 */
 	public int setGain(int gain, int deviceId) throws Svs5Exception {
 		if (svs5Commands == null) {
 			return 0;
@@ -386,22 +427,23 @@ abstract public class Svs5JNADaqSystem extends TritechDaqSystem {
 	 * @throws Svs5Exception 
 	 */
 	public long setFileLocation(String filePath) throws Svs5Exception {
-		//		GemFileLocation gemLoc = new GemFileLocation(filePath);
-		//		long err = svs5Commands.setConfiguration(gemLoc, 0);
-		//		return err;
-		//		return 0;
 		if (svs5Commands == null) {
 			return 0;
 		}
 		return svs5Commands.sendStringCommand(GeminiStructure.SVS5_CONFIG_FILE_LOCATION, filePath, 0);
-//		return 0;
 	}
 	
+	/**
+	 * Set recording to GLF files on or off. 
+	 * @param record true or false
+	 * @return
+	 * @throws Svs5Exception
+	 */
 	public long setConfigRecord(boolean record) throws Svs5Exception {
 		if (svs5Commands == null) {
 			return 0;
 		}
-		System.out.println(" **************** Set config record = " + record);
+//		System.out.println(" **************** Set config record = " + record);
 		return svs5Commands.setBoolCommand(GeminiStructure.SVS5_CONFIG_REC, record, 0);
 	}
 
@@ -438,6 +480,7 @@ abstract public class Svs5JNADaqSystem extends TritechDaqSystem {
 	 * @throws Svs5Exception 
 	 */
 	public long setRecord(boolean record) throws Svs5Exception {
+//		System.out.println("Set SVS5 recording to " + record);
 		GemRecord gemRecord = new GemRecord(record);
 		long err = svs5Commands.setConfiguration(gemRecord, 0);
 		return err;

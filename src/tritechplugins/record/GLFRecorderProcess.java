@@ -101,14 +101,15 @@ public class GLFRecorderProcess extends PamProcess {
 		long firstTime = 0, lastTime = 0;
 		ImageDataUnit fu = dataBuffer.getFirstUnit();
 		ImageDataUnit lu = dataBuffer.getLastUnit();
-		int nu = dataBuffer.getUnitsCount();
-		if (fu != null && lu != null && nu > 0) {
+		int[] typesCount = dataBuffer.getImageTypesCount();
+//		int nu = dataBuffer.getUnitsCount();
+		if (fu != null && lu != null) {
 			firstTime = fu.getTimeMilliseconds();
 			lastTime = lu.getTimeMilliseconds();
 		}
 		GLFRecorderParams params = recorderCtrl.getRecorderParams();
 
-		return new BufferState(firstTime, lastTime, nu, params.bufferSeconds);		
+		return new BufferState(firstTime, lastTime, typesCount, params.bufferSeconds);		
 	}
 
 	/**

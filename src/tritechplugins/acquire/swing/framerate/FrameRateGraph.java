@@ -5,7 +5,10 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.event.MouseEvent;
+import java.awt.font.LineMetrics;
+import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Set;
@@ -77,6 +80,17 @@ public class FrameRateGraph {
 		
 	}
 	
+	/**
+	 * Set the range of the y axis. 
+	 * @param min
+	 * @param max
+	 */
+	public void setYRange(double min, double max) {
+		yAxis.setRange(min, max);
+		graphAxis.repaint();
+		graphPlot.repaint();
+	}
+	
 	private class GraphPlotPanel extends PamPanel {
 
 		public GraphPlotPanel() {
@@ -104,10 +118,11 @@ public class FrameRateGraph {
 			long prevT = dataCopy.get(0).getTimeMilliseconds();
 			int prevX=-1, prevY=-1;
 			g.setColor(PamColors.getInstance().getWhaleColor(0));
+			double dt = 0;
 			for (int i = 1; i < dataCopy.size(); i++) {
 				long t = dataCopy.get(i).getTimeMilliseconds();
 				int x = (int) xAxis.getPosition((t-lastT)/1000.);
-				double dt = (t-prevT)/1000.;
+				dt = (t-prevT)/1000.;
 				int y = (int) yAxis.getPosition(dt);
 				if (prevX >= 0) {
 					g.drawLine(prevX, prevY, x, y);
@@ -115,6 +130,15 @@ public class FrameRateGraph {
 				prevX = x;
 				prevY = y;
 				prevT = t;
+			}
+			
+			FontMetrics fm = g.getFontMetrics();
+			int fh = fm.getHeight();
+			
+			if (dt > 0) {
+				String fpr = String.format("%3.1f fps ", 1.0/dt);
+				Rectangle2D sBounds = fm.getStringBounds(fpr, g);
+				g.drawString(fpr, (int) (getWidth()-sBounds.getWidth()), (int) sBounds.getHeight());
 			}
 			
 			if (sonarIdVals.size() == 1) {
@@ -133,7 +157,7 @@ public class FrameRateGraph {
 					}
 					long t = dataCopy.get(i).getTimeMilliseconds();
 					int x = (int) xAxis.getPosition((t-lastT)/1000.);
-					double dt = (t-prevT)/1000.;
+					dt = (t-prevT)/1000.;
 					int y = (int) yAxis.getPosition(dt);
 					if (prevX >= -100 & prevY > -getHeight()) {
 						g.drawLine(prevX, prevY, x, y);
@@ -145,8 +169,6 @@ public class FrameRateGraph {
 			}
 			
 			// and draw a simple key in the top rh corner. 
-			FontMetrics fm = g.getFontMetrics();
-			int fh = fm.getHeight();
 			int lineLen = fm.getMaxAdvance()*4;
 			int y = fh;
 			g.setColor(PamColors.getInstance().getWhaleColor(0));

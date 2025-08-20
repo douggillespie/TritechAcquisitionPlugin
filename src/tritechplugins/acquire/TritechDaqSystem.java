@@ -284,7 +284,7 @@ public abstract class TritechDaqSystem {
 	 * @return
 	 */
 	private boolean shouldLogStatus(GLFStatusData statusData) {
-		SonarStatusData previousStatus = findSonarStatusData(statusData.m_deviceID);
+		SonarStatusData previousStatus = getSonarStatusData(statusData.m_deviceID);
 		if (previousStatus == null) {
 			return true;
 		}
@@ -307,10 +307,24 @@ public abstract class TritechDaqSystem {
 		if (statusData.isOutOfWater() != opsData.outOfWater) {
 			opsData.outOfWater = statusData.isOutOfWater();
 //			System.out.println("OOW is " + opsData.outOfWater);
+			oowStateChange(statusData);
 			sayOOWWarning();
 		}
 	}
 
+	/**
+	 * Called when the OOW state for a device changes. 
+	 * @param statusData
+	 */
+	public void oowStateChange(GLFStatusData statusData) {
+		String shutStat = statusData.getShutdownError();
+		if (shutStat == null) {
+			System.out.printf("Sonar %d shutdown status has been cleared\n", statusData.m_deviceID);
+		}
+		else {
+			System.out.printf("Sonar %d shutdown status is %s\n", statusData.m_deviceID, shutStat);
+		}
+	}
 
 	private void sayOOWWarning() {
 		int nOOW = 0;
