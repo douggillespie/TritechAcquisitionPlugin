@@ -41,7 +41,7 @@ abstract public class Svs5JNADaqSystem extends TritechDaqSystem {
 	protected Svs5Commands svs5Commands;
 
 	private String lastFileName = "";
-
+	
 	public Svs5JNADaqSystem(TritechAcquisition tritechAcquisition, TritechDaqProcess tritechProcess) {
 		super(tritechAcquisition, tritechProcess);
 		geminiCallback = new GeminiCallback();
@@ -184,7 +184,7 @@ abstract public class Svs5JNADaqSystem extends TritechDaqSystem {
 			//			System.out.printf("Sonar id %d device id = %d\n", statusPacket.m_sonarId, statusPacket.m_deviceID);
 			SonarStatusData sonarStatusData = checkDeviceInfo(statusData);
 			
-			checkOutOfWater(statusData);
+			checkOutOfWater(sonarStatusData);
 			
 			if (sonarStatusData != null) {
 //				tritechProcess.updateStatusData(sonarStatusData);
@@ -282,11 +282,18 @@ abstract public class Svs5JNADaqSystem extends TritechDaqSystem {
 //			System.out.println("No need to reboot sonar " + sonarStatusData.getDeviceId());
 			return;
 		}
+		int pingInterval = tritechAcquisition.getDaqParams().getManualPingInterval();
+		long maxGap = pingInterval*100;
+		OpsSonarStatusData opsData = getOpsSonarStatusData(sonarStatusData.getDeviceId());
 		if (isOOW(sonarStatusData)) {
 			return;
 		}
+		if (System.currentTimeMillis() - opsData.getLastShutdownEerrTime() < maxGap) {
+			// don't reboot immediately after an OOW. 
+			return;
+		}
 		long gapTime = System.currentTimeMillis() - sonarStatusData.lastImageTime;
-		if (gapTime > 5000 && System.currentTimeMillis() - sonarStatusData.lastReboot > 120000) {
+		if (gapTime > maxGap && System.currentTimeMillis() - sonarStatusData.lastReboot > 120000) {
 			// we've gone five seconds without receiving any data, so reboot and haven't rebooted for > 1 minute
 			System.out.printf("%s: No data received from sonar %d in %3.1f seconds. Reboot it\n", 
 					PamCalendar.formatDBDateTime(System.currentTimeMillis()),
