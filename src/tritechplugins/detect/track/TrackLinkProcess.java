@@ -19,6 +19,8 @@ import tritechplugins.detect.threshold.RegionDataUnit;
 import tritechplugins.detect.threshold.ThresholdDetector;
 import tritechplugins.detect.threshold.ThresholdProcess;
 import tritechplugins.detect.threshold.background.ThresholdBackgroundManager;
+import tritechplugins.detect.threshold.stats.DetStatsDataBlock;
+import tritechplugins.detect.threshold.stats.DetStatsLogging;
 import tritechplugins.detect.track.dataselect.TrackDataSelectCreator;
 import tritechplugins.display.swing.overlays.TrackSymbolManager;
 
@@ -74,6 +76,8 @@ public class TrackLinkProcess extends PamProcess implements PamSettings {
 //	private ManualAnnotationHandler annotationHandler;
 
 	private TrackLogging trackLogging;
+
+private DetStatsDataBlock detStatsDataBlock;
 	
 	private static final String defaultName = "Gemini Tracks";
 
@@ -91,6 +95,12 @@ public class TrackLinkProcess extends PamProcess implements PamSettings {
 		trackLinkDataBlock.setPamSymbolManager(new TrackSymbolManager(trackLinkDataBlock));
 		trackLinkDataBlock.setBackgroundManager(new ThresholdBackgroundManager(this, trackLinkDataBlock));
 		addOutputDataBlock(trackLinkDataBlock);
+
+		if (DetStatsDataBlock.DETSTATAINTERVAL > 0) {
+			detStatsDataBlock = new DetStatsDataBlock(this);
+			detStatsDataBlock.SetLogging(new DetStatsLogging(detStatsDataBlock, thresholdDetector.getUnitName()+"_stats"));
+			addOutputDataBlock(detStatsDataBlock);
+		}
 		
 		PamSettingManager.getInstance().registerSettings(this);
 	}
@@ -142,9 +152,9 @@ public class TrackLinkProcess extends PamProcess implements PamSettings {
 //		trackLinker.newData(regionDataUnit);
 //	}
 
-	public void newRegionsList(int sonarId, long imageTime, List<DetectedRegion> regions) {
+	public int newRegionsList(int sonarId, long imageTime, List<DetectedRegion> regions) {
 		TrackLinker trackLinker = findTrackLinker(sonarId);
-		trackLinker.newImageRegions(imageTime, regions);
+		return trackLinker.newImageRegions(imageTime, regions);
 	}
 	
 	private TrackLinker findTrackLinker(int sonarId) {
@@ -162,6 +172,10 @@ public class TrackLinkProcess extends PamProcess implements PamSettings {
 			}
 			return singleLinker;
 		}
+	}
+
+	public DetStatsDataBlock getDetStatsDataBlock() {
+		return detStatsDataBlock;
 	}
 
 	@Override

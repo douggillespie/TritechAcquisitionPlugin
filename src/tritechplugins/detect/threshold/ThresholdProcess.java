@@ -14,6 +14,8 @@ import tritechplugins.acquire.ImageDataBlock;
 import tritechplugins.acquire.ImageDataUnit;
 import tritechplugins.detect.swing.RegionOverlayDraw;
 import tritechplugins.detect.threshold.dataselect.RegionDataSelectorCreator;
+import tritechplugins.detect.threshold.stats.DetStatsDataBlock;
+import tritechplugins.detect.threshold.stats.DetStatsLogging;
 import tritechplugins.detect.track.TrackLinkProcess;
 import tritechplugins.display.swing.overlays.SonarSymbolManager;
 
@@ -158,5 +160,6 @@ public class ThresholdProcess extends PamProcess {
 	public RegionDataBlock getRegionDataBlock() {
 		return regionDataBlock;
 	}
+
 	
 }

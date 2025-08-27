@@ -61,7 +61,8 @@ public class GLFRecorderProcess extends PamProcess {
 		this.recorderCtrl = glfRecorderCtrl;
 		dataBuffer = new ImageDataBlock(null, "GLF Recording Buffer");
 		finalBuffer = new ImageDataBlock(null, "GLF Record output");
-		finalBuffer.setNaturalLifetime(Integer.MAX_VALUE);
+		dataBuffer.setNaturalLifetime(3600);
+		finalBuffer.setNaturalLifetime(3600);
 		finalBuffer.addObserver(glfWriter = new GLFWriter(finalBuffer), true);
 		ThreadedObserver threadObs = finalBuffer.findThreadedObserver(glfWriter);
 		if (threadObs != null) {
