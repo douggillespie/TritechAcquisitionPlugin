@@ -12,13 +12,15 @@ public class DetStatsDataUnit extends PamDataUnit{
 	private int regionCount;
 	private int trackCount;
 	private int nFrame;
+	private int usedRegionCount;
 
-	public DetStatsDataUnit(long timeMilliseconds, int sonarId, long currentTime, int nFrame, int regionCount, int trackCount) {
+	public DetStatsDataUnit(long timeMilliseconds, int sonarId, long currentTime, int nFrame, int regionCount, int usedRegionCount, int trackCount) {
 		super(timeMilliseconds);
 		setChannelBitmap(sonarId);
 		setDurationInMilliseconds(currentTime-timeMilliseconds);
 		this.nFrame = nFrame;
 		this.regionCount = regionCount;
+		this.usedRegionCount = usedRegionCount;
 		this.trackCount = trackCount;
 	}
 
@@ -32,6 +34,10 @@ public class DetStatsDataUnit extends PamDataUnit{
 
 	public int getnFrame() {
 		return nFrame;
+	}
+
+	public int getUsedRegionCount() {
+		return usedRegionCount;
 	}
 
 }

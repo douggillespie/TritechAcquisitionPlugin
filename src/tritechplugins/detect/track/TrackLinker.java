@@ -30,6 +30,7 @@ public class TrackLinker {
 	
 	// some stuff for stats
 	int regionCount;
+	int usedRegionCount;
 	int trackCount;
 	long lastStatsUpdate;
 	private int nFrame;
@@ -51,9 +52,9 @@ public class TrackLinker {
 				lastStatsUpdate = currentTime;
 			}
 			if (currentTime > lastStatsUpdate + DetStatsDataBlock.DETSTATAINTERVAL) {
-				DetStatsDataUnit dsdu = new DetStatsDataUnit(lastStatsUpdate, sonarId, currentTime, nFrame, regionCount, trackCount);
+				DetStatsDataUnit dsdu = new DetStatsDataUnit(lastStatsUpdate, sonarId, currentTime, nFrame, regionCount, usedRegionCount, trackCount);
 				trackLinkProcess.getDetStatsDataBlock().addPamData(dsdu);
-				trackCount = regionCount = nFrame = 0;
+				trackCount = regionCount = usedRegionCount = nFrame = 0;
 				lastStatsUpdate = currentTime;
 			}
 		}
@@ -247,6 +248,7 @@ public class TrackLinker {
 //			}
 //		}
 		TrackLinkDataUnit trackDataUnit = chain.getParentDataUnit();
+		usedRegionCount += chain.getChainLength();
 		trackDataUnit.setEmbryonic(false);
 		trackDataBlock.updatePamData(trackDataUnit, trackDataUnit.getEndTimeInMilliseconds());
 		
