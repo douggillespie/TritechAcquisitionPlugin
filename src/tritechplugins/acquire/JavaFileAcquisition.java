@@ -236,8 +236,16 @@ public class JavaFileAcquisition extends TritechDaqSystem  implements CatalogStr
 			if (fileList == null) {
 				return 0;
 			}
+			long lastFileStart = 0;
 			while (currentFile < fileList.length && continueStream) {
-				JavaFileStatus fileStatus = new JavaFileStatus(fileList.length, currentFile, fileList[currentFile]);
+				long now = System.currentTimeMillis();
+				long remTime = 0; // remaining time to complete processing. 
+				if (currentFile > 0 & lastFileStart > 0) {
+					remTime = (fileList.length-currentFile)*(now-lastFileStart);
+				}
+				
+				JavaFileStatus fileStatus = new JavaFileStatus(fileList.length, currentFile, fileList[currentFile], processingRate, remTime);
+				lastFileStart = now;
 				this.publish(fileStatus);
 
 //				try {
@@ -315,9 +323,46 @@ public class JavaFileAcquisition extends TritechDaqSystem  implements CatalogStr
 	}
 	
 	int gapCount = 0;
+	
+	/**
+	 * bodge to only use every other frame for some tests. 
+	 */
+//	private boolean send = false;
+
+	/**
+	 * Last real time clock time of a record
+	 */
+	private long lastRecordNow;
+	private int fileRecordCount = 0;
+
+	/**
+	 * Running average processing rate.
+	 */
+	private double processingRate;
  
 	@Override
 	public boolean newImageRecord(GeminiImageRecordI glfImage) {
+
+		// bodge to send / use only every other frame
+//		send = !send;
+//		if (!send) {
+//			return true;
+//		}
+		/*
+		 * Do some bookkeeping on analysis rate.
+		 */
+		long now = System.currentTimeMillis();
+		if (lastRecordTime != null) {
+			double dataGap = glfImage.getRecordTime() - lastRecordTime;
+			if (dataGap > 0 && dataGap < 5000) {
+				double realGap = now - lastRecordNow; 
+				double rate = dataGap / realGap;
+//				System.out.printf("Real gap %3.1f, dataGap %3.1f\n", realGap, dataGap);
+				processingRate = processingRate + (rate-processingRate) / 10.;
+			}
+		}
+		lastRecordNow = now;
+		fileRecordCount++;
 		/*
 		 * Check the restartFirstRecordTime value. This will mostly be
 		 * zero, but if there has been a restart after a gap, then it will
@@ -326,6 +371,7 @@ public class JavaFileAcquisition extends TritechDaqSystem  implements CatalogStr
 		if (glfImage.getRecordTime() <= restartFirstRecordTime) {
 			return true;
 		}
+		
 		
 		/*
 		 *  see if there is a bit gap between this and the last record which may be
@@ -409,8 +455,9 @@ public class JavaFileAcquisition extends TritechDaqSystem  implements CatalogStr
 		long elapsedMills = now - lastCallbackTime;
 		int delay = 0;
 		if (interFrameMillis > elapsedMills * speed) {
-			delay = (int) (interFrameMillis/speed-elapsedMills);
+			delay = (int) Math.round(interFrameMillis/speed-elapsedMills);
 			delay = Math.min(1000, delay);
+//			System.out.println("Delay: " + delay);
 			if (delay > 0) {
 				try {
 					Thread.sleep(delay);

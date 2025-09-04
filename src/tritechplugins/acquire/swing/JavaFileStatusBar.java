@@ -13,6 +13,7 @@ import javax.swing.JPanel;
 import javax.swing.border.BevelBorder;
 import javax.swing.border.EtchedBorder;
 
+import PamUtils.PamCalendar;
 import PamView.dialog.PamLabel;
 import PamView.panel.PamPanel;
 import tritechplugins.acquire.JavaFileAcquisition;
@@ -27,6 +28,7 @@ public class JavaFileStatusBar implements SonarDisplayDecoration, JavaFileObserv
 	private JPanel mainPanel, leftPanel;
 	private JLabel fileNumber, fileName;
 	private JComboBox<String> playSpeed;
+	private JLabel processRate;
 	
 	private double[] playSpeeds = TritechDaqParams.playSpeeds;
 	
@@ -45,6 +47,7 @@ public class JavaFileStatusBar implements SonarDisplayDecoration, JavaFileObserv
 
 		mainPanel.add(new PamLabel(" Play speed "));
 		mainPanel.add(playSpeed = new JComboBox<>());
+		mainPanel.add(processRate = new JLabel());
 		int selInd = 0;
 		TritechDaqParams params = tritechAcquisition.getDaqParams();
 		for (int i = 0; i < playSpeeds.length; i++) {
@@ -68,6 +71,12 @@ public class JavaFileStatusBar implements SonarDisplayDecoration, JavaFileObserv
 		
 		javaFileAcquisition.addObserver(this);
 		leftPanel.setBorder(BorderFactory.createEtchedBorder(EtchedBorder.LOWERED));
+		
+		fileNumber.setToolTipText("Current raw data file");
+		fileName.setToolTipText("Current raw data file");
+		playSpeed.setToolTipText("Data analysis speed (maximum)");
+		processRate.setToolTipText("Current processing rate and estimated finish date");
+		
 	}
 
 	protected void newPlaySpeed() {
@@ -93,6 +102,11 @@ public class JavaFileStatusBar implements SonarDisplayDecoration, JavaFileObserv
 		}
 		fileNumber.setText(String.format("File %d of %d ", javaFileStatus.getCurrentFile()+1, javaFileStatus.getnFiles()));
 		fileName.setText(javaFileStatus.getFileName());
+		if (javaFileStatus.getProcessingRate() > 0) {
+			long eta = System.currentTimeMillis() + javaFileStatus.getRemainingTime();
+			String etaStr = PamCalendar.formatLocalDateTime2(eta);
+			processRate.setText(String.format(" %3.1f x RT, ETA %s local time", javaFileStatus.getProcessingRate(), etaStr));
+		}
 	}
 
 }

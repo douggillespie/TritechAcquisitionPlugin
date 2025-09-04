@@ -50,6 +50,7 @@ public class TrackLinker {
 		if (DetStatsDataBlock.DETSTATAINTERVAL > 0) {
 			if (lastStatsUpdate == 0) {
 				lastStatsUpdate = currentTime;
+				trackCount = regionCount = usedRegionCount = nFrame = 0;
 			}
 			if (currentTime > lastStatsUpdate + DetStatsDataBlock.DETSTATAINTERVAL) {
 				DetStatsDataUnit dsdu = new DetStatsDataUnit(lastStatsUpdate, sonarId, currentTime, nFrame, regionCount, usedRegionCount, trackCount);
