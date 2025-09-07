@@ -421,7 +421,7 @@ public class TritechDaqProcess extends PamProcess implements TritechRunMode, Con
 		if (tritechDaqSystem == null) {
 			return;
 		}
-		int[] sonarIds = tritechDaqSystem.getSonarIDs();
+		int[] sonarIds = tritechDaqSystem.getSonarIds();
 		if (sonarIds == null) {
 			return;
 		}

@@ -173,18 +173,6 @@ public abstract class TritechDaqSystem {
 		}
 	}
 	
-	public int[] getSonarIds() {
-		synchronized (deviceInfo) {
-			Collection<SonarStatusData> sonarValues = deviceInfo.values();
-			int[] ids = new int[sonarValues.size()];
-			int i = 0;
-			for (SonarStatusData val : sonarValues) {
-				ids[i++] = val.getDeviceId();
-			}
-			return ids;
-		}
-	}
-	
 	/**
 	 * finds sonar status data and creates if necessary
 	 * @param sonarId
@@ -333,7 +321,7 @@ public abstract class TritechDaqSystem {
 
 	private void sayOOWWarning() {
 		int nOOW = 0;
-		int[] sonars = getSonarIDs();
+		int[] sonars = getSonarIds();
 		String warning = "";
 		for (int i = 0; i < sonars.length; i++) {
 			OpsSonarStatusData opsData = getOpsSonarStatusData(sonars[i]);
@@ -364,16 +352,28 @@ public abstract class TritechDaqSystem {
 //			System.out.println("Shutdown warning displayed");
 		}
 	}
-	public int[] getSonarIDs() {
-		// could probably actually use the keys since the sonar id's are the keys in the hash table.
-		Collection<SonarStatusData> devs = deviceInfo.values();
-		int n = devs.size();
-		int[] ids = new int[n];
-		int i = 0;
-		for (SonarStatusData sd : devs) {
-			ids[i++] = sd.getStatusPacket().m_deviceID;
+	public int[] getSonarIds() {
+		synchronized (deviceInfo) {
+			Collection<SonarStatusData> sonarValues = deviceInfo.values();
+			int[] ids = new int[sonarValues.size()];
+			int i = 0;
+			for (SonarStatusData val : sonarValues) {
+				ids[i++] = val.getDeviceId();
+			}
+			return ids;
 		}
-		return ids;
 	}
+
+//	public int[] getSonarIDs() {
+//		// could probably actually use the keys since the sonar id's are the keys in the hash table.
+//		Collection<SonarStatusData> devs = deviceInfo.values();
+//		int n = devs.size();
+//		int[] ids = new int[n];
+//		int i = 0;
+//		for (SonarStatusData sd : devs) {
+//			ids[i++] = sd.getStatusPacket().m_deviceID;
+//		}
+//		return ids;
+//	}
 
 }

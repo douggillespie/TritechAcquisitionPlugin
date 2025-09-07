@@ -4,6 +4,9 @@ import java.awt.Frame;
 import java.awt.Window;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Set;
+import java.util.TreeSet;
 
 import javax.swing.JMenuItem;
 
@@ -285,5 +288,36 @@ public class TritechAcquisition extends RawInputControlledUnit implements PamSet
 		}
 		return daqSidePanel;
 	}
+
+//	/**
+//	 * Get a set of current sonar id's being used in this configuration. This may be
+//	 * because they appear in a GLF catalog, or in the binary data map. 
+//	 * @return the currentSonarIds
+//	 */
+//	public Set<Integer> getCurrentSonarIds() {
+//		return currentSonarIds;
+//	}
+//	
+//	/**
+//	 * Add a sonar id to the map of sonar id's. 
+//	 * @param sonarId
+//	 */
+//	public void addSonarId(int sonarId) {
+//		currentSonarIds.add(sonarId);
+//	}
+//	
+//	/**
+//	 * Rebuild the map of sonar id's. 
+//	 */
+//	public void rebuildSonarIds() {
+//		currentSonarIds.clear();
+//		TritechDaqSystem daqSystem = tritechDaqProcess.getTritechDaqSystem();
+//		if (daqSystem != null) {
+//			int[] sonarIds = daqSystem.getSonarIds();
+//			for (int i = 0; i < sonarIds.length; i++) {
+//				addSonarId(sonarIds[i]);
+//			}
+//		}
+//	}
 
 }

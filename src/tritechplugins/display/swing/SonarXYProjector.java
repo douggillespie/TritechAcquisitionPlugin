@@ -17,9 +17,7 @@ import tritechgemini.imagedata.GeminiImageRecordI;
  */
 public class SonarXYProjector extends GeneralProjector {
 
-	private int imageIndex;
-	private int sonarID;
-	private SonarsPanel sonarsPanel;
+	private SonarImagePanel imagePanel;
 //	private Rectangle rectangle;
 	private GeminiImageRecordI imageRecord;
 //	private boolean flipImage = false;
@@ -27,10 +25,8 @@ public class SonarXYProjector extends GeneralProjector {
 
 	public static final ParameterType[] requiredParams = {ParameterType.X, ParameterType.Y};
 	
-	public SonarXYProjector(SonarsPanel sonarsPanel, int imageIndex, int sonarID) {
-		this.sonarsPanel = sonarsPanel;
-		this.imageIndex = imageIndex;
-		this.sonarID = sonarID;
+	public SonarXYProjector(SonarImagePanel imagePanel) {
+		this.imagePanel = imagePanel;
 	}
 
 	@Override
@@ -136,14 +132,7 @@ public class SonarXYProjector extends GeneralProjector {
 	 * @return the sonarID
 	 */
 	public int getSonarID() {
-		return sonarID;
-	}
-
-	/**
-	 * @param sonarID the sonarID to set
-	 */
-	public void setSonarID(int sonarID) {
-		this.sonarID = sonarID;
+		return imagePanel.getSonarId();
 	}
 
 	/**
@@ -153,12 +142,12 @@ public class SonarXYProjector extends GeneralProjector {
 		return sonarZoomTransform;
 	}
 
-	/**
-	 * @return the sonarsPanel
-	 */
-	public SonarsPanel getSonarsPanel() {
-		return sonarsPanel;
-	}
+//	/**
+//	 * @return the sonarsPanel
+//	 */
+//	public SonarsPanel getSonarsPanel() {
+//		return sonarsPanel;
+//	}
 
 	public Double getMaxRange() {
 		// TODO Auto-generated method stub
@@ -166,6 +155,13 @@ public class SonarXYProjector extends GeneralProjector {
 			return null;
 		}
 		return sonarZoomTransform.getMaximumRange();
+	}
+
+	/**
+	 * @return the imagePanel
+	 */
+	public SonarImagePanel getImagePanel() {
+		return imagePanel;
 	}
 
 }

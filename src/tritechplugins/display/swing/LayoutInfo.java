@@ -11,18 +11,42 @@ import java.awt.Rectangle;
  */
 public class LayoutInfo {
 
+	/**
+	 * Rectangle - position of a tranparent JPanel that will hold the image.
+	 */
 	private Rectangle imageRectangle;
 	
+	private int sonarId;
+	
+	/**
+	 * Position of sonar vertex, relative to imageRectangle
+	 * defaults to (imageRectange.width/2, 0)
+	 */
+	private Point vertex;
+	
+	/**
+	 * Clockwise rotation of image about vertex, i.e. if 
+	 * you put the vertex at (imageRectangle.width/2, imageRectangle.height) you're going to need
+	 * a rotation of 180 to be able to see it - or you could have a vertex of
+	 * (0, imageRectangle.height/2) and 90 rotation, etc. 
+	 */
+	private double rotationDegrees;
+	
+	/**
+	 * Position of image data text. 
+	 */
 	private Point textPoint;
 
-	public LayoutInfo(Rectangle imageRectangle, Point textPoint) {
+	public LayoutInfo(int sonarId, Rectangle imageRectangle, Point textPoint) {
 		super();
+		this.sonarId = sonarId;
 		this.imageRectangle = imageRectangle;
 		this.textPoint = textPoint;
 	}
 
-	public LayoutInfo(Rectangle imageRectangle) {
+	public LayoutInfo(int sonarId, Rectangle imageRectangle) {
 		super();
+		this.sonarId = sonarId;
 		this.imageRectangle = imageRectangle;
 		textPoint = new Point(imageRectangle.x, imageRectangle.y);
 	}
@@ -39,6 +63,55 @@ public class LayoutInfo {
 	 */
 	public Point getTextPoint() {
 		return textPoint;
+	}
+
+	/**
+	 * @return the rotationDegrees
+	 */
+	public double getRotationDegrees() {
+		return rotationDegrees;
+	}
+
+	/**
+	 * @param rotationDegrees the rotationDegrees to set
+	 */
+	public void setRotationDegrees(double rotationDegrees) {
+		this.rotationDegrees = rotationDegrees;
+	}
+
+	/**
+	 * @param imageRectangle the imageRectangle to set
+	 */
+	public void setImageRectangle(Rectangle imageRectangle) {
+		this.imageRectangle = imageRectangle;
+	}
+
+	/**
+	 * @return the vertex
+	 */
+	public Point getVertex() {
+		if (vertex == null && imageRectangle != null) {
+			vertex = new Point(imageRectangle.width/2, 0);
+		}
+		return vertex;
+	}
+
+	/**
+	 * @param vertex the vertex to set
+	 */
+	public void setVertex(Point vertex) {
+		this.vertex = vertex;
+	}
+
+	public int getSonarId() {
+		return sonarId;
+	}
+
+	/**
+	 * @param sonarId the sonarId to set
+	 */
+	public void setSonarId(int sonarId) {
+		this.sonarId = sonarId;
 	}
 
 }

@@ -308,7 +308,7 @@ public abstract class TritechJNADaq extends Svs5JNADaqSystem {
 
 		@Override
 		public int addMenuItems(JMenu menu) {
-			int[] sonarIDs = getSonarIDs();
+			int[] sonarIDs = getSonarIds();
 			JMenuItem menuItem = new JMenuItem("Reboot sonar(s)");
 			menuItem.addActionListener(new ActionListener() {
 				@Override
