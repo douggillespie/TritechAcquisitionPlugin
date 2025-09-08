@@ -15,10 +15,12 @@ import java.io.File;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import java.util.TreeSet;
 
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
@@ -61,6 +63,8 @@ import tritechplugins.acquire.offline.TritechOffline;
 import tritechplugins.detect.threshold.BackgroundRemoval;
 import tritechplugins.detect.threshold.RegionDataBlock;
 import tritechplugins.detect.track.TrackLinkDataUnit;
+import tritechplugins.display.swing.layouts.AutoSonarLayout;
+import tritechplugins.display.swing.layouts.SonarLayout;
 import tritechplugins.display.swing.overlays.OverlayTailDialogPanel;
 import tritechplugins.display.swing.overlays.SonarOverlayData;
 import tritechplugins.display.swing.overlays.SonarOverlayManager;
@@ -104,12 +108,25 @@ public class SonarsPanel extends PamPanel implements DataMenuParent {
 	private OverlayObserver overlayObserver;
 
 	private TrackLinkDataUnit clickedOnTrack;
+	
 	/**
-	 * Layout for the individual sonar panels. 
+	 * Layout manager for the individual sonar panels. 
 	 */
 	protected SonarImageLayout sonarImageLayout;
 
 	private SonarsOuterPanel sonarsOuterPanel;
+
+	/**
+	 * All sonars currently existing. A Map of panels and sonars is held within
+	 * the SonarImageLayout. Perhaps not all sonars will be shown so the panels
+	 * map may not contain all this set. 
+	 */
+	protected Set<Integer> currentSonarIds = Collections.synchronizedSortedSet(new TreeSet<Integer>());
+	
+	/**
+	 * Current sonar layout. Works with the layout manager.  
+	 */
+	private SonarLayout sonarLayout;
 
 	public SonarsPanel(TritechAcquisition tritechAcquisition, SonarsOuterPanel sonarsOuterPanel, SettingsNameProvider nameProvider) {
 		super(true);
@@ -126,7 +143,7 @@ public class SonarsPanel extends PamPanel implements DataMenuParent {
 		 * However a small amount of information goes into ImagesPanel, so it
 		 * needs it's paint function 
 		 */
-		imagesPanel = new ImagesPanel(this, sonarImageLayout = new SonarImageLayout());
+		imagesPanel = new ImagesPanel(this, sonarImageLayout = new SonarImageLayout(this));
 		this.add(imagesPanel, new CornerLayoutContraint(CornerLayoutContraint.FILL));
 		
 		PamSettingManager.getInstance().registerSettings(new SettingsIO());
@@ -178,15 +195,24 @@ public class SonarsPanel extends PamPanel implements DataMenuParent {
 	/**
 	 * Used in real time operations. Needs rewriting with 
 	 * new layout system
-	 * @param sonarIndex
+	 * @param sonarID Needed even though it's in image record to clear image if null. 
 	 * @param imageRecord
 	 */
-	public void setImageRecord(int sonarIndex, GeminiImageRecordI imageRecord) {
+	public void setImageRecord(int sonarID, GeminiImageRecordI imageRecord) {
 //		 System.out.printf("New image record for id %d %s\n", sonarIndex,
 //		 imageRecord);
 //		if (imageRecord != null) {
 //			sonarIndex = checkSonarIndex(imageRecord.getDeviceId());
 		//		}
+		
+//		if (imageRecord == null) {
+//			return;
+//		}
+		addSonarId(sonarID);
+		int sonarIndex = getSonarLayout().getImageIndex(sonarID);
+		if (sonarIndex < 0) {
+			return;
+		}
 		if (sonarIndex >= numSonars) {
 			setNumSonars(sonarIndex+1);
 		}
@@ -255,7 +281,7 @@ public class SonarsPanel extends PamPanel implements DataMenuParent {
 //			if (imageRec == null) {
 //				System.out.println("No image for sonar " + sonarIDs[i]);
 //			}
-			setImageRecord(i, imageRec);
+			setImageRecord(sonarIDs[i], imageRec);
 //			SonarImagePanel imagePanel = getImagePanel(i);
 //			if (imagePanel != null) {
 //				getImagePanel(i).setImageRecord(imageRec);
@@ -304,20 +330,22 @@ public class SonarsPanel extends PamPanel implements DataMenuParent {
 			if (aBlock instanceof RegionDataBlock) {
 				RegionDataBlock regionDataBlock = (RegionDataBlock) aBlock;
 				Set<Integer> sonarIds = regionDataBlock.getSonarIds();
-				setNumSonars(sonarIds.size());
+				addSonarIds(sonarIds);
+//				setNumSonars(sonarIds.size());
 				Iterator<Integer> sonIt = sonarIds.iterator();
-				while (sonIt.hasNext()) {
-					Integer sonId = sonIt.next();
-//					check that panel exists. 
-					int sonIndex = sonarsOuterPanel.getSonarIndex(sonId);
-					SonarImagePanel imagePanel = getImagePanel(sonIndex);
-					if (imagePanel != null) {
-						imagePanel.setSonarId(sonId);
-					}
-				}
+//				while (sonIt.hasNext()) {
+//					Integer sonId = sonIt.next();
+////					check that panel exists. 
+//					int sonIndex = getSonarIndex(sonId);
+//					SonarImagePanel imagePanel = getImagePanel(sonIndex);
+//					if (imagePanel != null) {
+//						imagePanel.setSonarId(sonId);
+//					}
+//				}
 			}
 		}
 	}
+
 
 	/**
 	 * Get an images panel by index. This is a cast of the panels 
@@ -782,5 +810,73 @@ public class SonarsPanel extends PamPanel implements DataMenuParent {
 		return sonarParams.getRange();
 	}
 
+	/**
+	 * @return the sonarLayout
+	 */
+	public SonarLayout getSonarLayout() {
+		if (sonarLayout == null) {
+			sonarLayout = new AutoSonarLayout(tritechAcquisition, this);
+		}
+		return sonarLayout;
+	}
+
+	/**
+	 * @param sonarLayout the sonarLayout to set
+	 */
+	public void setSonarLayout(SonarLayout sonarLayout) {
+		this.sonarLayout = sonarLayout;
+	}
+
+	public void clearSonarIds() {
+		currentSonarIds.clear();
+		setNumSonars(0);
+	}
+	/**
+	 * Add a set of sonar id's to the current main list. 
+	 * @param sonarIDs
+	 */
+	public void addSonarIds(int[] sonarIDs) {
+		if (sonarIDs == null) {
+			return;
+		}
+		for (int i = 0; i < sonarIDs.length; i++) {
+			addSonarId(sonarIDs[i]);
+		}
+		
+	}
+	
+	public int[] getSonarIds() {
+		synchronized(currentSonarIds) {
+			int n = currentSonarIds.size();
+			int[] ids = new int[n];
+			Iterator<Integer> it = currentSonarIds.iterator();
+			int i = 0;
+			while (it.hasNext()) {
+				ids[i++] = it.next();
+			}
+			return ids;
+		}
+	}
+
+	public void addSonarId(int sonarID) {
+		int m = 0, n = 0;
+		synchronized(currentSonarIds) {
+			n = currentSonarIds.size();
+			currentSonarIds.add(sonarID);
+			m = currentSonarIds.size();
+		}
+		if (m != n) {
+			setNumSonars(m);
+		}
+	}
+	
+	private void addSonarIds(Set<Integer> sonarIds) {
+		Iterator<Integer> sonIt = sonarIds.iterator();
+		while (sonIt.hasNext()) {
+			Integer sonId = sonIt.next();
+			addSonarId(sonId);
+		}
+		
+	}
 
 }

@@ -23,7 +23,6 @@ public class FrameRateDisplayProvider implements UserDisplayProvider{
 
 	@Override
 	public UserDisplayComponent getComponent(UserDisplayControl userDisplayControl, String uniqueDisplayName) {
-		// TODO Auto-generated method stub
 		return new FrameRateDisplayPanel(this,  userDisplayControl, uniqueDisplayName, tritechAcquisition);
 	}
 

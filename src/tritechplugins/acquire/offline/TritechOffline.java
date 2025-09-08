@@ -128,10 +128,21 @@ public class TritechOffline implements TritechRunMode, OfflineDataStore {
 	public void notifyModelChanged(int changeType) {
 		switch (changeType) {
 		case PamController.INITIALIZATION_COMPLETE:
-			updateCatalog();
+			firstUpdateCatalog();
 			break;
 		}
 		
+	}
+	
+	/**
+	 * Annoying in viewer mode when you've done a big
+	 * drive and it then tries to catalog all files the
+	 * first time you open that set in viewer mode. Can
+	 * take a long time and run out of memory, so just like
+	 * we do for binary storage, ask before cataloging. 
+	 */
+	public void firstUpdateCatalog() {
+		showOfflineFilesDialog(tritechAcquisition.getGuiFrame());
 	}
 
 	/**

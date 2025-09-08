@@ -12,6 +12,8 @@ import PamUtils.PamCalendar;
 import tritechgemini.detect.DetectedRegion;
 import tritechplugins.detect.threshold.RegionDataBlock;
 import tritechplugins.detect.threshold.RegionDataUnit;
+import tritechplugins.detect.threshold.stats.DetStatsDataBlock;
+import tritechplugins.detect.threshold.stats.DetStatsDataUnit;
 
 /**
  * Does the actual work for the TrackLinkProcess. May be for one or more (aligned) sonars. 
@@ -25,6 +27,13 @@ public class TrackLinker {
 	
 	private LinkedList<TrackChain> embryos = new LinkedList<>();
 	private TrackLinkDataBlock trackDataBlock;
+	
+	// some stuff for stats
+	int regionCount;
+	int usedRegionCount;
+	int trackCount;
+	long lastStatsUpdate;
+	private int nFrame;
 
 	public TrackLinker(TrackLinkProcess trackLinkProcess, int sonarId) {
 		this.trackLinkProcess = trackLinkProcess;
@@ -36,13 +45,29 @@ public class TrackLinker {
 	 * New list of regions from a single sonar image. 
 	 * @param regions list of regions, can be null. 
 	 */
-	public void newImageRegions(long currentTime, List<DetectedRegion> regions) {
+	public int newImageRegions(long currentTime, List<DetectedRegion> regions) {
 		
-		closeOldOnes(currentTime);
+		if (DetStatsDataBlock.DETSTATAINTERVAL > 0) {
+			if (lastStatsUpdate == 0) {
+				lastStatsUpdate = currentTime;
+				trackCount = regionCount = usedRegionCount = nFrame = 0;
+			}
+			if (currentTime > lastStatsUpdate + DetStatsDataBlock.DETSTATAINTERVAL) {
+				DetStatsDataUnit dsdu = new DetStatsDataUnit(lastStatsUpdate, sonarId, currentTime, nFrame, regionCount, usedRegionCount, trackCount);
+				trackLinkProcess.getDetStatsDataBlock().addPamData(dsdu);
+				trackCount = regionCount = usedRegionCount = nFrame = 0;
+				lastStatsUpdate = currentTime;
+			}
+		}
+		
+		int nComplete = closeOldOnes(currentTime);
+		trackCount += nComplete;
+		nFrame++;
 		
 		if (regions == null) {
-			return;
+			return nComplete;
 		}
+		regionCount += regions.size();
 		/*
 		 * What to do ? go through all chains and new data and work out a score for every 
 		 * (reasonable) combination, then take these in order until we've run out ? 
@@ -103,7 +128,7 @@ public class TrackLinker {
 			}
 			embryos.add(new TrackChain(regions.get(i)));
 		}
-		
+		return nComplete;
 	}
 	
 	/**
@@ -111,6 +136,7 @@ public class TrackLinker {
 	 * up any junk from previous runs. 
 	 */
 	public void startProcessing() {
+		lastStatsUpdate = 0;
 		embryos.clear();
 	}
 	/**
@@ -152,8 +178,9 @@ public class TrackLinker {
 		}
 	}
 
-	private void closeOldOnes(long currentTime) {
+	private int closeOldOnes(long currentTime) {
 		Iterator<TrackChain> chainIt = embryos.iterator();
+		int nComplete = 0;
 		while (chainIt.hasNext()) {
 			TrackChain chain = chainIt.next();
 			if (currentTime - chain.getLastTime() > trackLinkProcess.trackLinkParams.maxTimeSeparation ||
@@ -161,10 +188,11 @@ public class TrackLinker {
 				chainIt.remove();
 				if (wantChain(chain)) {
 					completeChain(chain);
+					nComplete++;
 				}
 			}
 		}
-		
+		return nComplete;
 	}
 
 	/**
@@ -221,6 +249,7 @@ public class TrackLinker {
 //			}
 //		}
 		TrackLinkDataUnit trackDataUnit = chain.getParentDataUnit();
+		usedRegionCount += chain.getChainLength();
 		trackDataUnit.setEmbryonic(false);
 		trackDataBlock.updatePamData(trackDataUnit, trackDataUnit.getEndTimeInMilliseconds());
 		

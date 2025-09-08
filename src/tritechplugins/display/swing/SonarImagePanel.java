@@ -17,30 +17,23 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
-import java.awt.geom.Point2D;
+import java.awt.geom.AffineTransform;
+import java.awt.geom.NoninvertibleTransformException;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
-import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 
 import javax.imageio.ImageIO;
-import javax.management.PersistentMBean;
-import javax.swing.AbstractAction;
-import javax.swing.Action;
 import javax.swing.JCheckBoxMenuItem;
-import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
-import javax.swing.KeyStroke;
 import javax.swing.Timer;
 
 import Layout.PamAxis;
@@ -49,6 +42,7 @@ import PamDetection.AbstractLocalisation;
 import PamUtils.Coordinate3d;
 import PamUtils.LatLong;
 import PamUtils.PamCalendar;
+import PamUtils.PamCoordinate;
 import PamUtils.PamUtils;
 import PamUtils.time.CalendarControl;
 import PamView.ClipboardCopier;
@@ -68,9 +62,7 @@ import PamView.paneloverlay.overlaymark.OverlayMarker;
 import PamguardMVC.PamDataBlock;
 import PamguardMVC.PamDataUnit;
 import PamguardMVC.dataSelector.DataSelector;
-import annotation.handler.AnnotationHandler;
 import detectiongrouplocaliser.DetectionGroupSummary;
-import javafx.scene.control.MenuItem;
 import pamMaths.PamVector;
 import pamScrollSystem.PamScrollSlider;
 import tritechgemini.detect.DetectedRegion;
@@ -83,7 +75,6 @@ import tritechgemini.imagedata.ImageFanMaker;
 import tritechplugins.acquire.TritechAcquisition;
 import tritechplugins.acquire.offline.TritechOffline;
 import tritechplugins.detect.threshold.RegionDataUnit;
-import tritechplugins.detect.track.TrackLinkDataBlock;
 import tritechplugins.detect.track.TrackLinkDataUnit;
 import tritechplugins.detect.veto.SpatialVetoDataBlock;
 import tritechplugins.display.swing.overlays.SonarOverlayData;
@@ -99,7 +90,7 @@ import warnings.WarningSystem;
  */
 public class SonarImagePanel extends JPanel {
 
-	private int sonarId;
+//	private int sonarId;
 
 	private FanImageData fanImageData;
 
@@ -162,6 +153,10 @@ public class SonarImagePanel extends JPanel {
 
 	private boolean neverImage = true;
 
+	private AffineTransform rotationTransform;
+
+	private Object inverseRotationTransform;
+
 	public SonarImagePanel(SonarsPanel sonarsPanel, int panelIndex) {
 		this.panelIndex = panelIndex;
 		this.sonarsPanel = sonarsPanel;
@@ -172,7 +167,7 @@ public class SonarImagePanel extends JPanel {
 		imageFanMaker = new FanPicksFromData(4);
 		persistentFanMaker = new PersistentFanImageMaker();
 		//		xyProjector = new SonarXYProjector(sonarsPanel, sonarId, sonarId);
-		xyProjector = new SonarRThiProjector(sonarsPanel, this, sonarId, sonarId);
+		xyProjector = new SonarRThiProjector(this);
 
 		externalMouseHandler = new ExtMapMouseHandler(PamController.getMainFrame(), false);
 		sonarPanelMarker = new SonarsPanelMarker(sonarsPanel, xyProjector, panelIndex);
@@ -285,26 +280,72 @@ public class SonarImagePanel extends JPanel {
 		}
 		else if (neverImage){ // only ever do this once ?
 			// try to get it from the trigech acquisition
-			maxRange = sonarsPanel.getDefaultMaxRange(maxRange, sonarId);
+			maxRange = sonarsPanel.getDefaultMaxRange(maxRange, layoutInfo.getSonarId());
 		}
 		sonarZoomTransform = new SonarZoomTransform(maxRange, panelRectangle, imageBounds, 
 				sonarsPanel.getZoomFactor(), sonarsPanel.getZoomCentre(),
 				sonarsPanelParams.flipLeftRight);
 		xyProjector.setLayout(sonarZoomTransform);
+		/*
+		 * Sort out a rotated transform if the image is rotated in any way. 
+		 */
+		Graphics2D rotatedG = (Graphics2D) g2d.create();
+//		layoutInfo.setRotationDegrees(0*panelIndex);
+		double r = layoutInfo.getRotationDegrees();
+		if (r != 0) {
+			/*
+			 * If r is 0, then don't need to do anything, otherwise rotate bloody everything
+			 */
+			r = r * Math.PI/180.;
+			AffineTransform at = rotatedG.getTransform();
+			if (at == null) {
+				at = new AffineTransform();
+			}
+			/**
+			 * This works !
+			 */
+//			Point vertex = layoutInfo.getVertex();
+//			double tx = layoutInfo.getImageRectangle().width/2;
+//			double ty = layoutInfo.getImageRectangle().height;
+//			AffineTransform rot = AffineTransform.getRotateInstance(r, tx, ty);
+//			AffineTransform mv = AffineTransform.getTranslateInstance(vertex.x-tx, vertex.y-ty);
+//			mv.concatenate(rot);
+//			at.concatenate(mv);
+			// this might not - just rotate about image centre
+			double tx = layoutInfo.getImageRectangle().width/2;
+			double ty = layoutInfo.getImageRectangle().height/2;
+			AffineTransform rot = AffineTransform.getRotateInstance(r, tx, ty);
+			at.concatenate(rot);
+			
+			
+			rotatedG.setTransform(at);
+			rotationTransform = rot;
+			sonarZoomTransform.setrTransform(rot);
+			try {
+				inverseRotationTransform = rot.createInverse();
+			} catch (NoninvertibleTransformException e) {
+				e.printStackTrace();
+			}
+		}
+		else {
+			sonarZoomTransform.setrTransform(null);
+			rotationTransform = new AffineTransform();
+			inverseRotationTransform = new AffineTransform();
+		}
 		//		xyProjector.setFlipImage(sonarsPanelParams.flipLeftRight);
 
-		paintSonarImage(g, theFanimage);
+		paintSonarImage(rotatedG, theFanimage);
 
 		if (sonarsPanelParams.showGrid) {
-			paintGrid(g);
+			paintGrid(g2d);
 		}
 
-		paintVetos(g);
+		paintVetos(rotatedG);
 
 		if (isViewer && sonarsPanelParams.tailOption == SonarsPanelParams.OVERLAY_TAIL_ALL) {
 			BufferedImage image = getOverlayImage();
 			if (image != null) {
-				g2d.drawImage(image, 0, 0, getWidth(), getHeight(), 0, 0, image.getWidth(), image.getHeight(), null);
+				g.drawImage(image, 0, 0, getWidth(), getHeight(), 0, 0, image.getWidth(), image.getHeight(), null);
 			}
 		}
 		else {
@@ -338,6 +379,10 @@ public class SonarImagePanel extends JPanel {
 		col = new Color(col.getRed(), col.getGreen(), col.getBlue(), 192);
 
 		g.setColor(col);
+		
+		double rotate = layoutInfo.getRotationDegrees();
+		double rotateRadians = rotate*Math.PI/180.;
+//		rotate = 0;
 
 		Coordinate3d zero = xyProjector.getCoord3d(0, 0, false);
 		if (zero == null) {
@@ -372,6 +417,94 @@ public class SonarImagePanel extends JPanel {
 		sideAxis.setRange(0, range);
 		sideAxis.setDrawLine(false);
 		sideAxis.setLabelPos(PamAxis.LABEL_NEAR_MAX);
+		if (Math.abs(rotate) > 90) {
+			sideAxis.setTickPosition(PamAxis.ABOVE_LEFT);
+		}
+		else {
+			sideAxis.setTickPosition(PamAxis.BELOW_RIGHT);
+		}
+		sideAxis.drawAxis(g, (int)zero.x,  (int)zero.y,  (int)maxXend.x,  (int)maxXend.y);
+
+		// now the curves...
+		ArrayList<Double> ranges = sideAxis.getAxisValues();
+		for (Double aRange : ranges) {
+			if (aRange == null || aRange == 0) {
+				continue;
+			}
+			//			aRange = range*.5;
+			g.setColor(col);
+			//			x = aRange*Math.sin(maxAng);
+			//			y = aRange*Math.cos(maxAng);
+			end = xyProjector.getCoord3d(aRange*2, maxAng, false);
+			//			double width = Math.abs(end.x-zero.x);
+			//			y = end.y;
+			Coordinate3d end2 = xyProjector.getCoord3d(aRange*2, -maxAng-rotateRadians, false);
+			int maxDegs = (int) Math.toDegrees(maxAng);
+			int ang1 = (int) (90-maxDegs-1-rotate);
+			int ang2 = 2*maxDegs+2;
+			int h = (int) Math.abs(end2.y-zero.y);
+			g.drawArc((int) (zero.x-h), (int) (zero.y-h), (int) (2*+h), (int) (2*h), ang1, ang2);
+			//			g.drawRect((int) (zero.x-width), (int) (zero.y-h), (int) (2*+width), (int) (2*h));
+			//			g.drawLine((int) (zero.x-width), (int) (zero.y-h), (int) (zero.x+width), (int) (zero.y+h));
+			//			break;
+		}
+	}
+
+	private void paintGridWrong(Graphics g, Graphics2D rotatedG) {
+//		if (fanImage == null ||imageRecord == null) {
+//			return;
+//		}
+
+		Color col = sonarsPanel.getColourMap().getContrastingColour();
+		col = new Color(col.getRed(), col.getGreen(), col.getBlue(), 192);
+//		col = Color.red;
+		g.setColor(col);
+		rotatedG.setColor(col);
+
+		Point vertex = layoutInfo.getVertex();
+//		Coordinate3d zero = xyProjector.getCoord3d(0, 0, false);
+		Coordinate3d zero = new Coordinate3d(vertex.getX(), vertex.getY());
+		if (zero == null) {
+			return;
+		}
+		double r = layoutInfo.getRotationDegrees();
+		double rRadians = r * Math.PI/180.;
+		Double range = xyProjector.getMaxRange();
+		if (range == null) {
+			return;
+		}
+		double maxAng = Math.toRadians(60);
+		if (imageRecord != null) {
+			double[] bearings = imageRecord.getBearingTable();
+			maxAng = Math.abs(bearings[0]);
+		}
+		double[] toPlot = {-1., -0.5, 0, .5, 1};
+		//		double x = 0, y = 0;
+		Coordinate3d end = null;
+		Coordinate3d maxXend = new Coordinate3d(0,0,0);
+		Coordinate3d botPoint = xyProjector.getCoord3d(0, 0, false);
+		Coordinate3d topPoint = xyProjector.getCoord3d(xyProjector.getMaxRange(), 0, false);
+		double lineLen = topPoint.distance(botPoint);
+		
+		for (int i = 0; i < toPlot.length; i++) {
+			//			x = range*Math.sin(toPlot[i]*maxAng);
+			//			y = range*Math.cos(toPlot[i]*maxAng);
+			//			 end = xyProjector.getCoord3d(x, y, false);
+			int x = (int) (lineLen*Math.sin(maxAng*toPlot[i]+rRadians));
+			int y = (int) (lineLen*Math.cos(maxAng*toPlot[i]+rRadians));
+			end = xyProjector.getCoord3d(range, toPlot[i]*maxAng, false);
+//			if (end.x > maxXend.x) {
+//				maxXend = end;
+//			}
+			g.drawLine(vertex.x, vertex.y, vertex.x+x, vertex.y-y);
+//			g.drawLine((int)zero.x,  (int)zero.y,  (int)end.x,  (int)end.y);
+		}
+		if (end == null) {
+			return;
+		}
+		sideAxis.setRange(0, range);
+		sideAxis.setDrawLine(false);
+		sideAxis.setLabelPos(PamAxis.LABEL_NEAR_MAX);
 		sideAxis.drawAxis(g, (int)zero.x,  (int)zero.y,  (int)maxXend.x,  (int)maxXend.y);
 
 		// now the curves...
@@ -389,8 +522,8 @@ public class SonarImagePanel extends JPanel {
 			//			y = end.y;
 			Coordinate3d end2 = xyProjector.getCoord3d(aRange*2, -maxAng, false);
 			int maxDegs = (int) Math.toDegrees(maxAng);
-			int ang1 = 90-maxDegs-1;
-			int ang2 = 2*maxDegs+2;
+			int ang1 = (int) (90-maxDegs-1+r);
+			int ang2 = (int) (2*maxDegs+2);
 			int h = (int) Math.abs(end2.y-zero.y);
 			g.drawArc((int) (zero.x-h), (int) (zero.y-h), (int) (2*+h), (int) (2*h), ang1, ang2);
 			//			g.drawRect((int) (zero.x-width), (int) (zero.y-h), (int) (2*+width), (int) (2*h));
@@ -405,7 +538,7 @@ public class SonarImagePanel extends JPanel {
 	 * @param g
 	 * @param theFanimage 
 	 */
-	private void paintSonarImage(Graphics g, FanDataImage theFanimage) {
+	private void paintSonarImage(Graphics2D g2d, FanDataImage theFanimage) {
 		if (theFanimage == null) {
 			return;
 		}
@@ -415,14 +548,29 @@ public class SonarImagePanel extends JPanel {
 		}
 		boolean flip = sonarsPanel.getSonarsPanelParams().flipLeftRight;
 		Rectangle imageClip = sonarZoomTransform.getImageClipRect();
+		/*
+		 *  should really get this from the projector, which will handle all the rotations
+		 *  as needed I think. Perhpas not though, since the image is already zoomed ?
+		 *  give it a go ...  
+		 *  Don't bother - need to rotate, or it's not going to be able to do anything apart from
+		 *  90 degree intervals. 
+//		 */
+//		if (imageRecord != null) {
+//		double rMax = imageRecord.getMaxRange();
+//		double aMax = Math.abs(imageRecord.getBearingTable()[0]);
+//		double xMax = rMax * Math.sin(aMax);
+//		Coordinate3d bl = sonarZoomTransform.imageMetresToScreen(0, -xMax);
+//		}
+		
+//		g.fillRect(0, 0, getWidth(), getHeight());
 		if (flip) {
 			//			g.drawImage(image, getWidth()+1, getHeight(), 1, 0, 0, 0, image.getWidth(), image.getHeight(), null);	
-			g.drawImage(image, getWidth()+1, getHeight(), 1, 0, 
+			g2d.drawImage(image, getWidth()+1, getHeight(), 1, 0, 
 					imageClip.x, imageClip.y, imageClip.x + imageClip.width, imageClip.y + imageClip.height, null);
 		}
 		else {
 			//			g.drawImage(image, 0, getHeight(), getWidth(), 0, 0, 0, image.getWidth(), image.getHeight(), null);
-			g.drawImage(image, 0, getHeight(), getWidth(), 0,
+			g2d.drawImage(image, 0, getHeight(), getWidth(), 0,
 					imageClip.x, imageClip.y, imageClip.x + imageClip.width, imageClip.y + imageClip.height, null);	
 		}
 	}
@@ -499,12 +647,13 @@ public class SonarImagePanel extends JPanel {
 		//		System.out.printf("Paint tail from %s to %s\n", PamCalendar.formatDBDateTime(tailStart), PamCalendar.formatDBDateTime(tailEnd));
 		boolean drawSpecial = overlayDraw.canDraw(xyProjector) == false;
 		ArrayList<PamDataUnit> laterList = new ArrayList();
+//		System.out.printf("Draw detector data panel %d sonar %d\n", panelIndex, layoutInfo.getSonarId());
 		for (PamDataUnit aUnit : dataCopy) {
 			if (aUnit.getTimeMilliseconds() < tailStart || aUnit.getTimeMilliseconds() > tailEnd) {
 				continue;
 			}
 			if (aUnit instanceof RegionDataUnit) {
-				if (((RegionDataUnit) aUnit).getSonarId() != sonarId) {
+				if (((RegionDataUnit) aUnit).getSonarId() != layoutInfo.getSonarId()) {
 					continue;
 				}
 				if (getClickedOnTrack() != null && aUnit.getSuperDetection(TrackLinkDataUnit.class) == getClickedOnTrack()) {
@@ -777,16 +926,13 @@ public class SonarImagePanel extends JPanel {
 	 * @return the sonarId
 	 */
 	public int getSonarId() {
-		return sonarId;
+		if (layoutInfo == null) {
+			return -1;
+		}
+		return layoutInfo.getSonarId();
 	}
 
-	/**
-	 * @param sonarId the sonarId to set
-	 */
-	public void setSonarId(int sonarId) {
-		this.sonarId = sonarId;
-		xyProjector.setSonarID(sonarId);
-	}
+
 
 	/**
 	 * @return the fanImageData
@@ -816,7 +962,6 @@ public class SonarImagePanel extends JPanel {
 			fanImage = null;
 			return;
 		}
-		setSonarId(imageRecord.getDeviceId());
 		if (isViewer) {
 			fanImage = makeFinalImage();
 			repaint();
@@ -895,6 +1040,15 @@ public class SonarImagePanel extends JPanel {
 	}
 
 	private PamWarning tipWarning = new PamWarning("Tritech tool tips", "", 1);
+
+	/**
+	 * Information on the panel bounds and also where the
+	 * image vertex lies and any rotation to apply. 
+	 */
+	private LayoutInfo layoutInfo;
+
+	private PamCoordinate dataPos;
+	
 	private void cycleTipTypes() {
 		sonarsPanel.getSonarsPanelParams().cycleTipType();
 		String currType = sonarsPanel.getSonarsPanelParams().getTipDescription();
@@ -1176,7 +1330,7 @@ public class SonarImagePanel extends JPanel {
 				return null;
 			}
 		}
-		return new SonarCoordinate(sonarId, sonarId, imagePos.x, imagePos.y);
+		return new SonarCoordinate(layoutInfo.getSonarId(), layoutInfo.getSonarId(), imagePos.x, imagePos.y);
 	}
 
 	/**
@@ -1259,7 +1413,7 @@ public class SonarImagePanel extends JPanel {
 				return;
 			}
 			double zoom = Math.pow(1.05, -e.getPreciseWheelRotation());
-			SonarCoordinate sonarCoordinate = new SonarCoordinate(sonarId, sonarId, zoomCentre.x, zoomCentre.y);
+			SonarCoordinate sonarCoordinate = new SonarCoordinate(layoutInfo.getSonarId(), layoutInfo.getSonarId(), zoomCentre.x, zoomCentre.y);
 			sonarsPanel.zoomDisplay(sonarCoordinate, zoom);
 		}
 
@@ -1511,5 +1665,16 @@ public class SonarImagePanel extends JPanel {
 
 	public void setClickedOnTrack(TrackLinkDataUnit tlDataUnit) {
 		sonarsPanel.setClickedOnTrack(tlDataUnit);
+	}
+
+	/**
+	 * Set the sonar layout. This includes setting the bounds rectangle for
+	 * the panel within the larger panel, but is also used later to 
+	 * set the vertex position and rotation of the sonar image. 
+	 * @param layoutInfo
+	 */
+	public void setSonarLayout(LayoutInfo layoutInfo) {
+		this.layoutInfo = layoutInfo;
+		setBounds(layoutInfo.getImageRectangle());
 	}
 }

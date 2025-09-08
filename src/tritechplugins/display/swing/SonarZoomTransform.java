@@ -1,6 +1,8 @@
 package tritechplugins.display.swing;
 
 import java.awt.Rectangle;
+import java.awt.geom.AffineTransform;
+import java.awt.geom.NoninvertibleTransformException;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 
@@ -21,21 +23,21 @@ public class SonarZoomTransform {
 	/**
 	 * Gemini image. 
 	 */
-	
-//	private GeminiImageRecordI imageRecord;
+
+	//	private GeminiImageRecordI imageRecord;
 	private double maximumRange;
-	
+
 	/**
 	 * Rectangle projected into on screen. 
 	 */
 	private Rectangle screenRectangle;
 
 	//	/**
-//	 * Fan image, can be varying sizes depending on selected display resolution
-//	 */
-//	private BufferedImage fanImage;
+	//	 * Fan image, can be varying sizes depending on selected display resolution
+	//	 */
+	//	private BufferedImage fanImage;
 	private Rectangle fanImageRectangle;
-	
+
 	/**
 	 * Zoom factor, >= 1
 	 */
@@ -45,25 +47,29 @@ public class SonarZoomTransform {
 	 * The rectangle of the imageClip which will get displayed in the screenRectangle.
 	 */
 	private Rectangle imageClipRect;
-	
+
 	/**
 	 * Restrict dimension to be within the screen rectangle. 
 	 */
 	private boolean restrict = true;
-	
+
 	private boolean isFlip = false;
-	
-	
+
+
 	/*
 	 * Zoom centre in metres from sonar centre. 
 	 */
 	private Coordinate3d zoomCentre;
-	
+
+	private AffineTransform rTransform;
+
+	private AffineTransform invTransform;
+
 	/**
 	 * @param imageRecord the imageRecord to set
 	 */
 	public void setImageRecord(GeminiImageRecordI imageRecord) {
-//		this.imageRecord = imageRecord;
+		//		this.imageRecord = imageRecord;
 		this.maximumRange = imageRecord.getMaxRange();
 		calculateTransforms();
 	}
@@ -80,7 +86,7 @@ public class SonarZoomTransform {
 	 * @param fanImage the fanImage to set
 	 */
 	public void setFanImage(BufferedImage fanImage) {
-//		this.fanImage = fanImage;
+		//		this.fanImage = fanImage;
 		this.fanImageRectangle = new Rectangle(0,0,fanImage.getWidth(),fanImage.getHeight());
 		calculateTransforms();
 	}
@@ -142,14 +148,14 @@ public class SonarZoomTransform {
 		calculateTransforms();
 	}
 
-	
-	
-//	/**
-//	 * @return the imageRecord
-//	 */
-//	public GeminiImageRecordI getImageRecord() {
-//		return imageRecord;
-//	}
+
+
+	//	/**
+	//	 * @return the imageRecord
+	//	 */
+	//	public GeminiImageRecordI getImageRecord() {
+	//		return imageRecord;
+	//	}
 
 	/**
 	 * @return the screenRectangle
@@ -158,12 +164,12 @@ public class SonarZoomTransform {
 		return screenRectangle;
 	}
 
-//	/**
-//	 * @return the fanImage
-//	 */
-//	public BufferedImage getFanImage() {
-//		return fanImage;
-//	}
+	//	/**
+	//	 * @return the fanImage
+	//	 */
+	//	public BufferedImage getFanImage() {
+	//		return fanImage;
+	//	}
 
 	/**
 	 * @return the zoomFactor
@@ -179,7 +185,7 @@ public class SonarZoomTransform {
 		return zoomCentre;
 	}
 
-	
+
 	/**
 	 * Get the maximum range used in the calcs in metres
 	 * @return
@@ -187,7 +193,7 @@ public class SonarZoomTransform {
 	public double getMaximumRange() {
 		return maximumRange;
 	}
-	
+
 	/**
 	 * Calculate everything we're likely to want to know. 
 	 */
@@ -200,8 +206,8 @@ public class SonarZoomTransform {
 		int wd = screenRectangle.width;
 		int hs = fanImageRectangle.height;
 		int hd = screenRectangle.height;
-		
-		
+
+
 		/**
 		 * initial zooming only uses hs and ws, the sonar image sizes. 
 		 * this can then be projected onto the larger image. 
@@ -210,10 +216,10 @@ public class SonarZoomTransform {
 		double x2 = ws/zoomFactor+x1;
 		double y1 = zoomCentre.y*imageScale;
 		double y2 = y1+hs/zoomFactor;
-		
-		
-//		System.out.printf("Z %3.1f, ws %d, hs %d, x1 %3.1f, x2 %3.1f, y1 %3.1f, y2 %3.1f\n", 
-//				zoomFactor, ws, hs, x1,x2,y1,y2);
+
+
+		//		System.out.printf("Z %3.1f, ws %d, hs %d, x1 %3.1f, x2 %3.1f, y1 %3.1f, y2 %3.1f\n", 
+		//				zoomFactor, ws, hs, x1,x2,y1,y2);
 		if (x1 < 0) {
 			x2 -= x1;
 			x1 = 0;
@@ -232,13 +238,13 @@ public class SonarZoomTransform {
 			y2 = hs-1;
 			y1 = y2-h;
 		}
-		
+
 		/**
 		 * This is now the bit of the fan image that get's projected into the screen rectangle. 
 		 */
 		imageClipRect = new Rectangle((int) x1, (int) y1, (int) (x2-x1), (int) (y2-y1));
 	}
-	
+
 	/**
 	 * Convert a screen coordinate to a position on the image. 
 	 * @param screenX x coordinate on screen
@@ -246,6 +252,9 @@ public class SonarZoomTransform {
 	 * @return coordinate in image
 	 */
 	public Coordinate3d screenToImageMetres(double screenX, double screenY) {
+		double[] xy = invTranslate(screenX, screenY);
+		screenX = xy[0];
+		screenY = xy[1];
 		if (isFlip) {
 			screenX = screenRectangle.getX()*2+screenRectangle.getWidth() - screenX;
 		}
@@ -268,9 +277,12 @@ public class SonarZoomTransform {
 		if (isFlip) {
 			screen.x = screenRectangle.getX()*2+screenRectangle.getWidth() - screen.x;
 		}
+		double[] tXY = translate(screen.x, screen.y);
+		screen.x = tXY[0];
+		screen.y = tXY[1];
 		return screen;
 	}
-	
+
 	/**
 	 * Transform pixels within the fan image to x,y in metres
 	 * @param imagePixX
@@ -281,10 +293,10 @@ public class SonarZoomTransform {
 		double metresPerPix = maximumRange / fanImageRectangle.getHeight();
 		double x = (imagePixX - fanImageRectangle.getWidth()/2.)*metresPerPix;
 		double y = (imagePixY) * metresPerPix;
-//		System.out.printf("Image metres x %3.1f, y %3.1f\n", x, y);
+		//		System.out.printf("Image metres x %3.1f, y %3.1f\n", x, y);
 		return new Coordinate3d(x, y);
 	}
-	
+
 	/**
 	 * Transform metres to a pixel value in the full image.
 	 * @param imageMetresX metres in fan image
@@ -297,8 +309,8 @@ public class SonarZoomTransform {
 		double y = imageMetresY / metresPerPix;
 		return new Coordinate3d(x, y);
 	}
-	
-	
+
+
 
 	/**
 	 * Convert from a screen coordinate to a coordinate within the fan image 
@@ -325,10 +337,10 @@ public class SonarZoomTransform {
 		double offsY = imageClipRect.y;// - scale*screenRectangle.y;
 		double x = offsX + scale * screenX;
 		double y = offsY + scale * screenY;
-//		System.out.printf("Image pix x %3.1f, y %3.1f\n", x, y);
+		//		System.out.printf("Image pix x %3.1f, y %3.1f\n", x, y);
 		return new Coordinate3d(x, y);		
 	}
-	
+
 	/**
 	 * Convert from a screen coordinate to a coordinate within the fan image 
 	 * in pixels. This transform just needs the two rectangles. 
@@ -343,7 +355,7 @@ public class SonarZoomTransform {
 		double offsY = imageClipRect.y;// - scale*screenRectangle.y;
 		double x = (imageX-offsX)/scale;
 		double y = (imageY-offsY)/scale;
-		
+
 		y = screenRectangle.y + screenRectangle.getHeight() - y;
 		x += screenRectangle.x;
 		return new Coordinate3d(x, y);		
@@ -362,5 +374,46 @@ public class SonarZoomTransform {
 	public void setFlip(boolean isFlip) {
 		this.isFlip = isFlip;
 	}
-	
+
+	private double[] translate(double x, double y) {
+		double[] dst = {x,y}; 
+		if (rTransform != null) {
+			double[] src = {x,y};
+			rTransform.transform(src, 0, dst, 0, 1);
+		}
+		return dst;
+	}
+
+	private double[] invTranslate(double x, double y) {
+		double[] dst = {x,y}; 
+		if (invTransform != null) {
+			double[] src = {x,y};
+			invTransform.transform(src, 0, dst, 0, 1);
+		}
+		return dst;
+	}
+
+	/**
+	 * @return the rTransform
+	 */
+	public AffineTransform getrTransform() {
+		return rTransform;
+	}
+
+	/**
+	 * @param rTransform the rTransform to set
+	 */
+	public void setrTransform(AffineTransform rTransform) {
+		this.rTransform = rTransform;
+		if (rTransform != null) {
+			try {
+				invTransform = rTransform.createInverse();
+			} catch (NoninvertibleTransformException e) {
+				invTransform = null;
+			}
+		}
+		else {
+			invTransform = null;
+		}
+	}
 }

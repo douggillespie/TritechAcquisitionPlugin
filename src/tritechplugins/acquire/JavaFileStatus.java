@@ -9,11 +9,15 @@ public class JavaFileStatus {
 	private int nFiles;
 	private int currentFile;
 	private String fileName;
+	private double processingRate;
+	private long remainingTime;
 	
-	public JavaFileStatus(int nFiles, int currentFile, String fileName) {
+	public JavaFileStatus(int nFiles, int currentFile, String fileName, double processingRate, long remTime) {
 		this.nFiles = nFiles;
 		this.currentFile = currentFile;
 		this.fileName = fileName;
+		this.processingRate = processingRate;
+		this.remainingTime = remTime;
 	}
 
 	/**
@@ -35,6 +39,18 @@ public class JavaFileStatus {
 	 */
 	public String getFileName() {
 		return fileName;
+	}
+
+	/**
+	 * Get the processing rate (ratio or data rate to real time)
+	 * @return
+	 */
+	public double getProcessingRate() {
+		return processingRate;
+	}
+
+	public long getRemainingTime() {
+		return remainingTime;
 	}
 
 }

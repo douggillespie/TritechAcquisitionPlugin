@@ -9,9 +9,9 @@ public class SonarRThiProjector extends SonarXYProjector {
 	public static final ParameterType[] requiredParams = SonarOverlayManager.paramTypes;
 	
 	private SonarImagePanel sonarImagePanel;
-	
-	public SonarRThiProjector(SonarsPanel sonarsPanel, SonarImagePanel sonarImagePanel, int imageIndex, int sonarID) {
-		super(sonarsPanel, imageIndex, sonarID);
+		
+	public SonarRThiProjector(SonarImagePanel sonarImagePanel) {
+		super(sonarImagePanel);
 		this.sonarImagePanel = sonarImagePanel;
 		for (int i = 0; i < requiredParams.length; i++) {
 			setParmeterType(i, requiredParams[i]);
@@ -34,6 +34,7 @@ public class SonarRThiProjector extends SonarXYProjector {
 		}
 		double x = -pos.getCoordinate(0);
 		double y = pos.getCoordinate(1);
+		
 		double r = Math.sqrt(x*x+y*y);
 		double thet = Math.atan2(x, y);
 		return new Coordinate3d(r, thet);
@@ -50,5 +51,6 @@ public class SonarRThiProjector extends SonarXYProjector {
 	public SonarImagePanel getSonarImagePanel() {
 		return sonarImagePanel;
 	}
+
 
 }

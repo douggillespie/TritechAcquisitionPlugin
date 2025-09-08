@@ -38,28 +38,8 @@ public class ImagesPanel extends JPanel {
 	public void paint(Graphics g) {
 		super.paint(g);
 		
-		Graphics2D g2d = (Graphics2D) g;
+//		Graphics2D g2d = (Graphics2D) g;
 		
-//		long currentTime = sonarsPanel.getCurrentScrollTime();
-//		if (currentTime != 0) {
-//
-//			Font font = g2d.getFont();
-//			g2d.setColor(getForeground());
-//			String timeString = PamCalendar.formatDBDateTime(currentTime, true);
-//			int sz = font.getSize();
-//			FontMetrics fm = g2d.getFontMetrics();
-//			Rectangle2D stringRect = fm.getStringBounds(timeString, g2d);
-//			if (stringRect.getWidth() < getWidth() / 8) {
-//				sz *=2;
-//			}
-//			if (stringRect.getWidth() < getWidth() / 4) {
-//				sz = sz*3/2;
-//			}
-//			
-//			font = new Font(font.getName(), Font.BOLD, sz);
-//			g2d.setFont(font);
-//			g2d.drawString(timeString, 3, getHeight()-3);
-//		}
 	}
 
 

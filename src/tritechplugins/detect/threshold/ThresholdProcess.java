@@ -158,5 +158,6 @@ public class ThresholdProcess extends PamProcess {
 	public RegionDataBlock getRegionDataBlock() {
 		return regionDataBlock;
 	}
+
 	
 }

@@ -218,6 +218,7 @@ public abstract class TritechJNADaq extends Svs5JNADaqSystem {
 		 * Called on first status data for each sonar so can check it's
 		 * set up correctly. 
 		 */
+		int[] acives = makeActiveList();
 		prepareDevice(sonarData.getDeviceId());
 //		TritechDaqParams params = tritechAcquisition.getDaqParams();
 //		try {
@@ -307,7 +308,7 @@ public abstract class TritechJNADaq extends Svs5JNADaqSystem {
 
 		@Override
 		public int addMenuItems(JMenu menu) {
-			int[] sonarIDs = getSonarIDs();
+			int[] sonarIDs = getSonarIds();
 			JMenuItem menuItem = new JMenuItem("Reboot sonar(s)");
 			menuItem.addActionListener(new ActionListener() {
 				@Override

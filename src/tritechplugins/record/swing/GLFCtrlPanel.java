@@ -146,6 +146,7 @@ public class GLFCtrlPanel implements StateObserver {
 	public void updateState() {
 		BufferState bufferState = recorderProcess.getBufferState();
 		boolean recState = recorderProcess.getRecordState();
+		int[] typesCount = bufferState.getTypesCount();
 		bufferStatus.setValue((int) bufferState.getBufferPercent());
 		bufferStatus.setString(String.format("%3.1fs", bufferState.getBufferedSeconds()));
 		
@@ -154,7 +155,7 @@ public class GLFCtrlPanel implements StateObserver {
 		
 		File currFile = recorderProcess.getCurrentFile();
 		if (currFile == null) {
-			file.setText("Idle");
+			file.setText(String.format("Idle: %d image, %d status", typesCount[0], typesCount[1]));
 		}
 		else {
 			file.setText("File: " + currFile.getName());

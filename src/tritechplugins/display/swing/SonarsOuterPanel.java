@@ -64,8 +64,6 @@ public class SonarsOuterPanel implements ConfigurationObserver {
 	private GeminiTaskBar geminiTaskBar;
 	
 	private TritechDaqSystem currentDaqSystem;
-
-	private HashMap<Integer, Integer> imageIndexes = new HashMap<>();
 	
 	private SonarDisplayDecoration nwDecoration, neDecoration, swDecoration, seDecoration, tbDecoration;
 
@@ -216,7 +214,8 @@ public class SonarsOuterPanel implements ConfigurationObserver {
 	private void checkCatalog() {
 		int[] sonarIDs = geminiCatalog.getSonarIDs();
 		if (sonarIDs != null && sonarIDs.length > 0) {
-			sonarsPanel.setNumSonars(sonarIDs.length);
+			sonarsPanel.addSonarIds(sonarIDs);
+//			sonarsPanel.setNumSonars(sonarIDs.length);
 		}
 	}
 	
@@ -283,8 +282,9 @@ public class SonarsOuterPanel implements ConfigurationObserver {
 		@Override
 		public void addImageData(PamObservable observable, ImageDataUnit imageDataUnit) {
 //			sonarsPanel.setNumSonars(tritechAcquisition.get);
-			int index = getSonarIndex(imageDataUnit.getGeminiImage().getDeviceId());
-			sonarsPanel.setImageRecord(index, imageDataUnit.getGeminiImage());			
+//			int index = getSonarIndex(imageDataUnit.getGeminiImage().getDeviceId());
+			GeminiImageRecordI image = imageDataUnit.getGeminiImage();
+			sonarsPanel.setImageRecord(image.getDeviceId(), image);			
 		}
 
 		@Override
@@ -295,26 +295,27 @@ public class SonarsOuterPanel implements ConfigurationObserver {
 
 	}
 
-	/**
-	 * Gets an index for each sonar, allowing for new ones coming online after
-	 * start. Will update number of plots.
-	 * 
-	 * @param deviceId device unique id.
-	 * @return 0,1, etc. index for image drawing.
-	 */
-	public int getSonarIndex(int deviceId) {
-		Integer ind = imageIndexes.get(deviceId);
-		if (ind == null) {
-			ind = imageIndexes.size();
-			imageIndexes.put(deviceId, ind);
-		}
-		return ind;
-	}
+//	/**
+//	 * Gets an index for each sonar, allowing for new ones coming online after
+//	 * start. Will update number of plots.
+//	 * 
+//	 * @param deviceId device unique id.
+//	 * @return 0,1, etc. index for image drawing.
+//	 */
+//	public int getSonarIndex(int deviceId) {
+//		Integer ind = imageIndexes.get(deviceId);
+//		if (ind == null) {
+//			ind = imageIndexes.size();
+//			imageIndexes.put(deviceId, ind);
+//		}
+//		return ind;
+//	}
 	
 	@Override
 	public void configurationChanged() {
 		sortCornerDecorations();
-		imageIndexes.clear();
+		sonarsPanel.clearSonarIds();
+//		imageIndexes.clear();
 		sonarsPanel.setNumSonars(0);
 		sonarsPanel.repaint();
 	}

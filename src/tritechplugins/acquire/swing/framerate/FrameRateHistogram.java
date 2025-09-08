@@ -32,6 +32,7 @@ public class FrameRateHistogram {
 		
 		histogramDisplay = new HistogramDisplay(singleHistogram);
 		histogramDisplay.setSelectedStats(0);
+		histogramDisplay.setShowStats(false);
 		histogramDisplay.setXLabel("Frame rate (fps)");
 		
 		mainPanel = new PamPanel(new BorderLayout());
@@ -49,10 +50,19 @@ public class FrameRateHistogram {
 	public int getSonarId() {
 		return sonarId;
 	}
+	
+	public void setMaxFPS(double maxFPS) {
+		if (maxFPS != singleHistogram.getMaxVal()) {
+			singleHistogram.setRange(0, maxFPS, 100);
+		}
+	}
+	public void clear() {
+		singleHistogram.clear();
+	}
 
 	public void newData(long timeMilliseconds) {
 		if (timeMilliseconds-lastScaleTime > 1000) {
-			singleHistogram.scaleData(.99);
+			singleHistogram.scaleData(.95);
 			lastScaleTime = timeMilliseconds;
 		}
 		double dt = (timeMilliseconds-lastFrameTime)/1000.;

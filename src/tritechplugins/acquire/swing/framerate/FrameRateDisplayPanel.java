@@ -11,6 +11,7 @@ import javax.swing.JPanel;
 import javax.swing.JSplitPane;
 import javax.swing.SwingUtilities;
 
+import PamController.PamController;
 import PamView.panel.PamPanel;
 import PamguardMVC.PamDataUnit;
 import PamguardMVC.PamObservable;
@@ -21,6 +22,7 @@ import tritechplugins.acquire.ConfigurationObserver;
 import tritechplugins.acquire.ImageDataUnit;
 import tritechplugins.acquire.SonarImageObserver;
 import tritechplugins.acquire.TritechAcquisition;
+import tritechplugins.acquire.TritechDaqParams;
 import userDisplay.UserDisplayComponent;
 import userDisplay.UserDisplayControl;
 
@@ -31,7 +33,6 @@ public class FrameRateDisplayPanel implements UserDisplayComponent, Configuratio
 	private TritechAcquisition tritechAcquisition;
 
 	private JPanel mainPanel;
-
 
 	private String panelName;
 
@@ -51,9 +52,12 @@ public class FrameRateDisplayPanel implements UserDisplayComponent, Configuratio
 	
 	private JSplitPane splitPane;
 
-//	private BoxLayout histoLayout;
-
 	private GridLayout gridLayout;
+	
+	/*
+	 * Target frame rate in millis. Set to 5 for free run. 
+	 */
+	private int currentFrameInterval = 100; 
 
 	public FrameRateDisplayPanel(FrameRateDisplayProvider frameRateDisplayProvider,
 			UserDisplayControl userDisplayControl, String uniqueDisplayName, TritechAcquisition tritechAcquisition) {
@@ -64,22 +68,12 @@ public class FrameRateDisplayPanel implements UserDisplayComponent, Configuratio
 
 		frameRateDataBlock = new FrameRateDataBlock(tritechAcquisition.getTritechDaqProcess());
 		frameRateDataBlock.setNaturalLifetime(plotLifeTime+2);
-		
-//		rateHistogram = new PamHistogram(0, 12, 100);
-		
+				
 		mainPanel = new PamPanel(new BorderLayout());
-		
-		
-//		histogramDisplay = new HistogramDisplay();
-//		histogramDisplay.setSelectedStats(0);
-//		histogramDisplay.setXLabel("Frame rate (fps)");
-//		histogramDisplay.addHistogram(singleHistogram);
-//		
+						
 		histogramHolder = new PamPanel();
-//		histogramHolder.setLayout(histoLayout = new BoxLayout(histogramHolder, BoxLayout.X_AXIS));
+
 		histogramHolder.setLayout(gridLayout = new GridLayout(1, 1));
-//		GridLayout gl = new GridLayout(2, 1);
-//		gl.g
 		
 		rateGraph = new FrameRateGraph(this, tritechAcquisition);
 		
@@ -99,15 +93,18 @@ public class FrameRateDisplayPanel implements UserDisplayComponent, Configuratio
 				splitPane.setDividerLocation(0.5);
 			}
 		});
+		
+		configurationChanged();
 	}
 	
-	FrameRateHistogram findSonarHistogram(int sonarId) {
+	synchronized FrameRateHistogram findSonarHistogram(int sonarId) {
 		for (FrameRateHistogram rh : frameRateHistrograms) {
 			if (rh.getSonarId() == sonarId) {
 				return rh;
 			}
 		}
 		FrameRateHistogram rateHisto = new FrameRateHistogram(this, tritechAcquisition, sonarId);
+		rateHisto.setMaxFPS(getHistoMaxSeconds());
 		frameRateHistrograms.add(rateHisto);
 		gridLayout.setColumns(frameRateHistrograms.size());
 		histogramHolder.add(rateHisto.getComponent());
@@ -128,6 +125,19 @@ public class FrameRateDisplayPanel implements UserDisplayComponent, Configuratio
 //			histogramDisplay.addHistogram(hist);
 //		}
 //		return hist;
+	}
+	
+	private double getHistoMaxSeconds() {
+		if (currentFrameInterval > 0) {
+			return 1000./currentFrameInterval * 3;
+		}
+		else {
+			return 10;
+		}
+	}
+	
+	private double getGraphMaxRate() {
+		return (double) currentFrameInterval / 1000. * 3.;
 	}
 	
 	private class ImageObserver extends SonarImageObserver {
@@ -185,8 +195,9 @@ public class FrameRateDisplayPanel implements UserDisplayComponent, Configuratio
 
 	@Override
 	public void notifyModelChanged(int changeType) {
-		// TODO Auto-generated method stub
-		
+		if (changeType == PamController.INITIALIZATION_COMPLETE) {
+			configurationChanged();
+		}		
 	}
 
 	@Override
@@ -210,8 +221,24 @@ public class FrameRateDisplayPanel implements UserDisplayComponent, Configuratio
 
 	@Override
 	public void configurationChanged() {
-//		histogramDisplay.removeAllHistograms(null);
-//		rateHistograms.clear();
+		TritechDaqParams params = tritechAcquisition.getDaqParams();
+		int newInterval = params.getManualPingInterval();
+		if (params.isManualPingRate() == false)
+		{
+			newInterval = 100;
+		}
+		double maxFPS = 1000./newInterval*3;
+		if (newInterval != currentFrameInterval) {
+			currentFrameInterval = newInterval;
+			resetHistograms();
+		}
+	}
+
+	private synchronized void resetHistograms() {
+		for (int i = 0; i < frameRateHistrograms.size(); i++) {
+			frameRateHistrograms.get(i).setMaxFPS(getHistoMaxSeconds());
+		}
+		rateGraph.setYRange(0, getGraphMaxRate());
 	}
 	
 	

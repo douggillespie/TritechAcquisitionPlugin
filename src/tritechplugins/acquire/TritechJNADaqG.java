@@ -12,6 +12,7 @@ import geminisdk.Svs5MessageType;
 import geminisdk.structures.ChirpMode;
 import geminisdk.structures.ConfigOnline;
 import geminisdk.structures.GeminiRange;
+import geminisdk.structures.GeminiStructure;
 import geminisdk.structures.RangeFrequencyConfig;
 import tritechgemini.imagedata.GLFStatusData;
 import warnings.PamWarning;
@@ -24,18 +25,18 @@ import warnings.WarningSystem;
  *
  */
 public class TritechJNADaqG extends TritechJNADaq {
-	
+
 	private volatile int pingCount = 0;
-	
+
 	private Timer pingTimer;
-	
+
 	private int maxPingReports = 0;
-	
+
 	/**
 	 * Min time before gaps are reported after program start. 
 	 */
 	private long minGapReportTime = 10000;
-	
+
 	private long creationTime = System.currentTimeMillis();
 
 	volatile private int lastSonarIndex = -1;
@@ -43,24 +44,26 @@ public class TritechJNADaqG extends TritechJNADaq {
 	volatile private long lastPingTime;
 
 	private volatile boolean keepPinging;
-	
+
 	private boolean pingActive = false;
 
 	private Thread pingThread;
-	
+
 	private PamWarning pingWarning;
+
+	private int pingsSent, pingsReceived;
 
 	public TritechJNADaqG(TritechAcquisition tritechAcquisition, TritechDaqProcess tritechProcess) {
 		super(tritechAcquisition, tritechProcess);
 		pingWarning = new PamWarning("Tritech Acquisition", "Ping warning", 2);
-//		pingTimer = new Timer(1000, new ActionListener() {
-//			
-//			@Override
-//			public void actionPerformed(ActionEvent e) {
-//				pingTimerAction(e);
-//			}
-//		});
-//		pingTimer.start();
+		//		pingTimer = new Timer(1000, new ActionListener() {
+		//			
+		//			@Override
+		//			public void actionPerformed(ActionEvent e) {
+		//				pingTimerAction(e);
+		//			}
+		//		});
+		//		pingTimer.start();
 	}
 
 	/**
@@ -76,9 +79,35 @@ public class TritechJNADaqG extends TritechJNADaq {
 		}
 	}
 
+	long prevPingtime = 0;
+
+	private int lastSonarId;
 	private void pingNextSonar() {
+		//		if (pingsSent%20 == 1) {
+		//			System.out.printf("Pings sent / Received = %d/%d (diff %d)\n", pingsSent, pingsReceived, pingsReceived-pingsSent);
+		//			System.out.println("Manual ping interval " + (System.currentTimeMillis()-lastPingTime));
+		//		}
+		//		Thread t = Thread.currentThread();
+		//		System.out.println("Ping in thread " + t.getName() + " Id " + t.getId());
+		lastPingTime = System.currentTimeMillis();
+		TritechDaqParams daqParams = tritechAcquisition.getDaqParams();
+		prevPingtime = System.currentTimeMillis();
 		synchronized (pingSynch) {
-			TritechDaqParams daqParams = tritechAcquisition.getDaqParams();
+//			if (1>2) {
+//				try {
+//					int dev = activeSonarList[0];
+//					//				svs5Commands.gemxSetPingMode(dev, 0); // not doing anything.
+//					svs5Commands.setPingMode(false, (short) (00));
+//					setOnline(true, dev);
+//					//				setOnline(false, dev);
+//					//				setOnline(false, 0);
+//
+//				} catch (Svs5Exception e) {
+//					// TODO Auto-generated catch block
+//					e.printStackTrace();
+//				}
+//				return ;
+//			}
 			if (activeSonarList == null) {
 				activeSonarList = makeActiveList();
 			}
@@ -98,16 +127,17 @@ public class TritechJNADaqG extends TritechJNADaq {
 				System.out.printf("Unlikely sonar index %d of %d\n", lastSonarIndex, activeSonarList.length);
 				return;
 			}
-			lastPingTime = System.currentTimeMillis();
-			
+
 			int deviceId = activeSonarList[thisSonarIndex];
+			lastSonarId = deviceId;
 			SonarDaqParams sonarParams = daqParams.getSonarParams(deviceId);
-			
+
 			/**
 			 * Don't ping if it's out of the water.
 			 */
 			if (isOOW(deviceId)) { 
-//				System.out.println("Skip ping since out of water device " + deviceId);
+				//				System.out.println("Skip ping since out of water device " + deviceId);
+//				setOnline(false, deviceId);
 				return;
 			}
 
@@ -118,16 +148,42 @@ public class TritechJNADaqG extends TritechJNADaq {
 
 			try {
 				//			System.out.println("ping sonar " + sonars[lastSonarIndex]);
+				//				svs5Commands.setHighResolution(sonarParams.isHighResolution(), deviceId);
 				svs5Commands.gemxSetPingMode(deviceId, 0);
-//				svs5Commands.setHighResolution(sonarParams.isHighResolution(), deviceId);
 				svs5Commands.gemxAutoPingConfig(deviceId, sonarParams.getRange(), 
 						sonarParams.getGain(), (float) sonarParams.getFixedSoundSpeed());
-//				svs5Commands.gemxSetRangeCompression(deviceId, 8, 1);
+				//				svs5Commands.setBoolCommand(GeminiStructure.SVS5_CONFIG_ONLINE, false, deviceId);
+				//				svs5Commands.gemxSetRangeCompression(deviceId, 8, 1);
+				//				setOnline(false, deviceId);
+				//				svs5Commands.setPingMode(false, (short) 0);
 				svs5Commands.gemxSendGeminiPingConfig(deviceId);
+				//				setOnline(true, deviceId);
+				//				try {
+				//					Thread.sleep(60);
+				//				} catch (InterruptedException e) {
+				//					// TODO Auto-generated catch block
+				//					e.printStackTrace();
+				//				}
+				//				setOnline(false, deviceId);
+				//				svs5Commands.setPingMode(false, (short) (daqParams.getManualPingInterval()*0));
 			} catch (Svs5Exception e1) {
 				e1.printStackTrace();
 			}
+			pingsSent++;
 		}
+	}
+
+	@Override
+	public void oowStateChange(GLFStatusData statusData) {
+		super.oowStateChange(statusData);
+		if (statusData.isOutOfWater()) {
+			setOnline(false, statusData.m_deviceID);
+		}
+		else {
+			prepareDevice(statusData.m_deviceID); // go through full prep sequence
+		}
+//		SonarDaqParams sonarParams = tritechAcquisition.getDaqParams().getSonarParams(statusData.m_deviceID);
+//		setOnline(statusData.isOutOfWater() == false & sonarParams.isSetOnline(), statusData.m_deviceID);
 	}
 
 	/**
@@ -135,12 +191,15 @@ public class TritechJNADaqG extends TritechJNADaq {
 	 * next sonar soon after the previous ping was received. 
 	 */
 	private void pingLoop() {
-//		System.out.println("Enter continuous ping loop");
+		//		System.out.println("Enter continuous ping loop");
 		while (keepPinging) {
 			if (doPingNow()) {
 				// still need to see if we need a delay
 				long delay = 1;
 				while (delay > 0) {
+					if (keepPinging == false) {
+						break;
+					}
 					/*
 					 * Bit silly, but the interrupt of the other sleep can 
 					 * hit this one, so need to stay in the loop 
@@ -166,9 +225,9 @@ public class TritechJNADaqG extends TritechJNADaq {
 				}
 			}
 		}
-//		System.out.println("Leave continuous ping loop");
+		//		System.out.println("Leave continuous ping loop");
 	}
-	
+
 	/**
 	 * Do we need to wait before the next ping ? 
 	 * @return
@@ -192,7 +251,7 @@ public class TritechJNADaqG extends TritechJNADaq {
 		if (pingActive == false) {
 			return true;
 		}
-		
+
 		long pingGap = System.currentTimeMillis() - lastPingTime;
 		if (pingGap > 500) {
 			int sonarID = -1;
@@ -216,7 +275,7 @@ public class TritechJNADaqG extends TritechJNADaq {
 		else {
 			WarningSystem.getWarningSystem().removeWarning(pingWarning);
 		}
-		
+
 		return false;
 	}
 
@@ -245,97 +304,81 @@ public class TritechJNADaqG extends TritechJNADaq {
 	}
 
 	@Override
-	public boolean prepareProcess() {
-		
+	public synchronized boolean prepareProcess() {
+
 		unprepareProcess();
 
 		boolean ok = prepareAcquisition();
-		
+
 		lastSonarIndex = -1;
 		keepPinging = true;
 		Runnable threadRun = new Runnable() {
-			
+
 			@Override
 			public void run() {
 				pingLoop();
 			}
 		};
-		pingThread = new Thread(threadRun);
+		pingThread = new Thread(threadRun, "Sonar ping loop");
 		pingThread.start();
-		
+
 		return ok;
 	}
-	
-	
+
+
 
 	@Override
 	public boolean prepareDevice(int deviceId) {
 		int err = 0;
 		try {
-		
-		SonarDaqParams sonarParams = tritechAcquisition.getDaqParams().getSonarParams(deviceId);
 
-		GeminiRange range = new GeminiRange(sonarParams.getRange());
-		err = svs5Commands.setConfiguration(range, deviceId);
-		//		err += svs5Commands.setConfiguration(range, 1);
-//		System.out.println("setRange returned " + err);
-		err = setRange(sonarParams.getRange(), deviceId);
-		
-		setGain(sonarParams.getGain(), deviceId);
-		
-		err = svs5Commands.setPingMode(false, (short) 0);
-//		svs5Commands.gemxSetPingMode(deviceId, 0);
-//		svs5Commands.gemxAutoPingConfig(deviceId, sonarParams.getRange(), 
-//				sonarParams.getGain(), (float) sonarParams.getFixedSoundSpeed());
-//		System.out.println("setConfiguration pingMode returned " + err);
-		
-		err = svs5Commands.setSoSConfig(sonarParams.isUseFixedSoundSpeed(), sonarParams.getFixedSoundSpeed(), deviceId);
-		
-		ChirpMode chirpMode = new ChirpMode(sonarParams.getChirpMode());
-		err = svs5Commands.setConfiguration(chirpMode, deviceId);
-//		System.out.println("setConfiguration chirpMode returned " + err);
+			SonarDaqParams sonarParams = tritechAcquisition.getDaqParams().getSonarParams(deviceId);
 
-		err = svs5Commands.setHighResolution(sonarParams.isHighResolution(), deviceId);
+			GeminiRange range = new GeminiRange(sonarParams.getRange());
+			err = svs5Commands.setConfiguration(range, deviceId);
+			//		err += svs5Commands.setConfiguration(range, 1);
+			//		System.out.println("setRange returned " + err);
+			err = setRange(sonarParams.getRange(), deviceId);
 
-		RangeFrequencyConfig rfConfig = new RangeFrequencyConfig();
-		rfConfig.m_frequency = sonarParams.getRangeConfig();
-		err = svs5Commands.setConfiguration(rfConfig);
-//		System.out.println("setConfiguration returned " + err);
-		//		
-		//	
-		////		SimulateADC simADC = new SimulateADC(true);
-		////		err = svs5Commands.setConfiguration(simADC);
-		////		System.out.println("Simulate returned " + err);
-		//
-		//		PingMode pingMode = new PingMode();
-		//		pingMode.m_bFreeRun = false;
-		//		pingMode.m_msInterval = 250;
-		//		err += svs5Commands.setConfiguration(pingMode, 0);
-		//		err = svs5Commands.setConfiguration(pingMode, 1);
-		//		System.out.println("setConfiguration pingMode returned " + err);
+			setGain(sonarParams.getGain(), deviceId);
 
+			err = svs5Commands.setPingMode(false, (short) 0);
+			//		svs5Commands.gemxSetPingMode(deviceId, 0);
+			//		svs5Commands.gemxAutoPingConfig(deviceId, sonarParams.getRange(), 
+			//				sonarParams.getGain(), (float) sonarParams.getFixedSoundSpeed());
+			//		System.out.println("setConfiguration pingMode returned " + err);
 
-		//		err = setFileLocation("C:\\GeminiData");
-		//		String fileLoc = getFileLocation();
-		//		System.out.printf("Gemini file location is \"%s\"\n", fileLoc);
+			err = svs5Commands.setSoSConfig(sonarParams.isUseFixedSoundSpeed(), sonarParams.getFixedSoundSpeed(), deviceId);
 
-		ConfigOnline cOnline = new ConfigOnline(sonarParams.isSetOnline());
-		err = svs5Commands.setConfiguration(cOnline, deviceId);
-		//		cOnline.value = false;
-		//		err += svs5Commands.setConfiguration(cOnline, 0);
-//		System.out.println("setOnline returned " + err);
+			ChirpMode chirpMode = new ChirpMode(sonarParams.getChirpMode());
+			err = svs5Commands.setConfiguration(chirpMode, deviceId);
+			//		System.out.println("setConfiguration chirpMode returned " + err);
 
+			err = svs5Commands.setHighResolution(sonarParams.isHighResolution(), deviceId);
 
+			RangeFrequencyConfig rfConfig = new RangeFrequencyConfig();
+			rfConfig.m_frequency = sonarParams.getRangeConfig();
+			err = svs5Commands.setConfiguration(rfConfig);
+			//		
+			//	
+			////		SimulateADC simADC = new SimulateADC(true);
+			////		err = svs5Commands.setConfiguration(simADC);
+			////		System.out.println("Simulate returned " + err);
+			//
 
-	} catch (Svs5Exception e) {
-		// TODO Auto-generated catch block
-		e.printStackTrace();
-		return false;
-	} catch (Error e) {
-		System.out.println("Error calling SvS5 startup functions:" + e.getMessage());
-		e.printStackTrace();
-	}
-	return true;
+			//		ConfigOnline cOnline = new ConfigOnline(sonarParams.isSetOnline());
+			//		err = svs5Commands.setConfiguration(cOnline, deviceId);
+			setOnline(sonarParams.isSetOnline(), deviceId);
+
+		} catch (Svs5Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return false;
+		} catch (Error e) {
+			System.out.println("Error calling SvS5 startup functions:" + e.getMessage());
+			e.printStackTrace();
+		}
+		return true;
 	}
 
 	@Override
@@ -353,38 +396,40 @@ public class TritechJNADaqG extends TritechJNADaq {
 
 	public void preProcessSv5Callback(int msgType, long size, Pointer pointer) {
 		if (msgType ==  Svs5MessageType.GLF_LIVE_TARGET_IMAGE) {
+			//			setOnline(false, lastSonarId);
 			imageFrameReceived();
 		}
 	}
-	
+
 	public void postProcessSv5Callback(int msgType, long size, Pointer pointer) {
 
 		if (msgType ==  Svs5MessageType.GLF_LIVE_TARGET_IMAGE) {
-//			System.out.println("postProcessSv5Callback");
-//			pingNextSonar();
-//			pingWithDelay(0);
+			//			System.out.println("postProcessSv5Callback");
+			//			pingNextSonar();
+			//			pingWithDelay(0);
 		}
-//		else {
-//			switch (msgType) {
-//			case 0: // status
-//			case 10: // frame rate
-//			case 4: // file status
-//				break;
-//			default:
-//				System.out.println("Other SVS5 message type " + msgType);
-//			}
-//		}
+		//		else {
+		//			switch (msgType) {
+		//			case 0: // status
+		//			case 10: // frame rate
+		//			case 4: // file status
+		//				break;
+		//			default:
+		//				System.out.println("Other SVS5 message type " + msgType);
+		//			}
+		//		}
 	}
-	
+
 	private void imageFrameReceived() {
+		pingsReceived++;
 		if (pingCount < maxPingReports) {
-		Thread currentThread = Thread.currentThread();
-		System.out.printf("Frame Received in thread %s Id %d\n", currentThread.getName(), currentThread.getId());
+			Thread currentThread = Thread.currentThread();
+			System.out.printf("Frame Received in thread %s Id %d\n", currentThread.getName(), currentThread.getId());
 		}
 		pingActive = false;
 		if (pingThread != null) {
 			pingThread.interrupt();
-			pingThread = null;
+			//			pingThread = null; // don't do this, or we end up with two competing runloops
 		}
 	}
 
@@ -393,6 +438,7 @@ public class TritechJNADaqG extends TritechJNADaq {
 		keepPinging = false;
 		return super.stop();
 	}
+
 
 
 }

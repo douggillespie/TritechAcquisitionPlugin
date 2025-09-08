@@ -4,6 +4,7 @@ import java.util.Collection;
 import java.util.HashMap;
 
 import PamUtils.PamCalendar;
+import tritechgemini.fileio.GLFFileCatalog;
 import tritechgemini.imagedata.GLFImageRecord;
 import tritechgemini.imagedata.GLFStatusData;
 import tritechgemini.imagedata.GeminiImageRecordI;
@@ -30,7 +31,7 @@ public abstract class TritechDaqSystem {
 	
 	protected HashMap<Integer, SonarStatusData> deviceInfo = new HashMap<>();
 	
-	protected HashMap<Integer, OpsSonarStatusData> opsStatusData = new HashMap();
+	protected HashMap<Integer, OpsSonarStatusData> opsStatusData = new HashMap<>();
 	
 	protected int totalFrames;
 
@@ -172,18 +173,6 @@ public abstract class TritechDaqSystem {
 		}
 	}
 	
-	public int[] getSonarIds() {
-		synchronized (deviceInfo) {
-			Collection<SonarStatusData> sonarValues = deviceInfo.values();
-			int[] ids = new int[sonarValues.size()];
-			int i = 0;
-			for (SonarStatusData val : sonarValues) {
-				ids[i++] = val.getDeviceId();
-			}
-			return ids;
-		}
-	}
-	
 	/**
 	 * finds sonar status data and creates if necessary
 	 * @param sonarId
@@ -266,7 +255,7 @@ public abstract class TritechDaqSystem {
 		
 		SonarStatusData sonarStatusData = checkDeviceInfo(statusData);
 		
-		checkOutOfWater(statusData);
+		checkOutOfWater(sonarStatusData);
 		
 		if (sonarStatusData != null) {
 			tritechProcess.updateStatusData(sonarStatusData);
@@ -284,7 +273,7 @@ public abstract class TritechDaqSystem {
 	 * @return
 	 */
 	private boolean shouldLogStatus(GLFStatusData statusData) {
-		SonarStatusData previousStatus = findSonarStatusData(statusData.m_deviceID);
+		SonarStatusData previousStatus = getSonarStatusData(statusData.m_deviceID);
 		if (previousStatus == null) {
 			return true;
 		}
@@ -299,26 +288,44 @@ public abstract class TritechDaqSystem {
 		return false;
 	}
 
-	public void checkOutOfWater(GLFStatusData statusData) {
+	public void checkOutOfWater(SonarStatusData statusData) {
 		if (statusData == null) {
 			return;
 		}
-		OpsSonarStatusData opsData = getOpsSonarStatusData(statusData.m_deviceID);
-		if (statusData.isOutOfWater() != opsData.outOfWater) {
-			opsData.outOfWater = statusData.isOutOfWater();
+		GLFStatusData glfStatus = statusData.getStatusPacket();
+		OpsSonarStatusData opsData = getOpsSonarStatusData(glfStatus.m_deviceID);
+		if (glfStatus.m_shutdownStatus != opsData.getLastShutdownCode()) {
 //			System.out.println("OOW is " + opsData.outOfWater);
+			opsData.setLastShutdownCode(glfStatus.m_shutdownStatus);
+			oowStateChange(glfStatus);
 			sayOOWWarning();
+		}
+		if (opsData.getLastShutdownCode() != 0) {
+			opsData.setLastShutdownEerrTime(GLFFileCatalog.cDateToMillis(glfStatus.genericHeader.m_timestamp));
 		}
 	}
 
+	/**
+	 * Called when the OOW state for a device changes. 
+	 * @param statusData
+	 */
+	public void oowStateChange(GLFStatusData statusData) {
+		String shutStat = statusData.getShutdownError();
+		if (shutStat == null) {
+			System.out.printf("Sonar %d shutdown status has been cleared\n", statusData.m_deviceID);
+		}
+		else {
+			System.out.printf("Sonar %d shutdown status is %s\n", statusData.m_deviceID, shutStat);
+		}
+	}
 
 	private void sayOOWWarning() {
 		int nOOW = 0;
-		int[] sonars = getSonarIDs();
+		int[] sonars = getSonarIds();
 		String warning = "";
 		for (int i = 0; i < sonars.length; i++) {
 			OpsSonarStatusData opsData = getOpsSonarStatusData(sonars[i]);
-			if (opsData.outOfWater) {
+			if (opsData.getLastShutdownCode() != 0) {
 				if (nOOW == 0) {
 					warning = String.format("Sonar %d", sonars[i]);
 				}
@@ -336,23 +343,37 @@ public abstract class TritechDaqSystem {
 		}
 		if (nOOW == 0) {
 			WarningSystem.getWarningSystem().removeWarning(oowWarning);
+//			System.out.println("Shutdown warning removed");
 		}
 		else {
 			oowWarning.setWarningMessage(warning);
 			oowWarning.setWarnignLevel(2);
 			WarningSystem.getWarningSystem().addWarning(oowWarning);
+//			System.out.println("Shutdown warning displayed");
 		}
 	}
-	public int[] getSonarIDs() {
-		// could probably actually use the keys since the sonar id's are the keys in the hash table.
-		Collection<SonarStatusData> devs = deviceInfo.values();
-		int n = devs.size();
-		int[] ids = new int[n];
-		int i = 0;
-		for (SonarStatusData sd : devs) {
-			ids[i++] = sd.getStatusPacket().m_deviceID;
+	public int[] getSonarIds() {
+		synchronized (deviceInfo) {
+			Collection<SonarStatusData> sonarValues = deviceInfo.values();
+			int[] ids = new int[sonarValues.size()];
+			int i = 0;
+			for (SonarStatusData val : sonarValues) {
+				ids[i++] = val.getDeviceId();
+			}
+			return ids;
 		}
-		return ids;
 	}
+
+//	public int[] getSonarIDs() {
+//		// could probably actually use the keys since the sonar id's are the keys in the hash table.
+//		Collection<SonarStatusData> devs = deviceInfo.values();
+//		int n = devs.size();
+//		int[] ids = new int[n];
+//		int i = 0;
+//		for (SonarStatusData sd : devs) {
+//			ids[i++] = sd.getStatusPacket().m_deviceID;
+//		}
+//		return ids;
+//	}
 
 }
