@@ -20,7 +20,7 @@
 *.rar
 
 # library files
-*.dll
+# *.dll
 
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
@@ -28,6 +28,9 @@ hs_err_pid*
 .classpath
 .classpath
 .Rproj.user
+
+# ignore releases
+/release*
 
 # quarto help generated from online help
 /olhelp
