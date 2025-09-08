@@ -35,17 +35,21 @@ Latest Features and bug fixes
 
 **V1.4? (pending)**
 
+Update to Tritech Svs5 library verion 2.0.40.2
+
 Handling out of water (OOW) alarms. When an OOW occurs, detection in GLF file data is paused.
 When acquiring data, the sonars stop pinging until the OOW alarm clears. When the alarm clears
 the background measurements are reset to avoid a flurry of false detections when the 
 sonar re-enters the water. 
 
 GLF Recorder: Addition of a GLF Recorder module. This includes a trigger mechanism and
-a data buffer, so recording can start some time before the trigger occurs. 
+a data buffer, so recording can start some time before the trigger occurs. Files are in standard
+glf format which is a zip archive of the data and some additional metadata. The main .dat file
+in the archive is identical to that created by the Tritech library, but the additinal xml files, 
+which seem to describe Genesis software detector configuration, are not created. 
 
-Online Help: Wrote some online help pages. Available online at 
-
-
+Online Help: Some basic help pages are available [here](https://douggillespie.github.io/TritechAcquisitionPlugin/docs/tritechoverview.html) and
+will also be available within the PAMGuard online help system when the plugin is loaded. 
 
 **V1.43**
 
@@ -122,5 +126,6 @@ SDK libraries.
 
 The main repository for PAMGuard source code is at 
 [https://github.com/PAMGuard/PAMGuard](https://github.com/PAMGuard/PAMGuard)
+
 
 
