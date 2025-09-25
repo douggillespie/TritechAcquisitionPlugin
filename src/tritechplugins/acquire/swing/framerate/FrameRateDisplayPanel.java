@@ -128,8 +128,9 @@ public class FrameRateDisplayPanel implements UserDisplayComponent, Configuratio
 	}
 	
 	private double getHistoMaxSeconds() {
+		int nSonar = Math.max(1,  frameRateHistrograms.size());
 		if (currentFrameInterval > 0) {
-			return 1000./currentFrameInterval * 3;
+			return 1000./currentFrameInterval * 3 / nSonar;
 		}
 		else {
 			return 10;
@@ -137,7 +138,8 @@ public class FrameRateDisplayPanel implements UserDisplayComponent, Configuratio
 	}
 	
 	private double getGraphMaxRate() {
-		return (double) currentFrameInterval / 1000. * 3.;
+		int nSonar = Math.max(1,  frameRateHistrograms.size());
+		return (double) currentFrameInterval / 1000. * 3. * nSonar;
 	}
 	
 	private class ImageObserver extends SonarImageObserver {
@@ -228,14 +230,15 @@ public class FrameRateDisplayPanel implements UserDisplayComponent, Configuratio
 			newInterval = 100;
 		}
 		double maxFPS = 1000./newInterval*3;
-		if (newInterval != currentFrameInterval) {
+//		if (newInterval != currentFrameInterval) {
 			currentFrameInterval = newInterval;
 			resetHistograms();
-		}
+//		}
 	}
 
 	private synchronized void resetHistograms() {
 		for (int i = 0; i < frameRateHistrograms.size(); i++) {
+			frameRateHistrograms.get(i).clear();
 			frameRateHistrograms.get(i).setMaxFPS(getHistoMaxSeconds());
 		}
 		rateGraph.setYRange(0, getGraphMaxRate());

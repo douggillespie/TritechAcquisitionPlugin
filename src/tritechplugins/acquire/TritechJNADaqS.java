@@ -50,7 +50,7 @@ public class TritechJNADaqS extends TritechJNADaq {
 			
 			setGain(sonarParams.getGain(), deviceId);
 			
-			err = svs5Commands.setPingMode(true, (short) 0);
+			err = svs5Commands.setPingMode(true, (short) 0, deviceId);
 //			svs5Commands.gemxSetPingMode(deviceId, 0);
 //			svs5Commands.gemxAutoPingConfig(deviceId, sonarParams.getRange(), 
 //					sonarParams.getGain(), (float) sonarParams.getFixedSoundSpeed());

@@ -1,6 +1,7 @@
 package tritechplugins.acquire;
 
 import java.awt.event.ActionEvent;
+import java.io.ByteArrayInputStream;
 
 import javax.swing.Timer;
 
@@ -10,10 +11,10 @@ import PamUtils.PamCalendar;
 import geminisdk.Svs5Exception;
 import geminisdk.Svs5MessageType;
 import geminisdk.structures.ChirpMode;
-import geminisdk.structures.ConfigOnline;
 import geminisdk.structures.GeminiRange;
-import geminisdk.structures.GeminiStructure;
 import geminisdk.structures.RangeFrequencyConfig;
+import tritechgemini.fileio.GLFGenericHeader;
+import tritechgemini.fileio.LittleEndianDataInputStream;
 import tritechgemini.imagedata.GLFStatusData;
 import warnings.PamWarning;
 import warnings.WarningSystem;
@@ -108,9 +109,9 @@ public class TritechJNADaqG extends TritechJNADaq {
 //				}
 //				return ;
 //			}
-			if (activeSonarList == null) {
+//			if (activeSonarList == null) {
 				activeSonarList = makeActiveList();
-			}
+//			}
 			if (activeSonarList == null || activeSonarList.length == 0) {
 				return;
 			}
@@ -141,13 +142,15 @@ public class TritechJNADaqG extends TritechJNADaq {
 				return;
 			}
 
+			Thread currentThread = Thread.currentThread();
 			if (pingCount++ < maxPingReports) {
-				Thread currentThread = Thread.currentThread();
-				System.out.printf("Ping sonar %d in thread %s Id %d\n", deviceId, currentThread.getName(), currentThread.getId());
+				System.out.printf("Ping sonar %d in thread %s Id %d at %s\n", deviceId, currentThread.getName(), 
+						currentThread.getId(), PamCalendar.formatTime(System.currentTimeMillis(), true));
 			}
 
 			try {
-				//			System.out.println("ping sonar " + sonars[lastSonarIndex]);
+//				System.out.printf("Ping sonar %d in thread %s Id %d at %s\n", deviceId, currentThread.getName(), 
+//						currentThread.getId(), PamCalendar.formatTime(System.currentTimeMillis(), true));
 				//				svs5Commands.setHighResolution(sonarParams.isHighResolution(), deviceId);
 				svs5Commands.gemxSetPingMode(deviceId, 0);
 				svs5Commands.gemxAutoPingConfig(deviceId, sonarParams.getRange(), 
@@ -157,6 +160,8 @@ public class TritechJNADaqG extends TritechJNADaq {
 				//				setOnline(false, deviceId);
 				//				svs5Commands.setPingMode(false, (short) 0);
 				svs5Commands.gemxSendGeminiPingConfig(deviceId);
+
+//				svs5Commands.gemxSetPingMode(0, 0);
 				//				setOnline(true, deviceId);
 				//				try {
 				//					Thread.sleep(60);
@@ -165,7 +170,7 @@ public class TritechJNADaqG extends TritechJNADaq {
 				//					e.printStackTrace();
 				//				}
 				//				setOnline(false, deviceId);
-				//				svs5Commands.setPingMode(false, (short) (daqParams.getManualPingInterval()*0));
+//								svs5Commands.setPingMode(false, (short) (daqParams.getManualPingInterval()*10), deviceId);
 			} catch (Svs5Exception e1) {
 				e1.printStackTrace();
 			}
@@ -193,7 +198,7 @@ public class TritechJNADaqG extends TritechJNADaq {
 	private void pingLoop() {
 		//		System.out.println("Enter continuous ping loop");
 		while (keepPinging) {
-			if (doPingNow()) {
+			if (doPingNow() & 1>0) {
 				// still need to see if we need a delay
 				long delay = 1;
 				while (delay > 0) {
@@ -253,7 +258,8 @@ public class TritechJNADaqG extends TritechJNADaq {
 		}
 
 		long pingGap = System.currentTimeMillis() - lastPingTime;
-		if (pingGap > 500) {
+		long warningInterval = Math.max(1000, tritechAcquisition.getDaqParams().getManualPingInterval() * 5);
+		if (pingGap > warningInterval) {
 			int sonarID = -1;
 			synchronized (pingSynch) {
 				if (activeSonarList != null && lastSonarIndex >= 0 && lastSonarIndex < activeSonarList.length) {
@@ -313,7 +319,6 @@ public class TritechJNADaqG extends TritechJNADaq {
 		lastSonarIndex = -1;
 		keepPinging = true;
 		Runnable threadRun = new Runnable() {
-
 			@Override
 			public void run() {
 				pingLoop();
@@ -342,11 +347,7 @@ public class TritechJNADaqG extends TritechJNADaq {
 
 			setGain(sonarParams.getGain(), deviceId);
 
-			err = svs5Commands.setPingMode(false, (short) 0);
-			//		svs5Commands.gemxSetPingMode(deviceId, 0);
-			//		svs5Commands.gemxAutoPingConfig(deviceId, sonarParams.getRange(), 
-			//				sonarParams.getGain(), (float) sonarParams.getFixedSoundSpeed());
-			//		System.out.println("setConfiguration pingMode returned " + err);
+			err = svs5Commands.setPingMode(false, (short) 999, deviceId);
 
 			err = svs5Commands.setSoSConfig(sonarParams.isUseFixedSoundSpeed(), sonarParams.getFixedSoundSpeed(), deviceId);
 
@@ -358,7 +359,7 @@ public class TritechJNADaqG extends TritechJNADaq {
 
 			RangeFrequencyConfig rfConfig = new RangeFrequencyConfig();
 			rfConfig.m_frequency = sonarParams.getRangeConfig();
-			err = svs5Commands.setConfiguration(rfConfig);
+			err = svs5Commands.setConfiguration(rfConfig, deviceId);
 			//		
 			//	
 			////		SimulateADC simADC = new SimulateADC(true);
@@ -396,8 +397,7 @@ public class TritechJNADaqG extends TritechJNADaq {
 
 	public void preProcessSv5Callback(int msgType, long size, Pointer pointer) {
 		if (msgType ==  Svs5MessageType.GLF_LIVE_TARGET_IMAGE) {
-			//			setOnline(false, lastSonarId);
-			imageFrameReceived();
+			imageFrameReceived(msgType, size, pointer);
 		}
 	}
 
@@ -420,17 +420,31 @@ public class TritechJNADaqG extends TritechJNADaq {
 		//		}
 	}
 
-	private void imageFrameReceived() {
+	private void imageFrameReceived(int msgType, long size, Pointer pointer) {
 		pingsReceived++;
-		if (pingCount < maxPingReports) {
-			Thread currentThread = Thread.currentThread();
-			System.out.printf("Frame Received in thread %s Id %d\n", currentThread.getName(), currentThread.getId());
+		long loopTime = System.currentTimeMillis() - lastPingTime;
+		if (pingCount < maxPingReports) {	
+			try {
+				byte[] byteData = pointer.getByteArray(0, (int) size);
+				LittleEndianDataInputStream is = new LittleEndianDataInputStream(new ByteArrayInputStream(byteData));
+				GLFGenericHeader header = new GLFGenericHeader();
+				//		GLFImageRecord glfRecord = null; //new GLFImageRecord(null, 0, 0);
+				header.read(is);
+
+				Thread currentThread = Thread.currentThread();
+				System.out.printf("Frame Received in thread %s Id %d sonar %d at %s\n", 
+						currentThread.getName(), currentThread.getId(), header.tm_deviceId, 
+						PamCalendar.formatTime(System.currentTimeMillis(), true));
+			}
+			catch (Exception e) {
+				
+			}
 		}
 		pingActive = false;
-		if (pingThread != null) {
-			pingThread.interrupt();
+//		if (pingThread != null) {
+//			pingThread.interrupt();
 			//			pingThread = null; // don't do this, or we end up with two competing runloops
-		}
+//		}
 	}
 
 	@Override
