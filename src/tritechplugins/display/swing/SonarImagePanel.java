@@ -74,6 +74,7 @@ import tritechgemini.imagedata.GeminiImageRecordI;
 import tritechgemini.imagedata.ImageFanMaker;
 import tritechplugins.acquire.TritechAcquisition;
 import tritechplugins.acquire.offline.TritechOffline;
+import tritechplugins.detect.threshold.BackgroundRemoval;
 import tritechplugins.detect.threshold.RegionDataUnit;
 import tritechplugins.detect.track.TrackLinkDataUnit;
 import tritechplugins.detect.veto.SpatialVetoDataBlock;
@@ -1113,8 +1114,8 @@ public class SonarImagePanel extends JPanel {
 						toolTipImageFile = File.createTempFile("littleimage", ".jpg");
 						toolTipImageFile.deleteOnExit();
 					}
-					int imWid = 200;
-					int imHei = 200;
+					int imWid = panelParams.getTipImageSize();
+					int imHei = imWid;
 					if (image.getHeight() > image.getWidth()) {
 						imWid = imHei * image.getWidth() / image.getHeight();
 					}
@@ -1258,9 +1259,20 @@ public class SonarImagePanel extends JPanel {
 			if (imageRec == null) {
 				return null;
 			}
-			int usePix = sonarsPanel.getImagePixels(imageRec.getnBeam(), imageRec.getnRange(), getWidth());
-			FanImageData fanData = imageFanMaker.createFanData(imageRec, usePix);
 			SonarsPanelParams panelParams = sonarsPanel.getSonarsPanelParams();
+			/*
+			 * If background subtraction is included as a display option, do it now. 
+			 */
+			GeminiImageRecordI usedRec = imageRec;
+			if (panelParams.subtractBackground) {
+				BackgroundRemoval backgroundSub = sonarsPanel.findBackgroundSub(usedRec.getDeviceId());
+				backgroundSub.setTimeConstant(panelParams.backgroundTimeFactor);
+				backgroundSub.setRemovalScale(panelParams.backgroundScale);
+				usedRec = backgroundSub.removeBackground(usedRec, true);
+			}
+			
+			int usePix = sonarsPanel.getImagePixels(usedRec.getnBeam(), usedRec.getnRange(), getWidth());
+			FanImageData fanData = imageFanMaker.createFanData(usedRec, usePix);
 			// now need to clip a part of that out around our bit. 
 			DetectedRegion region = regionDataUnit.getRegion();
 			double flip = panelParams.flipLeftRight ? -1 : -1;
@@ -1272,8 +1284,8 @@ public class SonarImagePanel extends JPanel {
 			double xMax = maxS * region.getMaxRange()*flip;
 			double yMin = minC * region.getMinRange();
 			double yMax = maxC * region.getMaxRange();
-			double w = Math.max(Math.abs(xMax-xMin)/2,.5);
-			double h = Math.max(Math.abs(yMax-yMin)/2,.5);
+			double w = Math.max(Math.abs(xMax-xMin)/2,panelParams.getTipImageBorder());
+			double h = Math.max(Math.abs(yMax-yMin)/2,panelParams.getTipImageBorder());
 			FanDataImage tipImage = new FanDataImage(fanData, sonarsPanel.getColourMap(), true, panelParams.displayGain,
 					Math.min(xMin,  xMax)-w, Math.max(xMin, xMax)+w, Math.min(yMin, yMax)-h, Math.max(yMin,  yMax)+h);
 			return tipImage;

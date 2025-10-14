@@ -12,6 +12,7 @@ import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
+import javax.swing.JTextField;
 import javax.swing.border.TitledBorder;
 
 import PamController.PamController;
@@ -36,6 +37,8 @@ public class MoreDisplayParamsDialog extends PamDialog{
 	private SonarsPanel sonarsPanel;
 	
 	private JRadioButton tipText, tipImage, tipBoth;
+	
+	private JTextField imageSize, borderSize;
 	
 	private MoreDisplayParamsDialog(Window parentFrame) {
 		super(parentFrame, "Sonar display", false);
@@ -88,7 +91,8 @@ public class MoreDisplayParamsDialog extends PamDialog{
 		c = new GridBagConstraints();
 		c.gridx = 0;
 		c.gridy = 0;
-		c.anchor = GridBagConstraints.WEST;
+//		c.anchor = GridBagConstraints.WEST;
+		c.fill = GridBagConstraints.HORIZONTAL;
 		tipPanel.add(tipText, c);
 		c.gridy++;
 		tipPanel.add(tipImage, c);
@@ -96,7 +100,33 @@ public class MoreDisplayParamsDialog extends PamDialog{
 		tipPanel.add(tipBoth, c);
 		c.gridy++;
 		tipPanel.setToolTipText("When viewing, tap 't' to cycle through these options");
+		imageSize = new JTextField(5);
+		borderSize = new JTextField(5);
+		imageSize.setToolTipText("Size of tool tip image in pixels");
+		borderSize.setToolTipText("Size of border around detected area in metres");
+		c.gridy = 1;
+		c.gridx = 1;
+		tipPanel.add(new JLabel("       "));
+		c.gridx++;
+		int xx = c.gridx;
+		tipPanel.add(new JLabel("Image size ", JLabel.RIGHT), c);
+		c.gridx++;
+		tipPanel.add(imageSize, c);
+		c.gridx++;
+		tipPanel.add(new JLabel(" pix"), c);
+		c.gridx = xx;
+		c.gridy++;
+		tipPanel.add(new JLabel("Image border size ", JLabel.RIGHT), c);
+		c.gridx++;
+		c.gridwidth = 1;
+		tipPanel.add(borderSize, c);
+		c.gridx++;
+		tipPanel.add(new JLabel(" m"), c);
 		
+		ImageChange ic = new ImageChange();
+		tipText.addActionListener(ic);
+		tipImage.addActionListener(ic);
+		tipBoth.addActionListener(ic);
 		
 		mainPanel.add(stylePanel);
 		mainPanel.add(tipPanel);
@@ -126,8 +156,13 @@ public class MoreDisplayParamsDialog extends PamDialog{
 		tipText.setSelected(tipType == SonarsPanelParams.TOOLTIP_TEXT);
 		tipImage.setSelected(tipType == SonarsPanelParams.TOOLTIP_IMAGE);
 		tipBoth.setSelected(tipType == SonarsPanelParams.TOOLTIP_BOTH);
+		
+		borderSize.setText(String.format("%3.1f", sonarParams.getTipImageBorder()));
+		imageSize.setText(String.format("%d", sonarParams.getTipImageSize()));
 
 		colourComboBox.setSelectedColourMap(sonarsPanel.getSonarsPanelParams().colourMap);
+		
+		imageChoiceChange();
 	}
 
 	protected void colourChange() {
@@ -138,6 +173,18 @@ public class MoreDisplayParamsDialog extends PamDialog{
 		}
 	}
 	
+	private class ImageChange implements ActionListener {
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			imageChoiceChange();
+		}
+	}
+	
+	public void imageChoiceChange() {
+		imageSize.setEnabled(tipText.isSelected() == false);
+		borderSize.setEnabled(tipText.isSelected() == false);
+	}
+
 	@Override
 	public boolean getParams() {
 		int[] ress = SonarsPanelParams.getResolutionValues();
@@ -150,9 +197,9 @@ public class MoreDisplayParamsDialog extends PamDialog{
 			}
 		}
 		sonarParams.resolution = res;
-
+	
 		sonarParams.colourMap = colourComboBox.getSelectedColourMap();
-
+	
 		if (tipText.isSelected()) {
 			sonarParams.setToolTipType(SonarsPanelParams.TOOLTIP_TEXT);
 		}
@@ -161,6 +208,21 @@ public class MoreDisplayParamsDialog extends PamDialog{
 		}
 		else if (tipBoth.isSelected()) {
 			sonarParams.setToolTipType(SonarsPanelParams.TOOLTIP_BOTH);
+		}
+		
+		try {
+			int i = Integer.valueOf(imageSize.getText());
+			sonarParams.setTipImageSize(i);
+		}
+		catch (NumberFormatException e) {
+			return showWarning("Invalid tool tip image size");
+		}
+		try {
+			double b = Double.valueOf(borderSize.getText());
+			sonarParams.setTipImageBorder(b);
+		}
+		catch (NumberFormatException e) {
+			return showWarning("Invalid image border size");
 		}
 		
 		return true;

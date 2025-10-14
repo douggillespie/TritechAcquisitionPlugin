@@ -247,7 +247,7 @@ public class SonarsPanel extends PamPanel implements DataMenuParent {
 	 * @param deviceID Device ID
 	 * @return background subtractor
 	 */
-	private BackgroundRemoval findBackgroundSub(int deviceID) {
+	protected BackgroundRemoval findBackgroundSub(int deviceID) {
 		BackgroundRemoval bs = backgroundSubtractors.get(deviceID);
 		if (bs == null) {
 			bs = new BackgroundRemoval();

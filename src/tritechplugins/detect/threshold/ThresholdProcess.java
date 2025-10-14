@@ -27,6 +27,8 @@ public class ThresholdProcess extends PamProcess {
 	
 	private RegionLogging regionLogging;
 	
+	private int imageCount = 0;
+	
 	/**
 	 * @return the regionLogging
 	 */
@@ -72,6 +74,7 @@ public class ThresholdProcess extends PamProcess {
 		if (trackLinkProcess != null) {
 			trackLinkProcess.newRegionsList(imageData.getGeminiImage().getDeviceId(), imageData.getTimeMilliseconds(), regions);
 		}		
+		imageCount++;
 	}
 
 	/**
@@ -117,12 +120,12 @@ public class ThresholdProcess extends PamProcess {
 
 	@Override
 	public void pamStart() {
+		imageCount = 0;
 	}
 
 	@Override
 	public void pamStop() {
-		// TODO Auto-generated method stub
-
+//		System.out.println("total processed images = " + imageCount);
 	}
 
 	/**

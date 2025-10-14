@@ -347,7 +347,7 @@ public class TritechJNADaqG extends TritechJNADaq {
 
 			setGain(sonarParams.getGain(), deviceId);
 
-			err = svs5Commands.setPingMode(false, (short) 999, deviceId);
+			err = svs5Commands.setPingMode(false, (short) 999, (short) deviceId);
 
 			err = svs5Commands.setSoSConfig(sonarParams.isUseFixedSoundSpeed(), sonarParams.getFixedSoundSpeed(), deviceId);
 

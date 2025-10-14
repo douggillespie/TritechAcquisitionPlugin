@@ -374,7 +374,7 @@ public class JavaFileAcquisition extends TritechDaqSystem  implements CatalogStr
 		
 		
 		/*
-		 *  see if there is a bit gap between this and the last record which may be
+		 *  see if there is a big gap between this and the last record which may be
 		 *  caused by a gap in file data, in which case we may want to nudge a restart
 		 *  to reset the binary store. 
 		 */

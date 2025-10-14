@@ -59,6 +59,7 @@ public class ImageDataBlock extends PamDataBlock<ImageDataUnit> {
 		 * Update this to skip points as much as it possibly can !
 		 */
 		ArrayList<GeminiFileCatalog> glfCats = fileCatalog.getCatalogList();
+		glfCats = new ArrayList(glfCats); // prevent concurrent mod exception if data still loading. 
 		for (GeminiFileCatalog glfCat : glfCats) {
 			int catRecords = glfCat.getNumRecords();
 			long catStart = glfCat.getFirstRecordTime();

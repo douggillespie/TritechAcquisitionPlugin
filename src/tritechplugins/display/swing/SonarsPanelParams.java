@@ -65,6 +65,10 @@ public class SonarsPanelParams implements Serializable, Cloneable {
 	
 	private int toolTipType = TOOLTIP_BOTH;
 	
+	private Double tipImageBorder = 2.0;
+	
+	private Integer tipImageSize = 220;
+	
 	private HashMap<String, SonarOverlayData> overlayDatas = new HashMap<>();
 	
 	/**
@@ -190,6 +194,28 @@ public class SonarsPanelParams implements Serializable, Cloneable {
 			return "Show text and image";
 		}
 		return null;
+	}
+
+	public double getTipImageBorder() {
+		if (tipImageBorder == null) {
+			tipImageBorder = 2.0;
+		}
+		return tipImageBorder;
+	}
+
+	public void setTipImageBorder(double tipImageBorder) {
+		this.tipImageBorder = tipImageBorder;
+	}
+
+	public int getTipImageSize() {
+		if (tipImageSize == null) {
+			tipImageSize = 220;
+		}
+		return tipImageSize;
+	}
+
+	public void setTipImageSize(int tipImageSize) {
+		this.tipImageSize = tipImageSize;
 	}
 
 }
