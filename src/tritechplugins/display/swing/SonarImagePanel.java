@@ -392,7 +392,7 @@ public class SonarImagePanel extends JPanel {
 		if (range == null) {
 			return;
 		}
-		double maxAng = Math.toRadians(60);
+		double maxAng = Math.toRadians(sonarsPanel.sonarImageLayout.getMaxAngleDegrees());
 		if (imageRecord != null) {
 			double[] bearings = imageRecord.getBearingTable();
 			maxAng = Math.abs(bearings[0]);
@@ -473,7 +473,7 @@ public class SonarImagePanel extends JPanel {
 		if (range == null) {
 			return;
 		}
-		double maxAng = Math.toRadians(60);
+		double maxAng = Math.toRadians(sonarsPanel.sonarImageLayout.getMaxAngleDegrees());
 		if (imageRecord != null) {
 			double[] bearings = imageRecord.getBearingTable();
 			maxAng = Math.abs(bearings[0]);
