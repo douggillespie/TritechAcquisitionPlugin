@@ -250,6 +250,7 @@ public class SonarImagePanel extends JPanel {
 
 		long currentTime = sonarsPanel.getCurrentScrollTime();
 
+		Rectangle drawRect = checkDrawingRect();
 
 		Graphics2D g2d = (Graphics2D) g;
 		g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
@@ -262,7 +263,7 @@ public class SonarImagePanel extends JPanel {
 		 * sort out zoom transforms and projectors
 		 */
 		double maxRange = 50;
-		Rectangle panelRectangle = new Rectangle(0,0,getWidth(),getHeight());
+		Rectangle panelRectangle = drawRect; // new Rectangle(0,0,getWidth(),getHeight());
 		Rectangle imageBounds = panelRectangle;
 		// copy reference, just incase it get's knocked out in a different thread while we're drawing. 
 		FanDataImage theFanimage = fanImage;
@@ -279,10 +280,10 @@ public class SonarImagePanel extends JPanel {
 			currentTime = theFanimage.getFanData().getGeminiRecord().getRecordTime();
 		}
 		else if (neverImage){ // only ever do this once ?
-			// try to get it from the trigech acquisition
+			// try to get it from the tritech acquisition
 			maxRange = sonarsPanel.getDefaultMaxRange(maxRange, layoutInfo.getSonarId());
 		}
-		sonarZoomTransform = new SonarZoomTransform(maxRange, panelRectangle, imageBounds, 
+		sonarZoomTransform = new SonarZoomTransform(maxRange, drawRect, imageBounds, 
 				sonarsPanel.getZoomFactor(), sonarsPanel.getZoomCentre(),
 				sonarsPanelParams.flipLeftRight);
 		xyProjector.setLayout(sonarZoomTransform);
@@ -334,13 +335,13 @@ public class SonarImagePanel extends JPanel {
 		}
 		//		xyProjector.setFlipImage(sonarsPanelParams.flipLeftRight);
 
-		paintSonarImage(rotatedG, theFanimage);
+		paintSonarImage(rotatedG, drawRect, theFanimage);
 
 		if (sonarsPanelParams.showGrid) {
-			paintGrid(g2d);
+			paintGrid(g2d, drawRect);
 		}
 
-		paintVetos(rotatedG);
+		paintVetos(rotatedG, drawRect);
 
 		if (isViewer && sonarsPanelParams.tailOption == SonarsPanelParams.OVERLAY_TAIL_ALL) {
 			BufferedImage image = getOverlayImage();
@@ -349,7 +350,7 @@ public class SonarImagePanel extends JPanel {
 			}
 		}
 		else {
-			paintDetectorData(g, currentTime);
+			paintDetectorData(g, drawRect, currentTime);
 		}
 
 		paintMouseDragLine(g);
@@ -364,13 +365,13 @@ public class SonarImagePanel extends JPanel {
 		paintTextinformation(g, textPoint, imageRecord);
 	}
 
-	private void paintVetos(Graphics g) {
+	private void paintVetos(Graphics g, Rectangle destRect) {
 		Graphics2D g2d = (Graphics2D) g;
 		TritechAcquisition acquisition = sonarsPanel.getTritechAcquisition();
 	}
 
 
-	private void paintGrid(Graphics g) {
+	private void paintGrid(Graphics g, Rectangle destRect) {
 //		if (fanImage == null ||imageRecord == null) {
 //			return;
 //		}
@@ -538,7 +539,7 @@ public class SonarImagePanel extends JPanel {
 	 * @param g
 	 * @param theFanimage 
 	 */
-	private void paintSonarImage(Graphics2D g2d, FanDataImage theFanimage) {
+	private void paintSonarImage(Graphics2D g2d, Rectangle destRect, FanDataImage theFanimage) {
 		if (theFanimage == null) {
 			return;
 		}
@@ -562,17 +563,59 @@ public class SonarImagePanel extends JPanel {
 //		Coordinate3d bl = sonarZoomTransform.imageMetresToScreen(0, -xMax);
 //		}
 		
-//		g.fillRect(0, 0, getWidth(), getHeight());
+//		g.fillRect(0, 0, getWidth(), getHeight());0
+		int minX = (int) destRect.getMinX();
+		int maxX = (int) destRect.getMaxX();
+		int minY = (int) destRect.getMinY();
+		int maxY = (int) destRect.getMaxY();
 		if (flip) {
-			//			g.drawImage(image, getWidth()+1, getHeight(), 1, 0, 0, 0, image.getWidth(), image.getHeight(), null);	
-			g2d.drawImage(image, getWidth()+1, getHeight(), 1, 0, 
-					imageClip.x, imageClip.y, imageClip.x + imageClip.width, imageClip.y + imageClip.height, null);
+			g2d.drawImage(image, maxX+1, maxY, minX+1, minY, 
+					imageClip.x, imageClip.y, 
+					imageClip.x + imageClip.width, imageClip.y + imageClip.height, null);
 		}
 		else {
-			//			g.drawImage(image, 0, getHeight(), getWidth(), 0, 0, 0, image.getWidth(), image.getHeight(), null);
-			g2d.drawImage(image, 0, getHeight(), getWidth(), 0,
-					imageClip.x, imageClip.y, imageClip.x + imageClip.width, imageClip.y + imageClip.height, null);	
+			g2d.drawImage(image, minX, maxY, maxX, minY,   
+					imageClip.x, imageClip.y, 
+					imageClip.x + imageClip.width, imageClip.y + imageClip.height, null);
+//			g2d.drawImage(image, 0, getHeight(), getWidth(), 0,
+//					imageClip.x, imageClip.y, imageClip.x + imageClip.width, imageClip.y + imageClip.height, null);	
 		}
+	}
+
+	/**
+	 * Check the drawing clip. This is often the exact size of the window, but
+	 * particularly with the support for sonars with different swaths, it may
+	 * now be less. 
+	 * @return
+	 */
+	private Rectangle checkDrawingRect() {
+		Rectangle r = new Rectangle(0, 0, getWidth(), getHeight());
+		if (imageRecord == null) {
+			return r;
+		}
+		double[] bt = imageRecord.getBearingTable();
+		if (bt == null || bt.length == 0) {
+			return r;
+		}
+		double maxAng = Math.abs(bt[0]);
+		double aspect = 2*Math.sin(maxAng);
+		double panelAspect = (double) getWidth() / (double) getHeight();
+		if (aspect == panelAspect) {
+			return r;
+		}
+		if (aspect > panelAspect) {
+			// image is too wide, so shrink in height
+			int newH = (int) (getWidth() / aspect);
+			r.y = (r.height-newH)/2;
+			r.height = newH;
+		}
+		else {
+			// image is too high, so shrink in width
+			int newW = (int) (getHeight() * aspect);
+			r.x = (r.width-newW)/2;
+			r.width = newW;
+		}
+		return r;
 	}
 
 	/**
@@ -582,15 +625,15 @@ public class SonarImagePanel extends JPanel {
 	 * @param g
 	 * @param currentTime
 	 */
-	private void paintDetectorData(Graphics g, long currentTime) {
+	private void paintDetectorData(Graphics g, Rectangle destRect, long currentTime) {
 		Collection<SonarOverlayData> selBlocks = sonarsPanel.sonarOverlayManager.getSelectedDataBlocks();
 		xyProjector.clearHoverList();
 		for (SonarOverlayData selBlock : selBlocks) {
-			paintDetectorData(g, selBlock, currentTime);
+			paintDetectorData(g, destRect, selBlock, currentTime);
 		}
 	}
 
-	private void paintDetectorData(Graphics g, SonarOverlayData selBlock, long currentTime) {
+	private void paintDetectorData(Graphics g, Rectangle destRect, SonarOverlayData selBlock, long currentTime) {
 		PamDataBlock dataBlock = PamController.getInstance().getDataBlockByLongName(selBlock.dataName);
 		if (dataBlock == null) {
 			return;
@@ -904,6 +947,7 @@ public class SonarImagePanel extends JPanel {
 		}
 		return overlayImage;
 	}
+	
 	/**
 	 * Create a new overlay image. 
 	 */
@@ -913,7 +957,8 @@ public class SonarImagePanel extends JPanel {
 			overlayImage = new BufferedImage(getWidth(), getHeight(), BufferedImage.TYPE_4BYTE_ABGR);
 			synchedImage = overlayImage;
 		}
-		paintDetectorData(synchedImage.getGraphics(), sonarsPanel.getCurrentScrollTime());
+		Rectangle destRect = checkDrawingRect();
+		paintDetectorData(synchedImage.getGraphics(), destRect, sonarsPanel.getCurrentScrollTime());
 	}
 
 	public void clearOverlayImage() {

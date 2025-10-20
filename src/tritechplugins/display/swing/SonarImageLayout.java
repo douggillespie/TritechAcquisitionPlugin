@@ -45,6 +45,7 @@ public class SonarImageLayout implements LayoutManager {
 	 * @param maxAngleDegrees the maxAngleDegrees to set
 	 */
 	public boolean setMaxAngleDegrees(double maxAngleDegrees) {
+		maxAngleDegrees = 60;
 		boolean isNew = this.maxAngleDegrees != maxAngleDegrees;
 		this.maxAngleDegrees = maxAngleDegrees;
 		return isNew;

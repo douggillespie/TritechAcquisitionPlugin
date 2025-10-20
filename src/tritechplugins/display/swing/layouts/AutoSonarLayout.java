@@ -42,7 +42,8 @@ public class AutoSonarLayout extends SonarLayout {
 		
 		sonarIds = Arrays.copyOf(sonarIds, nSonar);
 		if (nSonar == 1) {
-			Rectangle rect = checkImageAspect(bounds, maxAngle);
+//			Rectangle rect = checkImageAspect(bounds, maxAngle);
+			Rectangle rect = bounds;
 			Point pt = new Point(rect.x+rect.width*4/5, rect.y);
 			LayoutInfo[] layoutInfo = {new LayoutInfo(sonarIds[0], rect, pt)};
 			return layoutInfo;
