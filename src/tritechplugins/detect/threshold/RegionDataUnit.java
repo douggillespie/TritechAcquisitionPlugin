@@ -85,6 +85,8 @@ public class RegionDataUnit extends PamDataUnit implements PamDetection {
 				str += sdString;
 			}
 		}
+		str += "</p></html>";
+		str = str.replace("<p>", "<p width=\"400\">");
 		return str;
 	}
 

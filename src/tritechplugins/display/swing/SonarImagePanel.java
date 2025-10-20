@@ -1184,6 +1184,7 @@ public class SonarImagePanel extends JPanel {
 			}
 		}
 		str += "</html>";
+		str = str.replace("<p>", "<p width=\"400\">");
 
 		return str;
 	}
@@ -1268,7 +1269,13 @@ public class SonarImagePanel extends JPanel {
 				BackgroundRemoval backgroundSub = sonarsPanel.findBackgroundSub(usedRec.getDeviceId());
 				backgroundSub.setTimeConstant(panelParams.backgroundTimeFactor);
 				backgroundSub.setRemovalScale(panelParams.backgroundScale);
-				usedRec = backgroundSub.removeBackground(usedRec, true);
+				/*
+				 *  set the background update to false, otherwise if you keep looking at
+				 *  different detections in the same image, the background dissapears ?  
+				 *  This will update the background if it's a different record, but leave 
+				 *  it alone if a repeated call to the same record. 
+				 */
+				usedRec = backgroundSub.removeBackground(usedRec, usedRec != backgroundSub.getLastBackgroundRecord());
 			}
 			
 			int usePix = sonarsPanel.getImagePixels(usedRec.getnBeam(), usedRec.getnRange(), getWidth());

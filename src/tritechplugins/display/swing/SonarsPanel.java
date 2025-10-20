@@ -263,7 +263,14 @@ public class SonarsPanel extends PamPanel implements DataMenuParent {
 	public void setScrollTime(long valueMillis) {
 		
 		this.currentScrollTime = valueMillis;
+		findImageRecords();
 		
+	}
+	
+	/**
+	 * find the image records for the current scroll time. 
+	 */
+	public void findImageRecords() {	
 		TritechOffline tritechOffline = tritechAcquisition.getTritechOffline();
 		if (tritechOffline == null) {
 			return;
@@ -277,7 +284,7 @@ public class SonarsPanel extends PamPanel implements DataMenuParent {
 		
 //		System.out.printf("Find image records for time %s\n", PamCalendar.formatDateTime(valueMillis));
 		for (int i = 0; i < sonarIDs.length; i++) {
-			GeminiImageRecordI imageRec = geminiCatalog.findRecordForTime(sonarIDs[i], valueMillis);
+			GeminiImageRecordI imageRec = geminiCatalog.findRecordForTime(sonarIDs[i], currentScrollTime);
 //			if (imageRec == null) {
 //				System.out.println("No image for sonar " + sonarIDs[i]);
 //			}
@@ -288,7 +295,7 @@ public class SonarsPanel extends PamPanel implements DataMenuParent {
 //			}
 		}
 //		imagesPanel.repaint();
-		geminiCatalog.freeImageData(valueMillis, 10000);
+		geminiCatalog.freeImageData(currentScrollTime, 10000);
 		repaint(10);
 	}
 
@@ -372,6 +379,7 @@ public class SonarsPanel extends PamPanel implements DataMenuParent {
 	 */
 	public void remakeImages() {
 		clearDataOverlays();
+		findImageRecords();
 		repaint();
 	}
 
