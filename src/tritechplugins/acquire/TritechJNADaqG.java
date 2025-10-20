@@ -160,6 +160,7 @@ public class TritechJNADaqG extends TritechJNADaq {
 				//				setOnline(false, deviceId);
 				//				svs5Commands.setPingMode(false, (short) 0);
 				svs5Commands.gemxSendGeminiPingConfig(deviceId);
+				
 
 //				svs5Commands.gemxSetPingMode(0, 0);
 				//				setOnline(true, deviceId);
@@ -360,6 +361,9 @@ public class TritechJNADaqG extends TritechJNADaq {
 			RangeFrequencyConfig rfConfig = new RangeFrequencyConfig();
 			rfConfig.m_frequency = sonarParams.getRangeConfig();
 			err = svs5Commands.setConfiguration(rfConfig, deviceId);
+			
+
+//			svs5Commands.
 			//		
 			//	
 			////		SimulateADC simADC = new SimulateADC(true);

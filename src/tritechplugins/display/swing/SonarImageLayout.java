@@ -26,6 +26,31 @@ public class SonarImageLayout implements LayoutManager {
 
 	private SonarsPanel sonarsPanel;
 	
+	/**
+	 * Angle used to calculate aspect ratio of layout. 
+	 */
+	private double maxAngleDegrees = 60;
+	
+	
+	/**
+	 * @return the maxAngleDegrees
+	 */
+	public double getMaxAngleDegrees() {
+		return maxAngleDegrees;
+	}
+
+	/**
+	 * Set the max angle and return true if it's changes
+	 * in which case we'll need to layout. 
+	 * @param maxAngleDegrees the maxAngleDegrees to set
+	 */
+	public boolean setMaxAngleDegrees(double maxAngleDegrees) {
+		maxAngleDegrees = 60;
+		boolean isNew = this.maxAngleDegrees != maxAngleDegrees;
+		this.maxAngleDegrees = maxAngleDegrees;
+		return isNew;
+	}
+
 	public SonarImageLayout(SonarsPanel sonarsPanel) {
 		this.sonarsPanel = sonarsPanel;
 	}
@@ -61,7 +86,7 @@ public class SonarImageLayout implements LayoutManager {
 			return;
 		}
 		SonarLayout sonarLayout = sonarsPanel.getSonarLayout();
-		layoutInformation = sonarLayout.getRectangles(parent.getBounds(), components.length, Math.toRadians(60));
+		layoutInformation = sonarLayout.getRectangles(parent.getBounds(), components.length, Math.toRadians(maxAngleDegrees));
 		for (int i = 0; i < components.length; i++) {
 			if (components[i] instanceof SonarImagePanel) {
 				SonarImagePanel imagePanel = (SonarImagePanel) components[i];
