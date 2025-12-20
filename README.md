@@ -1,3 +1,5 @@
+[![DOI](https://zenodo.org/badge/491806135.svg)](https://doi.org/10.5281/zenodo.13627797)
+
 # TritechAcquisitionPlugin
 
 [Online help is now available here](https://douggillespie.github.io/TritechAcquisitionPlugin/docs/tritechoverview.html)
@@ -11,11 +13,11 @@ This is the PAMGuard Tritech acquisition plugin which allows PAMGuard to
 
 
 ## Installation
-1) Ensure that you have an up to date PAMGuard installation (v.2.02.13 or later)
+1) Ensure that you have an up to date PAMGuard installation (v.2.02.17 or later)
 2) locate the PAMGuard installation directory (probably C:\Program Files\Pamguard\)
 3) copy the two folders 'plugins' and 'lib64' into the folder
 
-Any previous versions of the plugin in the plugins folder (e.g. TritechAcquisitionV1_27.jar)
+Any previous versions of the plugin in the plugins folder (e.g. TritechAcquisitionV1_47.jar)
 should be deleted. 
 
 The lib64 folder will already exist in your PAMGuard installation folder, so you
@@ -126,6 +128,7 @@ SDK libraries.
 
 The main repository for PAMGuard source code is at 
 [https://github.com/PAMGuard/PAMGuard](https://github.com/PAMGuard/PAMGuard)
+
 
 
 
