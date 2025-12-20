@@ -116,6 +116,53 @@ public abstract class TritechDaqSystem {
 		return false;
 	}
 	
+	public boolean isOverTemp(SonarStatusData statusData) {
+		if (statusData == null) {
+			return false;
+		}
+		GLFStatusData status = statusData.getStatusPacket();
+		if (status == null) {
+			return false;
+		}
+		if (status.isOutOfWater()) {
+			return true;
+		}
+		return false;
+	}
+	
+	/**
+	 * Is device in an alarm state, meaning it shouldn't be pinged. 
+	 * @param deviceId
+	 * @return
+	 */
+	public boolean isAlarm(int deviceId) {
+		SonarStatusData statusData = getSonarStatusData(deviceId);
+		return isAlarm(statusData);
+	}
+	
+	/**
+	 * Is there an alarm state that warrants stopping acquiring data ? 
+	 * @param statusData
+	 * @return
+	 */
+	private boolean isAlarm(SonarStatusData statusData) {		
+		if (statusData == null) {
+			return false;
+		}
+		GLFStatusData status = statusData.getStatusPacket();
+		if (status == null) {
+			return false;
+		}
+		SonarDaqParams params = tritechAcquisition.getDaqParams().getSonarParams(statusData.getDeviceId());
+		if (params.isIgnoreOOW() == false && status.isOutOfWater()) {
+			return true;
+		}
+		if (status.isOutOfWaterShutdown() || status.isOverTemp()) {
+			return true;
+		}
+		return false;
+	}
+
 	/**
 	 * HashMap of device info. When working offline we need to ensure that live
 	 * sonars don't get added to this list and also probably clear it when 
@@ -248,12 +295,12 @@ public abstract class TritechDaqSystem {
 		// m_sonarId and m_deviceId are the same thing. 
 		//			System.out.printf("Sonar id %d device id = %d\n", statusPacket.m_sonarId, statusPacket.m_deviceID);
 		boolean shouldLog = shouldLogStatus(statusData);
-		if (shouldLog) {
-			// this will only happen if the shutdownstatus in the packet has changed. 
-			tritechProcess.saveStatusData(statusData);
-		}
 		
 		SonarStatusData sonarStatusData = checkDeviceInfo(statusData);
+
+		if (shouldLog) {
+			tritechProcess.saveStatusData(statusData);
+		}
 		
 		checkOutOfWater(sonarStatusData);
 		
@@ -265,6 +312,7 @@ public abstract class TritechDaqSystem {
 			tritechProcess.getImageDataBlock().addPamData(imageDataUnit);
 		}
 	}
+	
 	
 	/**
 	 * Should we log status data ? Will do this if the state has
@@ -284,6 +332,16 @@ public abstract class TritechDaqSystem {
 		if (prevState.m_shutdownStatus != statusData.m_shutdownStatus) { // OOW and over temp flags
 			return true;
 		}	
+		SonarStatusDataBlock statusBlock = tritechProcess.getSonarStatusDataBlock();
+		if (statusBlock == null) {
+			return false;
+		}
+		long statusLogIntervalS = 60; // should really put this as a parameter. 
+		long lastLog = statusBlock.getLastLogTime(statusData.m_deviceID);
+		long millis = GLFFileCatalog.cDateToMillis(statusData.genericHeader.m_timestamp);
+		if (Math.abs(millis-lastLog) > statusLogIntervalS*1000L) {
+			return true;
+		}
 		
 		return false;
 	}
@@ -297,8 +355,9 @@ public abstract class TritechDaqSystem {
 		if (glfStatus.m_shutdownStatus != opsData.getLastShutdownCode()) {
 //			System.out.println("OOW is " + opsData.outOfWater);
 			opsData.setLastShutdownCode(glfStatus.m_shutdownStatus);
+			SonarDaqParams params = tritechAcquisition.getDaqParams().getSonarParams(glfStatus.m_deviceID);
 			oowStateChange(glfStatus);
-			sayOOWWarning();
+			sayOOWWarning(params.isIgnoreOOW());
 		}
 		if (opsData.getLastShutdownCode() != 0) {
 			opsData.setLastShutdownEerrTime(GLFFileCatalog.cDateToMillis(glfStatus.genericHeader.m_timestamp));
@@ -319,7 +378,7 @@ public abstract class TritechDaqSystem {
 		}
 	}
 
-	private void sayOOWWarning() {
+	private void sayOOWWarning(boolean ignoreOOW) {
 		int nOOW = 0;
 		int[] sonars = getSonarIds();
 		String warning = "";
@@ -340,6 +399,9 @@ public abstract class TritechDaqSystem {
 		}
 		else if (nOOW > 1) {
 			warning += " are out of water";
+		}
+		if (ignoreOOW) {
+			warning += " (ignored)";
 		}
 		if (nOOW == 0) {
 			WarningSystem.getWarningSystem().removeWarning(oowWarning);

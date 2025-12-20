@@ -15,7 +15,7 @@ public class SonarStatusData {
 	protected long lastImageTime = System.currentTimeMillis();
 
 	private GLFStatusData statusPacket;
-	
+		
 	public SonarStatusData(GLFStatusData statusPacket) {
 		this.statusPacket = statusPacket;
 	}

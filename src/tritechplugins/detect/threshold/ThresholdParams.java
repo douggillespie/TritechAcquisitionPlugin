@@ -14,7 +14,9 @@ public class ThresholdParams implements Cloneable, Serializable {
 	
 	public int backgroundTimeConst = 20;
 	
-	public double backgroundScale = 1.5; // a reasonabl default, that used to be hard wired. 
+	public double backgroundScale = 1.5; // a reasonable default, that used to be hard wired. 
+	
+	public boolean ignoreOOW; // ignore out of water alarms - keep detecting and don't reset background. 
 	
 	/**
 	 * STD of data at each point is typically 1/3 to 1/2 of background level

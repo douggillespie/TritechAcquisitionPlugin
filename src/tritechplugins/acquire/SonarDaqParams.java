@@ -40,6 +40,8 @@ public class SonarDaqParams implements Serializable, Cloneable {
 
 	private boolean highResolution = true;
 	
+	private boolean ignoreOOW = false;
+	
 	/**
 	 * @return the range
 	 */
@@ -179,6 +181,20 @@ public class SonarDaqParams implements Serializable, Cloneable {
 	 */
 	public boolean isHighResolution() {
 		return highResolution;
+	}
+
+	/**
+	 * @return the ignore OOW alarm
+	 */
+	public boolean isIgnoreOOW() {
+		return ignoreOOW;
+	}
+
+	/**
+	 * @param ignoreOOW set the ignore OOW
+	 */
+	public void setIgnoreOOW(boolean ignoreOOW) {
+		this.ignoreOOW = ignoreOOW;
 	}
 
 }

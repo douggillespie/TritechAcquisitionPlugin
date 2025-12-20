@@ -62,7 +62,7 @@ public class ThresholdDialog extends PamDialog {
 	
 	private PamDialogPanel vetoPanel;
 	
-	private JCheckBox filterRange;
+	private JCheckBox filterRange, ignoreOOW;
 
 	public static String helpPoint = "docs.tritechdetect";
 
@@ -83,8 +83,9 @@ public class ThresholdDialog extends PamDialog {
 		maxObjectSize = new JTextField(3);
 		connectionType = new JComboBox<String>();
 		filterRange = new JCheckBox();
-		
 		filterRange.setToolTipText("Run a simple 3 tap filter over range at each bearing");
+		ignoreOOW = new JCheckBox();
+		ignoreOOW.setToolTipText("Reset background after an out of water event");
 
 		JPanel thresholdPanel = new JPanel(new GridBagLayout());
 		thresholdPanel.setBorder(new TitledBorder("Threshold detector"));
@@ -103,8 +104,16 @@ public class ThresholdDialog extends PamDialog {
 		c.gridx++;
 		c.gridwidth = 2;
 		thresholdPanel.add(filterRange, c);
-		c.gridx+=c.gridwidth;
-		thresholdPanel.add(new JLabel(" bins ", JLabel.LEFT), c);
+//		c.gridx+=c.gridwidth;
+//		thresholdPanel.add(new JLabel(" bins ", JLabel.LEFT), c);
+
+		c.gridy++;
+		c.gridx = 0;
+		c.gridwidth = 1;
+		thresholdPanel.add(new JLabel("Reset after Out of Water ", JLabel.RIGHT), c);
+		c.gridx++;
+		c.gridwidth = 2;
+		thresholdPanel.add(ignoreOOW, c);
 
 		c.gridy++;
 		c.gridx = 0;
@@ -270,6 +279,7 @@ public class ThresholdDialog extends PamDialog {
 		this.thresholdParams = thresholdParams;
 		sourcePanel.setSource(thresholdParams.imageDataSource);
 		filterRange.setSelected(thresholdParams.filterRange);
+		ignoreOOW.setSelected(!thresholdParams.ignoreOOW); // do the opposite, say the opposite
 		backgroundTime.setText(String.format("%d", thresholdParams.backgroundTimeConst));
 		backgroundScale.setText(String.format("%3.2f", thresholdParams.backgroundScale));
 		backgroundSTDScale.setText(String.format("%3.2f", thresholdParams.backgroundSTDs));
@@ -306,6 +316,7 @@ public class ThresholdDialog extends PamDialog {
 		}
 		thresholdParams.imageDataSource = imSource.getLongDataName();
 		thresholdParams.filterRange = filterRange.isSelected();
+		thresholdParams.ignoreOOW = !ignoreOOW.isSelected(); // say the opposite, do the opposite. 
 		try {
 			thresholdParams.backgroundTimeConst = Integer.valueOf(backgroundTime.getText());
 			thresholdParams.backgroundIntervalSecs = Integer.valueOf(backgroundRecordS.getText());

@@ -83,6 +83,8 @@ public class TritechJNADaqG extends TritechJNADaq {
 	long prevPingtime = 0;
 
 	private int lastSonarId;
+
+	private boolean realAlarm;
 	private void pingNextSonar() {
 		//		if (pingsSent%20 == 1) {
 		//			System.out.printf("Pings sent / Received = %d/%d (diff %d)\n", pingsSent, pingsReceived, pingsReceived-pingsSent);
@@ -136,7 +138,7 @@ public class TritechJNADaqG extends TritechJNADaq {
 			/**
 			 * Don't ping if it's out of the water.
 			 */
-			if (isOOW(deviceId)) { 
+			if (isAlarm(deviceId)) { 
 				//				System.out.println("Skip ping since out of water device " + deviceId);
 //				setOnline(false, deviceId);
 				return;
@@ -153,6 +155,7 @@ public class TritechJNADaqG extends TritechJNADaq {
 //						currentThread.getId(), PamCalendar.formatTime(System.currentTimeMillis(), true));
 				//				svs5Commands.setHighResolution(sonarParams.isHighResolution(), deviceId);
 				svs5Commands.gemxSetPingMode(deviceId, 0);
+//				svs5Commands.gemxSetRangeCompression(deviceId, 3, 0);
 				svs5Commands.gemxAutoPingConfig(deviceId, sonarParams.getRange(), 
 						sonarParams.getGain(), (float) sonarParams.getFixedSoundSpeed());
 				//				svs5Commands.setBoolCommand(GeminiStructure.SVS5_CONFIG_ONLINE, false, deviceId);
@@ -181,12 +184,21 @@ public class TritechJNADaqG extends TritechJNADaq {
 
 	@Override
 	public void oowStateChange(GLFStatusData statusData) {
+		/**
+		 * Going to get this message if the alarm state changes, but locally 
+		 * may decide to ignore it. 
+		 */
 		super.oowStateChange(statusData);
-		if (statusData.isOutOfWater()) {
-			setOnline(false, statusData.m_deviceID);
-		}
-		else {
-			prepareDevice(statusData.m_deviceID); // go through full prep sequence
+		SonarDaqParams params = tritechAcquisition.getDaqParams().getSonarParams(statusData.m_deviceID);
+		boolean realAlarm = statusData.isAlarm(params.isIgnoreOOW());
+		if (realAlarm != this.realAlarm) {
+			this.realAlarm = realAlarm;
+			if (realAlarm) {
+				setOnline(false, statusData.m_deviceID);
+			}
+			else {
+				prepareDevice(statusData.m_deviceID); // go through full prep sequence
+			}
 		}
 //		SonarDaqParams sonarParams = tritechAcquisition.getDaqParams().getSonarParams(statusData.m_deviceID);
 //		setOnline(statusData.isOutOfWater() == false & sonarParams.isSetOnline(), statusData.m_deviceID);

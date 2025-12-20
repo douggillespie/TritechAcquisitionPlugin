@@ -193,7 +193,7 @@ public class ChannelThresholdDet extends ChannelDetector {
 	protected void oowStateChange(boolean isOOW) {
 //		System.out.println("OOW state change to " + isOOW);
 		this.isOOW = isOOW;
-		if (isOOW == false) {
+		if (isOOW == false && thresholdDetector.getThresholdParams().ignoreOOW == false) {
 			backgroundRemoval.resetUpdateCount();
 		}
 	}

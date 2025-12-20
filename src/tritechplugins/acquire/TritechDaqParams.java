@@ -71,6 +71,8 @@ public class TritechDaqParams implements Serializable, Cloneable{
 	
 	private HashMap<Integer, SonarDaqParams> sonarSpecificParams;
 	
+	private HashMap<Integer, SonarPosition> sonarPositions;
+	
 	/**
 	 * 1200i only
 	 */
@@ -401,4 +403,33 @@ public class TritechDaqParams implements Serializable, Cloneable{
 		this.storeGLFFiles = storeGLFFiles;
 	}
 
+	/**
+	 * Get the coordinates of a specific sonar. A default position (0,0,0)
+	 * will be returned if nothing is yet stored. 
+	 * @param sonarId
+	 * @return Sonar coordinates, x,y,height,heading,pitch,roll
+	 */
+	public SonarPosition getSonarPosition(int sonarId) {
+		if (sonarPositions == null) {
+			sonarPositions = new HashMap<>();
+		}
+		SonarPosition sonarPosition = sonarPositions.get(sonarId);
+		if (sonarPosition == null) {
+			sonarPosition = new SonarPosition();
+			sonarPositions.put(sonarId, sonarPosition);
+		}
+		return sonarPosition;
+	}
+	
+	/**
+	 * Set the coordinates for the specified sonar. 
+	 * @param sonarId
+	 * @param sonarPosition
+	 */
+	public void setSonarPosition(int sonarId, SonarPosition sonarPosition) {
+		if (sonarPositions == null) {
+			sonarPositions = new HashMap<>();
+		}
+		sonarPositions.put(sonarId, sonarPosition);
+	}
 }

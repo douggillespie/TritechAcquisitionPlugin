@@ -45,6 +45,13 @@ public class TritechDaqProcess extends PamProcess implements TritechRunMode, Con
 	
 	private SonarStatusDataBlock sonarStatusDataBlock;
 	/**
+	 * @return the sonarStatusDataBlock
+	 */
+	public SonarStatusDataBlock getSonarStatusDataBlock() {
+		return sonarStatusDataBlock;
+	}
+
+	/**
 	 * This is a variety of ways of getting data in - from real time using svs5 via JNA
 	 * to my own pure Java file reader. 
 	 */
@@ -54,6 +61,8 @@ public class TritechDaqProcess extends PamProcess implements TritechRunMode, Con
 	private Timer logCheckTimer;
 	private boolean pamStarted;
 	
+	private long statusLogIntervalS = 60;
+	
 	public TritechDaqProcess(TritechAcquisition tritechAcquisition) {
 		super(tritechAcquisition, null);
 		this.tritechAcquisition = tritechAcquisition;
@@ -61,7 +70,7 @@ public class TritechDaqProcess extends PamProcess implements TritechRunMode, Con
 		addOutputDataBlock(imageDataBlock);
 		sonarStatusDataBlock = new SonarStatusDataBlock(this);
 		addOutputDataBlock(sonarStatusDataBlock);
-		sonarStatusDataBlock.SetLogging(new SonarStatusLogging(sonarStatusDataBlock));
+		sonarStatusDataBlock.SetLogging(new SonarStatusLogging(this, sonarStatusDataBlock));
 		
 		sortDaqSystem();
 		

@@ -18,6 +18,7 @@ import tritechgemini.imagedata.GLFImageRecord;
 import tritechgemini.imagedata.GLFStatusData;
 import tritechgemini.imagedata.GeminiImageRecordI;
 import tritechplugins.acquire.ImageDataUnit;
+import tritechplugins.acquire.SonarDaqParams;
 import tritechplugins.acquire.SonarStatusData;
 import tritechplugins.detect.threshold.background.ThresholdBackgroundDataUnit;
 import tritechplugins.detect.threshold.rangefilter.ImageRangeFilter;
@@ -132,6 +133,7 @@ public abstract class ChannelDetector {
 	public void newStatusData(ImageDataUnit imageData) {
 		SonarStatusData statusData = imageData.getSonarStatusData();
 		GLFStatusData statusPacket = statusData.getStatusPacket();
+//		SonarDaqParams params = thresholdProcess.get
 		if (statusPacket == null) {
 			return;
 		}

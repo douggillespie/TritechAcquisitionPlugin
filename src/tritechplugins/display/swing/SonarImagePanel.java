@@ -845,14 +845,14 @@ public class SonarImagePanel extends JPanel {
 		yt += lineHeight;
 		if (geminiImageRecord instanceof GLFImageRecord) {
 			GLFImageRecord glfRecord = (GLFImageRecord) geminiImageRecord;
-			str = String.format("nRange %d, nAngle %d, comp %d", geminiImageRecord.getnRange(), 
+			str = String.format("nRange %d, nAngle %d, (comp %d)", geminiImageRecord.getnRange(), 
 					geminiImageRecord.getnBeam(), glfRecord.rangeCompression);
 		}
 		else {
 			str = String.format("nRange %d, nAngle %d", geminiImageRecord.getnRange(), 
 					geminiImageRecord.getnBeam());
 		}
-		paintTextLine(g2d, str, xt, yt, "Number of range and bearing bins");
+		paintTextLine(g2d, str, xt, yt, "Number of range and bearing bins (range compression)");
 		yt += lineHeight;
 		long paintTime = System.nanoTime()-paintStart;
 		String tip;

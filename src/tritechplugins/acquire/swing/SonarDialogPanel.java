@@ -48,6 +48,8 @@ public class SonarDialogPanel extends JPanel {
 	private JCheckBox useFixedSoundSpeed;
 	
 	private JTextField fixedSoundSpeed;
+	
+	private JCheckBox ignoreOOW;
 
 	public SonarDialogPanel(int sonarId, TritechDaqProcess daqProcess) {
 		super();
@@ -102,6 +104,8 @@ public class SonarDialogPanel extends JPanel {
 		c.gridy++;
 		c.gridwidth = 3;
 		mainPanel.add(highRangeResolution = new JCheckBox("Use high range resolution"), c);
+		c.gridx += c.gridwidth;
+		mainPanel.add(ignoreOOW = new JCheckBox("Ignore Out of Water alarm"), c);
 		c.gridx = 0;
 		c.gridy++;
 		c.gridwidth = 2;
@@ -109,6 +113,9 @@ public class SonarDialogPanel extends JPanel {
 		c.gridx += c.gridwidth;
 		c.gridwidth = 1;
 		mainPanel.add(fixedSoundSpeed = new JTextField(5), c);
+		c.gridx = 0;
+		c.gridy++;
+		
 
 		int[] modes = ChirpMode.getModes();
 		for (int i = 0; i < modes.length; i++) {
@@ -165,6 +172,7 @@ public class SonarDialogPanel extends JPanel {
 		useFixedSoundSpeed.setSelected(sonarParams.isUseFixedSoundSpeed());
 		fixedSoundSpeed.setText(String.format("%3.1f", sonarParams.getFixedSoundSpeed()));
 		online.setSelected(sonarParams.isSetOnline() || sonarId <= 0);
+		ignoreOOW.setSelected(sonarParams.isIgnoreOOW());
 	}
 
 	public boolean getParams(TritechDaqParams daqParams) {
@@ -186,6 +194,7 @@ public class SonarDialogPanel extends JPanel {
 			}
 		}
 		sonarParams.setSetOnline(online.isSelected() || sonarId <= 0);
+		sonarParams.setIgnoreOOW(ignoreOOW.isSelected());
 		
 		return true;
 	}
