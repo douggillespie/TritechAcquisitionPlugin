@@ -10,6 +10,8 @@ import java.io.Serializable;
 public class SonarPosition implements Cloneable, Serializable{
 
 	private static final long serialVersionUID = 1L;
+	
+	private String sonarName; // friendly name, such as 'upper', 'far bank', etc. 
 
 	private double x,y,height;
 
@@ -23,6 +25,36 @@ public class SonarPosition implements Cloneable, Serializable{
 			e.printStackTrace();
 			return null;
 		}
+	}
+	
+	/**
+	 * Return true if everything is zero, so no point in doing any transforms. 
+	 * @return
+	 */
+	public boolean isZero() {
+		return x == 0 && y == 0 && height == 0 && head == 0 && pitch == 0 && roll == 0; 
+	}
+	
+	/**
+	 * Translate x and y;
+	 * @param relx
+	 * @param rely
+	 * @return two element vector of translated xy
+	 */
+	public double[] translate(double relx, double rely) {
+		double[] newXY = {relx, rely};
+		if (isZero()) {
+			return newXY;
+		}
+		if (head != 0) {
+			double c = Math.cos(Math.toRadians(head));
+			double s = Math.sin(Math.toRadians(head));
+			newXY[0] = relx*c + rely*s;
+			newXY[1] = -relx*s + rely*c;
+		}
+		newXY[0] += this.x;
+		newXY[1] += this.y;
+		return newXY;
 	}
 	
 	/**
@@ -107,6 +139,20 @@ public class SonarPosition implements Cloneable, Serializable{
 	 */
 	public void setRoll(double roll) {
 		this.roll = roll;
+	}
+
+	/**
+	 * @return the sonarName
+	 */
+	public String getSonarName() {
+		return sonarName;
+	}
+
+	/**
+	 * @param sonarName the sonarName to set
+	 */
+	public void setSonarName(String sonarName) {
+		this.sonarName = sonarName;
 	}
 
 

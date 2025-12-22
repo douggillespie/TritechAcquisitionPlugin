@@ -4,9 +4,12 @@ import java.awt.Frame;
 import java.awt.Window;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.concurrent.ConcurrentHashMap.KeySetView;
 
 import javax.swing.JMenuItem;
 
@@ -25,14 +28,20 @@ import PamView.PamSidePanel;
 import PamguardMVC.PamDataBlock;
 import PamguardMVC.dataOffline.OfflineDataLoadInfo;
 import backupmanager.BackupInformation;
+import binaryFileStorage.BinaryStore;
 import dataGram.DatagramManager;
+import dataMap.OfflineDataMap;
 import dataMap.OfflineDataMapPoint;
 import pamScrollSystem.ViewLoadObserver;
 import tritechgemini.fileio.GeminiFileCatalog;
 import tritechplugins.acquire.backup.GLFBackup;
 import tritechplugins.acquire.offline.TritechOffline;
+import tritechplugins.acquire.swing.SonarPositionDialog;
 import tritechplugins.acquire.swing.TritechSidePanel;
 import tritechplugins.acquire.swing.framerate.FrameRateDisplayProvider;
+import tritechplugins.detect.threshold.ThresholdDetector;
+import tritechplugins.detect.track.TrackLinkDataBlock;
+import tritechplugins.detect.track.TrackLinkProcess;
 import tritechplugins.display.swing.SonarPanelProvider;
 import tritechplugins.display.swing.SonarsPanelParams;
 import tritechplugins.mark.SonarMarker;
@@ -287,6 +296,66 @@ public class TritechAcquisition extends RawInputControlledUnit implements PamSet
 			daqSidePanel = new TritechSidePanel(this);
 		}
 		return daqSidePanel;
+	}
+	
+	public int[] getSonarIds() {
+		if (isViewer()) {
+			/*
+			 *  need to see what's in the data map of both the binary and the GLF data and
+			 *  take the union of the two.  
+			 */
+			int[] offlineIds = null;
+			if (tritechOffline != null) {
+				// might only work if GLF files are present. 
+				offlineIds = tritechOffline.getSonarIDs();
+			}
+			int[] pIds = daqParams.getSonarIds();
+			int[] ids = combineIntArrays(offlineIds, pIds);
+//			int[] binaryIds = null;
+//			ThresholdDetector threshDet = (ThresholdDetector) getPamConfiguration().findControlledUnit(ThresholdDetector.unitType);
+//			BinaryStore binaryStore = (BinaryStore) getPamConfiguration().findControlledUnit(BinaryStore.defUnitType);
+//			if (threshDet != null && binaryStore != null) {
+//				TrackLinkProcess linkProcess = threshDet.getTrackLinkProcess();
+//				TrackLinkDataBlock linkDataBlock = linkProcess.getTrackLinkDataBlock();
+//				OfflineDataMap dataMap = linkDataBlock.getPrimaryDataMap();
+//				dataMap.getAllStartsAndEnds();
+//			}
+			return ids;
+		}
+		else {
+			return getTritechDaqProcess().getTritechDaqSystem().getSonarIds();
+		}
+	}
+
+	private int[] combineIntArrays(int[] l1, int[] l2) {
+		if (l1 == null) {
+			return l2;
+		}
+		if (l2 == null) {
+			return l1;
+		}
+		HashSet<Integer> allK = new HashSet<>();
+		for (int i = 0; i < l1.length; i++) {
+			allK.add(l1[i]);
+		}
+		for (int i = 0; i < l2.length; i++) {
+			allK.add(l2[i]);
+		}
+		int[] cl = new int[allK.size()];
+		int n = 0;
+		for (Integer ik : allK) {
+			cl[n++] = ik;
+		}
+		Arrays.sort(cl);
+		return cl;
+	}
+
+	public void showGeometryDialog(Frame parentFrame) {
+		TritechDaqParams params = SonarPositionDialog.showDialog(parentFrame, this);
+		if (params != null) {
+			this.setDaqParams(params);
+//			notifyConfigurationObservers(); // calling this seems to mess the glf catalogue 
+		}
 	}
 
 //	/**

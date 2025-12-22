@@ -1,9 +1,11 @@
 package tritechplugins.acquire;
 
 import java.io.Serializable;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Set;
 import java.util.TimeZone;
 
 import geminisdk.structures.ChirpMode;
@@ -288,6 +290,45 @@ public class TritechDaqParams implements Serializable, Cloneable{
 		return sonarParams;
 	}
 
+	/**
+	 * Remove a sonars params. 
+	 * @param sonarId
+	 */
+	public void removeSonarParams(int sonarId) {
+		if (sonarSpecificParams == null) {
+			return;
+		}
+		sonarSpecificParams.remove(sonarId);
+	}
+
+	/**
+	 * Get a list of sonar id's which was hopefully the ones used in 
+	 * the acquisition. however, if this config was used with multiple 
+	 * different sonars, it's very likely to contain a list of every sonar
+	 * that was ever used with this configuration. 
+	 * @return
+	 */
+	public int[] getSonarIds() {
+		if (sonarSpecificParams == null) {
+			return null;
+		}
+		Set<Integer> keys = sonarSpecificParams.keySet();
+		int n = keys.size();
+		int[] sonarIds = new int[n];
+		n = 0;
+		for (Integer aKey : keys) {
+			if (aKey > 0) {
+				sonarIds[n++] = aKey;
+			}
+		}
+		/**
+		 * Get rid of the default, which hasn't been included. 
+		 */
+		if (n < sonarIds.length) {
+			sonarIds = Arrays.copyOf(sonarIds, n);
+		}
+		return sonarIds;
+	}
 	/**
 	 * Get any existing params. 
 	 * @return any existing params. 

@@ -67,7 +67,7 @@ public class TrackBinarySource extends BinaryDataSource {
 			for (int i = 0; i < nSonar; i++) {
 				sonars[i] = dis.readShort();
 			}
-			double straightLength = dis.readFloat(); // may not get used - was clculated on the fly
+			double straightLength = dis.readFloat(); // may not get used - was calculated on the fly
 			double wobblyLength = dis.readFloat();
 			double meanOccupancy = dis.readFloat();
 			trackDataUnit = new TrackLinkDataUnit(binaryObjectData.getTimeMilliseconds());

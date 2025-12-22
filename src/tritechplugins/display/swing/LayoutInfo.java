@@ -3,6 +3,8 @@ package tritechplugins.display.swing;
 import java.awt.Point;
 import java.awt.Rectangle;
 
+import tritechplugins.display.swing.layouts.ImageAspect;
+
 /**
  * Info for a sonar layout. Includes a rectangle for the image
  * and a point which will be the top left corner of a block of text. 
@@ -12,7 +14,7 @@ import java.awt.Rectangle;
 public class LayoutInfo {
 
 	/**
-	 * Rectangle - position of a tranparent JPanel that will hold the image.
+	 * Rectangle - position of a transparent JPanel that will hold the image.
 	 */
 	private Rectangle imageRectangle;
 	
@@ -37,16 +39,20 @@ public class LayoutInfo {
 	 */
 	private Point textPoint;
 
-	public LayoutInfo(int sonarId, Rectangle imageRectangle, Point textPoint) {
+	private ImageAspect imageAspect;
+
+	public LayoutInfo(int sonarId, ImageAspect imageAspect, Rectangle imageRectangle, Point textPoint) {
 		super();
 		this.sonarId = sonarId;
+		this.imageAspect = imageAspect;
 		this.imageRectangle = imageRectangle;
 		this.textPoint = textPoint;
 	}
 
-	public LayoutInfo(int sonarId, Rectangle imageRectangle) {
+	public LayoutInfo(int sonarId, ImageAspect imageAspect, Rectangle imageRectangle) {
 		super();
 		this.sonarId = sonarId;
+		this.imageAspect = imageAspect;
 		this.imageRectangle = imageRectangle;
 		textPoint = new Point(imageRectangle.x, imageRectangle.y);
 	}
@@ -112,6 +118,13 @@ public class LayoutInfo {
 	 */
 	public void setSonarId(int sonarId) {
 		this.sonarId = sonarId;
+	}
+
+	/**
+	 * @return the imageAspect
+	 */
+	public ImageAspect getImageAspect() {
+		return imageAspect;
 	}
 
 }

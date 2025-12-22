@@ -67,10 +67,18 @@ public class TritechOffline implements TritechRunMode, OfflineDataStore {
 		JMenuItem menu = new JMenu(tritechAcquisition.getUnitName());
 		JMenuItem menuItem = new JMenuItem("Offline files ...");
 		menuItem.addActionListener(new ActionListener() {
-			
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				showOfflineFilesDialog(parentFrame);
+			}
+		});
+		menu.add(menuItem);
+		
+		menuItem = new JMenuItem("Sonar positions ...");
+		menuItem.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				tritechAcquisition.showGeometryDialog(parentFrame);
 			}
 		});
 		menu.add(menuItem);

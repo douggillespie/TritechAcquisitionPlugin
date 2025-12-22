@@ -8,6 +8,7 @@ import PamguardMVC.PamDataBlock;
 import PamguardMVC.PamDataUnit;
 import PamguardMVC.superdet.SuperDetection;
 import tritechgemini.detect.DetectedRegion;
+import tritechplugins.acquire.SonarPosition;
 
 public class RegionDataUnit extends PamDataUnit implements PamDetection {
 
@@ -56,6 +57,17 @@ public class RegionDataUnit extends PamDataUnit implements PamDetection {
 					PamCalendar.formatTime(basicData.getTimeMilliseconds(), 3, false),
 					"UTC");
 		}
+		// add the peak x information and possibly also the absolut position if different. 
+		double x = region.getPeakRange() * -Math.sin(region.getPeakBearing());
+		double y = region.getPeakRange() * Math.cos(region.getPeakBearing());
+		SonarPosition sonarPos = getSonarPosition();
+		if (sonarPos == null || sonarPos.isZero()) {
+			str += String.format("Peak xy: %3.2f,%3.2fm<br>", x, y);
+		}
+		else {
+			double[] newXY = sonarPos.translate(x, y);
+			str += String.format("Peak xy: (%3.2f,%3.2f)m; absolute: (%3.1f,%3.1f)m<br>", x, y, newXY[0], newXY[1]);
+		}
 		str += String.format("Size: %d pix, %3.2fx%3.2fm, Occupancy %3.1f%%<br>", region.getRegionSize(), angMetres, radMetres, region.getOccupancy());
 		str += String.format("Level: Mean %d, Max %d<br>", region.getAverageValue(), region.getMaxValue());
 		str += String.format("Angles: %3.1f to %3.1f<br>", Math.toDegrees(region.getMinBearing()), 
@@ -88,6 +100,18 @@ public class RegionDataUnit extends PamDataUnit implements PamDetection {
 		str += "</p></html>";
 		str = str.replace("<p>", "<p width=\"400\">");
 		return str;
+	}
+
+	private SonarPosition getSonarPosition() {
+		// find the sonar position information. 
+		// but there is no easy link back from this datablock to the tritech process
+		// because it's layers doen in a separate module !
+		PamDataBlock datablock = getParentDataBlock();
+		if (datablock instanceof RegionDataBlock == false) {
+			return null;
+		}
+		RegionDataBlock rdb = (RegionDataBlock) datablock;
+		return rdb.getSonarPosition(region.getSonarId());
 	}
 
 	@Override

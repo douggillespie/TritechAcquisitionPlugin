@@ -170,6 +170,7 @@ public class SonarsPanel extends PamPanel implements DataMenuParent {
 //			System.out.println("Set num sonars " + numSonars);
 //		}
 		this.numSonars = numSonars;
+//		int nSonar = currentSonarIds.size();
 		while (imagesPanel.getComponentCount() < numSonars) {
 			imagesPanel.add(new SonarImagePanel(this, imagesPanel.getComponentCount()));
 		}

@@ -72,7 +72,9 @@ import tritechgemini.imagedata.FanPicksFromData;
 import tritechgemini.imagedata.GLFImageRecord;
 import tritechgemini.imagedata.GeminiImageRecordI;
 import tritechgemini.imagedata.ImageFanMaker;
+import tritechplugins.acquire.SonarPosition;
 import tritechplugins.acquire.TritechAcquisition;
+import tritechplugins.acquire.TritechDaqParams;
 import tritechplugins.acquire.offline.TritechOffline;
 import tritechplugins.detect.threshold.BackgroundRemoval;
 import tritechplugins.detect.threshold.RegionDataUnit;
@@ -242,6 +244,10 @@ public class SonarImagePanel extends JPanel {
 	@Override
 	public void paintComponent(Graphics g) {
 		super.paintComponent(g);
+		// draw panel outline to make debugging easy. 
+//		Rectangle rect = g.getClipBounds();
+//		g.setColor(Color.RED);
+//		g.drawRect(0, 0, getWidth()-1, getHeight()-1);
 		paintEverything(g);
 	}
 
@@ -293,7 +299,8 @@ public class SonarImagePanel extends JPanel {
 		 */
 		Graphics2D rotatedG = (Graphics2D) g2d.create();
 //		layoutInfo.setRotationDegrees(0*panelIndex);
-		double r = layoutInfo.getRotationDegrees();
+//		posData = 
+		double r = getDisplayRotation();
 		if (r != 0) {
 			/*
 			 * If r is 0, then don't need to do anything, otherwise rotate bloody everything
@@ -364,6 +371,27 @@ public class SonarImagePanel extends JPanel {
 			textPoint.y = getHeight()*3/4;
 		}
 		paintTextinformation(g, textPoint, imageRecord);
+	}
+
+	/**
+	 * Get the display rotation. This will be either zero or 
+	 * whatever is set for the sonar heading in the Acquisition position parameters. 
+	 * @return
+	 */
+	private double getDisplayRotation() {
+		SonarsPanelParams params = sonarsPanel.getSonarsPanelParams();
+		if (params.isUseSonarRotation() == false) {
+			return 0;
+		}
+		// otherwise, need to find the acquisition, get the params, and send 
+		// back the rotation value. 
+		TritechAcquisition daq = sonarsPanel.getTritechAcquisition();
+		if (daq == null || layoutInfo == null) {
+			return 0;
+		}
+		TritechDaqParams daqParams = daq.getDaqParams();
+		SonarPosition posData = daqParams.getSonarPosition(layoutInfo.getSonarId());
+		return posData.getHead();
 	}
 
 	private void paintVetos(Graphics g, Rectangle destRect) {
@@ -814,6 +842,17 @@ public class SonarImagePanel extends JPanel {
 		yt += lineHeight;
 		xt += fm.charWidth(' ');
 		String str;
+		TritechAcquisition daq = sonarsPanel.getTritechAcquisition();
+		if (daq != null) {
+			SonarPosition pos = daq.getDaqParams().getSonarPosition(layoutInfo.getSonarId());
+			String name = pos.getSonarName();
+			if (name != null && name.length() > 0) {
+				str = String.format("%s", name);
+				paintTextLine(g2d, str, xt, yt, "Sonar name");
+				yt += lineHeight;
+			}
+		}
+		
 		String filePath = geminiImageRecord.getFilePath();
 		if (filePath != null) {
 			File f = new File(filePath);
@@ -1111,6 +1150,34 @@ public class SonarImagePanel extends JPanel {
 			stopTimer.start();
 		}
 	}
+	
+	/**
+	 * Convert a coordinate that's relative to the sonar to an absolute coordinate
+	 * using the sonar position data.  
+	 * @param relativeCoordinate
+	 * @return
+	 */
+	public SonarCoordinate getAbsoluteCoordinate(SonarCoordinate relativeCoordinate) {
+		// rule is rotate first, then transform. 
+		SonarPosition sonarPosition = getSonarPosition();
+		if (sonarPosition == null) {
+			return relativeCoordinate;
+		}
+		double[] newXY = sonarPosition.translate(relativeCoordinate.getX(), 
+				relativeCoordinate.getY());
+
+		return new SonarCoordinate(relativeCoordinate.getSonarIndex(), 
+				relativeCoordinate.getSonarId(), newXY[0], newXY[1]);
+	}
+	
+	public SonarPosition getSonarPosition() {
+		TritechAcquisition daq = sonarsPanel.getTritechAcquisition();
+		if (daq == null) {
+			return null;
+		}
+		return daq.getDaqParams().getSonarPosition(layoutInfo.getSonarId());
+		
+	}
 
 	@Override
 	public String getToolTipText(MouseEvent event) {
@@ -1130,6 +1197,7 @@ public class SonarImagePanel extends JPanel {
 		if (sonarCoord == null) {
 			return null;
 		}
+		SonarCoordinate absCoordinate = getAbsoluteCoordinate(sonarCoord);
 
 		// first see if we're on an overlay.
 		String overlayText = null;
@@ -1139,6 +1207,7 @@ public class SonarImagePanel extends JPanel {
 		String str;
 
 		if (overlayText != null) {
+			// this is the overlay from the detector. 
 			str = overlayText;
 		} else {
 			str = "<html>";
@@ -1207,8 +1276,10 @@ public class SonarImagePanel extends JPanel {
 			}	
 		}
 
-		str += String.format("<b>Mouse ...</b><br>Range %3.1fm, Angle %3.1f%s<br>xy (%3.1f, %3.1f)m",
-				sonarCoord.getRange(), sonarCoord.getAngleDegrees(), LatLong.deg, sonarCoord.getX(), sonarCoord.getY());
+		str += String.format("<b>Mouse ...</b><br>Range %3.1fm, Angle %3.1f%s<br>relative xy (%3.1f, %3.1f)m<br>"
+				+ "absolute xy (%3.1f,%3.1f)m",
+				sonarCoord.getRange(), sonarCoord.getAngleDegrees(), LatLong.deg, 
+				sonarCoord.getX(), sonarCoord.getY(), absCoordinate.getX(), absCoordinate.getY());
 		//		FanImageData fanData = imageFanData[sonarCoord.getSonarIndex()];
 		// get the amplitude for the nearest xy pixel.
 		int xPix = 0, yPix = 0;

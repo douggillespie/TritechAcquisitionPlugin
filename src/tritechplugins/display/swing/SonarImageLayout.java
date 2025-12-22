@@ -5,6 +5,7 @@ import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.LayoutManager;
 import java.util.HashMap;
+import java.util.Set;
 
 import tritechplugins.display.swing.layouts.AutoSonarLayout;
 import tritechplugins.display.swing.layouts.SonarLayout;
@@ -84,6 +85,12 @@ public class SonarImageLayout implements LayoutManager {
 		Component[] components = parent.getComponents();
 		if (components == null | components.length == 0) {
 			return;
+		}
+		
+		// this should be the same as the number of panels!
+		int[] sonars = sonarsPanel.getSonarIds();
+		if (sonars == null) {
+			sonars = new int[0];
 		}
 		SonarLayout sonarLayout = sonarsPanel.getSonarLayout();
 		layoutInformation = sonarLayout.getRectangles(parent.getBounds(), components.length, Math.toRadians(maxAngleDegrees));

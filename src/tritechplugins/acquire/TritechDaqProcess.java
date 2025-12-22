@@ -257,6 +257,15 @@ public class TritechDaqProcess extends PamProcess implements TritechRunMode, Con
 				showSettingsDialog(parentFrame);
 			}
 		});
+
+		menuItem = new JMenuItem("Sonar positions ...");
+		menuItem.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				tritechAcquisition.showGeometryDialog(parentFrame);
+			}
+		});
+		menu.add(menuItem);
 //		tritechDaqSystem.
 		menuItem = new JMenuItem("Reboot");
 		menu.add(menuItem);
@@ -565,7 +574,9 @@ public class TritechDaqProcess extends PamProcess implements TritechRunMode, Con
 		/*
 		 * Then what do we do with this ? 
 		 */
-		this.tritechDaqSystem.setRecording(log);
+		if (this.tritechDaqSystem != null) {
+			this.tritechDaqSystem.setRecording(log);
+		}
 	}
 
 	@Override

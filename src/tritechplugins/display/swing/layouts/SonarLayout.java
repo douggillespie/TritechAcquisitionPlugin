@@ -33,7 +33,7 @@ public abstract class SonarLayout {
 	 * Work out rectangles for each sonar, which may overlap if being clever. All rectangles should have
 	 * been passed through checkAspect to make sure they are the right dimension. 
 	 * @param bounds outer bounding rectangle. 
-	 * @param nSonar number of sonars. 
+	 * @param sonars number of sonars. 
 	 * @param maxAngle Maximum angle in radians. 
 	 * @return Rectangles for layout. 
 	 */
@@ -71,8 +71,8 @@ public abstract class SonarLayout {
 		return Math.abs(x/y);
 	}
 	
-	public Rectangle checkImageAspect(Rectangle rect, double maxAng) {
-		double aspect = getImageAspect(maxAng);
+	public Rectangle checkImageAspect(Rectangle rect, ImageAspect imageAspect) {
+		double aspect = imageAspect.getAspectRatio();
 		Rectangle newRect = new Rectangle(rect);
 		if (rect.height*aspect < rect.width) {
 			// height is smallest, so reduce width. 

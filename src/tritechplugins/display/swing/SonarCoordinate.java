@@ -14,6 +14,7 @@ public class SonarCoordinate {
 
 	/**
 	 * 
+	 * @param sonarIndex sonar index (generally set to Id)
 	 * @param sonarId sonar Id
 	 * @param x x coordinate
 	 * @param y y coordinate

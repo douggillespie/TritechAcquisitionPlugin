@@ -26,6 +26,11 @@ import tritechplugins.acquire.TritechDaqProcess;
 import tritechplugins.acquire.TritechDaqSystem;
 import tritechplugins.acquire.TritechJNADaq;
 
+/**
+ * Parameter setting for a single sonar
+ * @author dg50
+ *
+ */
 public class SonarDialogPanel extends JPanel {
 
 	private static final long serialVersionUID = 1L;

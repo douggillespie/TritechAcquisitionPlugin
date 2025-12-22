@@ -9,7 +9,6 @@ public class TrackLinkDataBlock extends SuperDetDataBlock<TrackLinkDataUnit, Reg
 
 	private TrackLinkProcess trackLinkProcess;
 
-
 	public TrackLinkDataBlock(String dataName, TrackLinkProcess trackLinkProcess) {
 		super(TrackLinkDataUnit.class, dataName, trackLinkProcess, 0, SuperDetDataBlock.ViewerLoadPolicy.LOAD_OVERLAPTIME);
 		this.trackLinkProcess = trackLinkProcess;

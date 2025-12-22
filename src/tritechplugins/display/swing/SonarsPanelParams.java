@@ -72,6 +72,12 @@ public class SonarsPanelParams implements Serializable, Cloneable {
 	private HashMap<String, SonarOverlayData> overlayDatas = new HashMap<>();
 	
 	/**
+	 * Use rotation data set in the sonar acquisition parameters to rotate the images
+	 * otherwise, they are all drawn with normal aspect. 
+	 */
+	private boolean useSonarRotation;
+	
+	/**
 	 * Last used range for display. Will get used when no image is loaded so we can still use the 
 	 * display for detections. 
 	 */
@@ -216,6 +222,20 @@ public class SonarsPanelParams implements Serializable, Cloneable {
 
 	public void setTipImageSize(int tipImageSize) {
 		this.tipImageSize = tipImageSize;
+	}
+
+	/**
+	 * @return the useSonarRotation
+	 */
+	public boolean isUseSonarRotation() {
+		return useSonarRotation;
+	}
+
+	/**
+	 * @param useSonarRotation the useSonarRotation to set
+	 */
+	public void setUseSonarRotation(boolean useSonarRotation) {
+		this.useSonarRotation = useSonarRotation;
 	}
 
 }
