@@ -80,6 +80,7 @@ import tritechplugins.detect.threshold.BackgroundRemoval;
 import tritechplugins.detect.threshold.RegionDataUnit;
 import tritechplugins.detect.track.TrackLinkDataUnit;
 import tritechplugins.detect.veto.SpatialVetoDataBlock;
+import tritechplugins.display.swing.layouts.ImageAspect;
 import tritechplugins.display.swing.overlays.SonarOverlayData;
 import warnings.PamWarning;
 import warnings.WarningSystem;
@@ -159,6 +160,14 @@ public class SonarImagePanel extends JPanel {
 	private AffineTransform rotationTransform;
 
 	private Object inverseRotationTransform;
+
+	private PamWarning tipWarning = new PamWarning("Tritech tool tips", "", 1);
+
+	/**
+	 * Information on the panel bounds and also where the
+	 * image vertex lies and any rotation to apply. 
+	 */
+	private LayoutInfo layoutInfo;
 
 	public SonarImagePanel(SonarsPanel sonarsPanel, int panelIndex) {
 		this.panelIndex = panelIndex;
@@ -246,7 +255,7 @@ public class SonarImagePanel extends JPanel {
 		super.paintComponent(g);
 		// draw panel outline to make debugging easy. 
 //		Rectangle rect = g.getClipBounds();
-//		g.setColor(Color.RED);
+//		g.setColor(Color.BLACK);
 //		g.drawRect(0, 0, getWidth()-1, getHeight()-1);
 		paintEverything(g);
 	}
@@ -257,6 +266,9 @@ public class SonarImagePanel extends JPanel {
 
 		long currentTime = sonarsPanel.getCurrentScrollTime();
 
+		/**
+		 * The rectangle used to draw the image. 
+		 */
 		Rectangle drawRect = checkDrawingRect();
 
 		Graphics2D g2d = (Graphics2D) g;
@@ -282,6 +294,7 @@ public class SonarImagePanel extends JPanel {
 			maxRange = theFanimage.getFanData().getGeminiRecord().getMaxRange();
 			BufferedImage bufIm = theFanimage.getBufferedImage();
 			if (bufIm != null) {
+				// imagebounds is the dimensin of the buffered image. 
 				imageBounds = new Rectangle(0,0,bufIm.getWidth(),bufIm.getHeight());
 			}
 			currentTime = theFanimage.getFanData().getGeminiRecord().getRecordTime();
@@ -323,6 +336,8 @@ public class SonarImagePanel extends JPanel {
 			// this might not - just rotate about image centre
 			double tx = layoutInfo.getImageRectangle().width/2;
 			double ty = layoutInfo.getImageRectangle().height/2;
+//			tx = getWidth()/2;
+//			ty = getHeight()/2;
 			AffineTransform rot = AffineTransform.getRotateInstance(r, tx, ty);
 			at.concatenate(rot);
 			
@@ -572,6 +587,8 @@ public class SonarImagePanel extends JPanel {
 		if (theFanimage == null) {
 			return;
 		}
+//		g2d.setColor(Color.RED);
+//		g2d.drawRect(destRect.x, destRect.y, destRect.width, destRect.height);
 		BufferedImage image = theFanimage.getBufferedImage();
 		if (image == null) {
 			return;
@@ -612,7 +629,11 @@ public class SonarImagePanel extends JPanel {
 	}
 
 	/**
-	 * Check the drawing clip. This is often the exact size of the window, but
+	 * Check the drawing clip. 
+	 * This is the exact rectangle that the image will be rendered into, without
+	 * rotation, so must have the aspect ratio of the unrotated image, but once
+	 * rotated, must still fit in the outer window. 
+	 * This is often the exact size of the window, but
 	 * particularly with the support for sonars with different swaths, it may
 	 * now be less. 
 	 * @return
@@ -626,24 +647,110 @@ public class SonarImagePanel extends JPanel {
 		if (bt == null || bt.length == 0) {
 			return r;
 		}
+		
 		double maxAng = Math.abs(bt[0]);
-		double aspect = 2*Math.sin(maxAng);
-		double panelAspect = (double) getWidth() / (double) getHeight();
-		if (aspect == panelAspect) {
-			return r;
-		}
-		if (aspect > panelAspect) {
-			// image is too wide, so shrink in height
-			int newH = (int) (getWidth() / aspect);
-			r.y = (r.height-newH)/2;
-			r.height = newH;
+		double aspect = 2*Math.sin(maxAng); // this MUST be the aspect of the final rectangle
+		
+		ImageAspect rotatedAspectInf = layoutInfo.getImageAspect();
+		SonarPosition sonarPosition = sonarsPanel.getTritechAcquisition().getDaqParams().getSonarPosition(this.getSonarId());
+		double angR = Math.toRadians(sonarPosition.getHead());
+		double rotW, rotH, xCent, yCent; // relative width and height. 
+		if (sonarsPanel.getSonarsPanelParams().isUseSonarRotation() == false) {
+			angR = 0;
+			rotW = aspect;
+			rotH = 1;
+			xCent = yCent = 0.5;
+//			rotatedAspect = aspect;
 		}
 		else {
-			// image is too high, so shrink in width
-			int newW = (int) (getHeight() * aspect);
-			r.x = (r.width-newW)/2;
-			r.width = newW;
+//		double rotatedAspect = rotatedAspectInf.getAspectRatio();
+//		 rotW = Math.abs(Math.cos(angR)*aspect) + Math.abs(Math.sin(angR));
+//		 rotH = Math.abs(Math.cos(angR)) + Math.abs(Math.sin(angR)*aspect);
+		 rotW = Math.max(rotatedAspectInf.getxMax(), -rotatedAspectInf.getxMin())*2;
+		 rotW = rotatedAspectInf.getxSize();
+		 rotH = rotatedAspectInf.getySize();
+			xCent = yCent = 0.5;
+//			xCent = rotatedAspectInf.getxMax()/(rotatedAspectInf.getxSize());
+//			System.out.println("cxCent " + xCent);
 		}
+//		rotatedAspect = rotW/rotH;
+				
+		
+//		aspect = lAspect;
+		int w = getWidth();
+		int h = getHeight();
+		
+		r.width = (int) Math.min(r.width, w*aspect/rotW);
+		r.height = (int) (r.width / aspect);
+		r.height = (int) Math.min(r.height, h/rotH);
+		r.width = (int) (r.height * aspect);
+//		double panelAspect = (double) getWidth() / (double) getHeight();
+//		if (aspect == panelAspect) {
+//			return r;
+//		}
+//		double sa = Math.abs(Math.sin(angR));
+//		double ca = Math.abs(Math.cos(angR));
+//		
+//		if (rotatedAspect >= panelAspect) {
+//			// image is too wide, so shrink in height
+//			System.out.printf("Clamp sonar %d image on width ra=%3.2f pa=%3.2f\n", 
+//					layoutInfo.getSonarId(), rotatedAspect, panelAspect);
+////			int newH = (int) (getWidth() / rotatedAspect);
+//			int newW = (int) (getWidth()/(sa + rotatedAspect*ca)*aspect);
+//			int newH = (int) (newW / aspect);
+////			int newW = (int) (newH *  aspect);
+//			r.y = (r.height-newH)/2;
+//			r.height = newH;
+//			r.width = newW;
+//		}
+//		else {
+//			// image is too high, so shrink in width
+////			System.out.printf("Clamp sonar %d image on height ra=%3.2f pa=%3.2f\n",
+////					layoutInfo.getSonarId(), rotatedAspect, panelAspect);
+//			double scale = ca+rotatedAspect*sa;
+//			int newH = (int) (getHeight()/scale);
+////			newH = (int) (608/aspect);
+//			int newW = (int) (newH * aspect);
+////			int newW = (int) (getHeight() * rotatedAspect);
+////			int newH = (int) (newW / aspect);
+//			r.x = (r.width-newW)/2;
+//			r.width = newW;
+//			r.height = newH;
+////			System.out.printf("Clamp sonar %d image on height ra=%3.2f pa=%3.2f panel(%d,%d) image(%d,%d)\n",
+////					layoutInfo.getSonarId(), rotatedAspect, panelAspect, getWidth(), getHeight(), newW, newH);
+//		}
+//		r.x = r.y = 0;
+//		Point 
+		double offsX = (getWidth()/2-r.getWidth()*xCent);
+		double offsY = (getHeight()/2-r.getHeight()*yCent);
+		if (angR == 0) {
+			r.x = (int) offsX;
+			r.y = (int) offsY;
+		}
+		else {
+			r.x = (int) offsX;
+			r.y = (int) (offsY);
+			double yEx = r.height*(1-Math.abs(Math.cos(angR)))/2;
+//			r.y += yEx;
+//			System.out.printf("Sonar %d extra offset %3.1f\n", layoutInfo.getSonarId(), yEx);
+//			r.x = (int) (Math.cos(angR)*offsX + Math.sin(angR)*offsY);
+//			r.y = - (int) (Math.sin(angR)*offsX + Math.cos(angR)*offsY);
+//			if (layoutInfo.getSonarId() == 1637)
+//				r.y = 46;
+//			if (layoutInfo.getSonarId() != 2710) {
+//				System.out.printf("Rectangle sonar %d is %s win (%d,%d)\n", layoutInfo.getSonarId(), r, w, h);
+//			}
+		}
+		
+//		r.y = 0;
+		/*;
+		 * Now check that if it's rotated it will still fit in the outer window. 
+		 */
+		if (rotatedAspectInf.getySize() > 1.) {
+			// shrink by that much
+		}
+//		r.width /= 2;
+//		r.height /= 2;
 		return r;
 	}
 
@@ -1124,16 +1231,6 @@ public class SonarImagePanel extends JPanel {
 		clearOverlayImage();
 	}
 
-	private PamWarning tipWarning = new PamWarning("Tritech tool tips", "", 1);
-
-	/**
-	 * Information on the panel bounds and also where the
-	 * image vertex lies and any rotation to apply. 
-	 */
-	private LayoutInfo layoutInfo;
-
-	private PamCoordinate dataPos;
-	
 	private void cycleTipTypes() {
 		sonarsPanel.getSonarsPanelParams().cycleTipType();
 		String currType = sonarsPanel.getSonarsPanelParams().getTipDescription();

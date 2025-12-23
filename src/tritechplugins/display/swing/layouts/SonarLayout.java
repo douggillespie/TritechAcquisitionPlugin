@@ -74,20 +74,21 @@ public abstract class SonarLayout {
 	public Rectangle checkImageAspect(Rectangle rect, ImageAspect imageAspect) {
 		double aspect = imageAspect.getAspectRatio();
 		Rectangle newRect = new Rectangle(rect);
-		if (rect.height*aspect < rect.width) {
-			// height is smallest, so reduce width. 
-			int newWidth = (int) (rect.height*aspect);
-			int xGap = rect.width-newWidth;
-			newRect.x += xGap/2;
-			newRect.width = newWidth;
-		}
-		else if (rect.height*aspect > rect.width) {
-			// height is largest, so reduce height. 
-			int newHeight = (int) (rect.width/aspect);
-			int yGap = rect.height-newHeight;
-			newRect.y += yGap/2;
-			newRect.height = newHeight;
-		}
+		
+//		if (rect.height*aspect < rect.width) {
+//			// height is smallest, so reduce width. 
+//			int newWidth = (int) (rect.height*aspect);
+//			int xGap = rect.width-newWidth;
+//			newRect.x += xGap/2;
+//			newRect.width = newWidth;
+//		}
+//		else if (rect.height*aspect > rect.width) {
+//			// height is largest, so reduce height. 
+//			int newHeight = (int) (rect.width/aspect);
+//			int yGap = rect.height-newHeight;
+//			newRect.y += yGap/2;
+//			newRect.height = newHeight;
+//		}
 		return newRect;
 	}
 

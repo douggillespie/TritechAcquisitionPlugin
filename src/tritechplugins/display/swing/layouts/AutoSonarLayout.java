@@ -103,22 +103,25 @@ public class AutoSonarLayout extends SonarLayout {
 		boolean rotate = params.isUseSonarRotation();
 		SonarPosition sonarPos = tritechAcquisition.getDaqParams().getSonarPosition(sonarId);
 		if (rotate == false || sonarPos.getHead() == 0) {
-			return new ImageAspect(0, getImageAspect(maxAngle), 1);
+			return new ImageAspect(0, -Math.cos(maxAngle), Math.cos(maxAngle), 0, 1);
 		}
 		else {
 			double xMax = 0, xMin = 0;
 			double yMax = 0, yMin = 0;
+			maxAngle = Math.toDegrees(maxAngle);
 			maxAngle = Math.abs(maxAngle);
 			double a = -maxAngle;
 			while (a <= maxAngle) {
 				double ra = Math.toRadians(a+sonarPos.getHead());
-				xMax = Math.max(xMax, Math.abs(Math.sin(ra)));
-				xMin = Math.min(xMax, Math.abs(Math.sin(ra)));
-				yMax = Math.max(yMax, Math.abs(Math.cos(ra)));
-				yMin = Math.max(yMin, Math.abs(Math.cos(ra)));
+				xMax = Math.max(xMax, Math.sin(ra));
+				xMin = Math.min(xMin, Math.sin(ra));
+				yMax = Math.max(yMax, Math.cos(ra));
+				yMin = Math.min(yMin, Math.cos(ra));
 				a += 1;
 			}
-			return new ImageAspect(sonarPos.getHead(), xMax-xMin, yMax-yMin);
+			ImageAspect ia = new ImageAspect(sonarPos.getHead(), xMin, xMax, yMin, yMax);
+//			System.out.printf("rotated aspect sonar %d is %4.2f\n", sonarId, ia.getAspectRatio());
+			return ia;
 		}
 		
 	}
@@ -153,6 +156,11 @@ public class AutoSonarLayout extends SonarLayout {
 		LayoutInfo[] layouts = new LayoutInfo[2];
 		layouts[0] = new LayoutInfo(sonarIds[0], aspects[0], rects[0], pt1);
 		layouts[1] = new LayoutInfo(sonarIds[1], aspects[1], rects[1]);
+		if (PamController.getInstance().getRunMode() == PamController.RUN_PAMVIEW) {
+			int y0 = layouts[0].getImageRectangle().y;
+			layouts[0].getImageRectangle().y = layouts[1].getImageRectangle().y;
+			layouts[1].getImageRectangle().y = y0;
+		}
 		return layouts;
 	}
 
