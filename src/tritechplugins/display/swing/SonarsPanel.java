@@ -174,6 +174,18 @@ public class SonarsPanel extends PamPanel implements DataMenuParent {
 	public void setSonarsPanelParams(SonarsPanelParams sonarsPanelParams) {
 		this.sonarsPanelParams = sonarsPanelParams;
 	}
+	
+	/**
+	 * Call when manual changing of images sizes occurrs to 
+	 * invalidate and repaint everything. 
+	 */
+	public void invalidateLayout( ) {
+		this.invalidate();
+		imagesPanel.invalidate();
+		imagesPanel.revalidate();
+		this.repaint();
+		imagesPanel.repaint();
+	}
 
 	public void setNumSonars(int numSonars) {
 //		if (numSonars == 2) {

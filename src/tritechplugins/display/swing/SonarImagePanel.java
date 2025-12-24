@@ -1661,10 +1661,7 @@ public class SonarImagePanel extends JPanel {
 		public void mouseReleased(MouseEvent e) {
 			mouseDown = false;
 			if (borderMouse != 0) {
-				sonarsPanel.getImagesPanel().invalidate();
-				sonarsPanel.invalidate();
-//				sonarsPanel.getSonarsOuterPanel().
-				sonarsPanel.repaint();
+				sonarsPanel.invalidateLayout();
 			}
 			setBorderMouse(0);
 			if (externalMouseHandler.mouseReleased(e)) {

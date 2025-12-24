@@ -32,6 +32,7 @@ public class AutoSonarLayout extends SonarLayout {
 	@Override
 	public LayoutInfo[] getRectangles(Rectangle bounds, int nSonar, double maxAngle) {
 		// calculate the ratio of width to height for each rectangle. 
+//		System.out.println("In getRectangles()");
 		double rotation = Math.PI/2;
 		double imageAspect = getImageAspect(maxAngle); 
 		double windowAspect = getWindowAspect(maxAngle, rotation);

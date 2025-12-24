@@ -213,9 +213,10 @@ public class SonarImageLayout implements LayoutManager {
 			
 			@Override
 			public void run() {
-				sonarsPanel.getImagesPanel().invalidate();
-				sonarsPanel.repaint();
-				sonarsPanel.getImagesPanel().repaint();
+//				sonarsPanel.getImagesPanel().invalidate();
+//				sonarsPanel.repaint();
+//				sonarsPanel.getImagesPanel().repaint();
+				sonarsPanel.invalidateLayout();
 			}
 		});
 	}
