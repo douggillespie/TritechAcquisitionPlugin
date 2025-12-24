@@ -9,6 +9,7 @@ import java.awt.MouseInfo;
 import java.awt.Point;
 import java.awt.RenderingHints;
 import java.awt.event.ActionEvent;
+import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.geom.Rectangle2D;
 import java.io.File;
@@ -155,6 +156,15 @@ public class SonarsPanel extends PamPanel implements DataMenuParent {
 		sonarOverlayManager = new SonarOverlayManager(this);
 		
 		overlaySelectionChange();
+		
+		this.addMouseListener(new SonarsPanelMouse());
+	}
+
+	/**
+	 * @return the imagesPanel
+	 */
+	public JPanel getImagesPanel() {
+		return imagesPanel;
 	}
 
 	public SonarsPanelParams getSonarsPanelParams() {
@@ -899,6 +909,37 @@ public class SonarsPanel extends PamPanel implements DataMenuParent {
 		while (sonIt.hasNext()) {
 			Integer sonId = sonIt.next();
 			addSonarId(sonId);
+		}
+		
+	}
+
+	/**
+	 * Comes from one of the sonar panels, thats getting it's border dragged. 
+	 * Use this to manually set the layout. 
+	 * @param panelIndex
+	 * @param startPt
+	 * @param endPt
+	 * @param borderMouse
+	 */
+	public void dragSonarPanel(int panelIndex, Point startPt, Point endPt, int borderMouse) {
+		// TODO Auto-generated method stub
+		sonarImageLayout.dragSonarBorder(panelIndex, startPt, endPt, borderMouse);
+	}
+	
+	private class SonarsPanelMouse extends MouseAdapter {
+
+		@Override
+		public void mousePressed(MouseEvent e) {
+			if (e.isPopupTrigger()) {
+				sonarImageLayout.showPopupMenu(e);
+			}
+		}
+
+		@Override
+		public void mouseReleased(MouseEvent e) {
+			if (e.isPopupTrigger()) {
+				sonarImageLayout.showPopupMenu(e);
+			}
 		}
 		
 	}

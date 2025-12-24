@@ -9,6 +9,7 @@ import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
+import java.awt.Stroke;
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.ClipboardOwner;
@@ -169,6 +170,8 @@ public class SonarImagePanel extends JPanel {
 	 */
 	private LayoutInfo layoutInfo;
 
+	public int borderMouse;
+
 	public SonarImagePanel(SonarsPanel sonarsPanel, int panelIndex) {
 		this.panelIndex = panelIndex;
 		this.sonarsPanel = sonarsPanel;
@@ -254,9 +257,16 @@ public class SonarImagePanel extends JPanel {
 	public void paintComponent(Graphics g) {
 		super.paintComponent(g);
 		// draw panel outline to make debugging easy. 
-//		Rectangle rect = g.getClipBounds();
-//		g.setColor(Color.BLACK);
-//		g.drawRect(0, 0, getWidth()-1, getHeight()-1);
+		if (isDrawImageBorders()) {
+			Rectangle rect = g.getClipBounds();
+			Graphics2D g2d = (Graphics2D) g;
+			int strokeWid = 4;
+			Stroke oldStroke = g2d.getStroke();
+			g2d.setStroke(new BasicStroke(strokeWid));
+			g.setColor(Color.BLACK);
+			g.drawRect(strokeWid/2, strokeWid/2, getWidth()-strokeWid, getHeight()-strokeWid);
+			g2d.setStroke(oldStroke);
+		}
 		paintEverything(g);
 	}
 
@@ -577,6 +587,9 @@ public class SonarImagePanel extends JPanel {
 		}
 	}
 
+	private boolean isDrawImageBorders() {
+		return borderMouse != 0;
+	}
 
 	/**
 	 * paint the main sonar image. 
@@ -587,8 +600,10 @@ public class SonarImagePanel extends JPanel {
 		if (theFanimage == null) {
 			return;
 		}
-//		g2d.setColor(Color.RED);
-//		g2d.drawRect(destRect.x, destRect.y, destRect.width, destRect.height);
+		if (isDrawImageBorders()) {
+			g2d.setColor(Color.RED);
+			g2d.drawRect(destRect.x, destRect.y, destRect.width, destRect.height);
+		}
 		BufferedImage image = theFanimage.getBufferedImage();
 		if (image == null) {
 			return;
@@ -664,11 +679,12 @@ public class SonarImagePanel extends JPanel {
 		}
 		else {
 //		double rotatedAspect = rotatedAspectInf.getAspectRatio();
-//		 rotW = Math.abs(Math.cos(angR)*aspect) + Math.abs(Math.sin(angR));
-//		 rotH = Math.abs(Math.cos(angR)) + Math.abs(Math.sin(angR)*aspect);
-		 rotW = Math.max(rotatedAspectInf.getxMax(), -rotatedAspectInf.getxMin())*2;
-		 rotW = rotatedAspectInf.getxSize();
-		 rotH = rotatedAspectInf.getySize();
+		 rotW = Math.abs(Math.cos(angR)*aspect) + Math.abs(Math.sin(angR));
+		 rotH = Math.abs(Math.cos(angR)) + Math.abs(Math.sin(angR)*aspect);
+//		 rotW = Math.max(rotatedAspectInf.getxMax(), -rotatedAspectInf.getxMin())*2;
+//		 rotW = rotatedAspectInf.getxSize();
+//		 rotH = Math.max(rotatedAspectInf.getyMax(), -rotatedAspectInf.getyMin())*2;
+//		 rotH = rotatedAspectInf.getySize();
 			xCent = yCent = 0.5;
 //			xCent = rotatedAspectInf.getxMax()/(rotatedAspectInf.getxSize());
 //			System.out.println("cxCent " + xCent);
@@ -1595,9 +1611,36 @@ public class SonarImagePanel extends JPanel {
 		String txt = String.format("Bearing %3.1f%s, Distance %3.1fm", bearing, LatLong.deg, range);
 		return txt;
 	}
+	
+	private int mouseOnBorder(Point pt) {
+		int borders = 0;
+		int borderWidth = 4;
+		if (pt.y < borderWidth) {
+			borders += SonarImageLayout.TOPBORDER;
+		}
+		if (pt.y >= getHeight()-borderWidth) {
+			borders += SonarImageLayout.BOTTOMBORDER;
+		}
+		if (pt.x < borderWidth) {
+			borders += SonarImageLayout.LEFTBORDER;
+		}
+		if (pt.x >= getWidth()-borderWidth) {
+			borders += SonarImageLayout.RIGHTBORDER;
+		}
+		return borders;
+	}
+	
+	private void setBorderMouse(int newBorderMouse) {
+		boolean repaint = newBorderMouse != borderMouse;
+		if (repaint) {
+			borderMouse = newBorderMouse;
+			repaint();
+		}
+	}
 
 	private class SonarPanelMouse extends MouseAdapter {
 
+		private boolean mouseDown = false;
 		@Override
 		public void mousePressed(MouseEvent e) {
 			if (externalMouseHandler.mousePressed(e)) {
@@ -1607,10 +1650,23 @@ public class SonarImagePanel extends JPanel {
 			if (e.isPopupTrigger()) {
 				mousePopup(e);
 			}
+			else {
+				if (e.getButton() == MouseEvent.BUTTON1) {
+					mouseDown = true;
+				}
+			}
 		}
 
 		@Override
 		public void mouseReleased(MouseEvent e) {
+			mouseDown = false;
+			if (borderMouse != 0) {
+				sonarsPanel.getImagesPanel().invalidate();
+				sonarsPanel.invalidate();
+//				sonarsPanel.getSonarsOuterPanel().
+				sonarsPanel.repaint();
+			}
+			setBorderMouse(0);
 			if (externalMouseHandler.mouseReleased(e)) {
 				return;
 			}
@@ -1628,6 +1684,9 @@ public class SonarImagePanel extends JPanel {
 				return;
 			}
 			mouseDragPoint = e;
+			if (borderMouse != 0 && mouseDown) {
+				dragBorder(mousePressPoint.getPoint(), e.getPoint());
+			}
 			repaint();
 		}
 
@@ -1680,9 +1739,19 @@ public class SonarImagePanel extends JPanel {
 			if (externalMouseHandler.mouseMoved(e)) {
 				return;
 			}
+			setBorderMouse(mouseOnBorder(e.getPoint()));
 		}
 
-	}private void mousePopup(MouseEvent e) {
+		@Override
+		public void mouseExited(MouseEvent e) {
+			if (mouseDown == false) {
+				setBorderMouse(0);
+			}
+		}
+
+	}
+	
+	private void mousePopup(MouseEvent e) {
 		// see if we're on a detection ...
 		PamDataUnit dataUnit = xyProjector.getHoveredDataUnit();
 		//		PamDataUnit dataUnit = findOverlayDataUnit(e.getX(), e.getY());
@@ -1693,6 +1762,17 @@ public class SonarImagePanel extends JPanel {
 			showStandardMenu(e);
 		}
 	}
+	
+	/**
+	 * Drag a border of the layout to manually override the default 
+	 * behaviour and size the window. 
+	 * @param point
+	 * @param point2
+	 */
+	public void dragBorder(Point startPt, Point endPt) {
+		sonarsPanel.dragSonarPanel(layoutInfo.getSonarId(), startPt, endPt, borderMouse);
+	}
+
 	//	private boolean showAnottationMenu(MouseEvent e, PamDataUnit dataUnit) {
 	//		if (dataUnit == null) {
 	//			return false;
