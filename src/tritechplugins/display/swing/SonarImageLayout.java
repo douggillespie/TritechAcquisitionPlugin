@@ -9,6 +9,7 @@ import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Set;
 
@@ -16,6 +17,9 @@ import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 import javax.swing.SwingUtilities;
 
+import PamController.PamControlledUnitSettings;
+import PamController.PamSettingManager;
+import PamController.PamSettings;
 import tritechplugins.display.swing.layouts.AutoSonarLayout;
 import tritechplugins.display.swing.layouts.SonarLayout;
 
@@ -69,6 +73,7 @@ public class SonarImageLayout implements LayoutManager {
 
 	public SonarImageLayout(SonarsPanel sonarsPanel) {
 		this.sonarsPanel = sonarsPanel;
+		PamSettingManager.getInstance().registerSettings(new LayoutSettings());
 	}
 
 	@Override
@@ -185,6 +190,15 @@ public class SonarImageLayout implements LayoutManager {
 		if ((borderMouse & RIGHTBORDER) != 0) {
 			newRect.width = imageRect.width +  (endPt.x - startPt.x);
 		}
+		newRect.y = Math.max(newRect.y, 0);
+		newRect.y = Math.min(sonarsPanel.getHeight()-20, newRect.y);
+		newRect.x = Math.max(newRect.x, 0);
+		newRect.x = Math.min(sonarsPanel.getWidth()-20, newRect.x);
+		newRect.height = Math.max(10, newRect.height);
+		newRect.height = Math.min(sonarsPanel.getHeight()-newRect.y, newRect.height);
+		newRect.width = Math.max(10, newRect.width);
+		newRect.width = Math.min(sonarsPanel.getWidth()-newRect.x, newRect.width);
+		
 		sonarLayoutParams.setPanelRectangle(panelIndex, newRect, sonarsPanel);
 //		invalidateParent();
 	}
@@ -203,7 +217,7 @@ public class SonarImageLayout implements LayoutManager {
 		popMenu.show(e.getComponent(), e.getX(), e.getY());
 	}
 
-	protected void restoreAutomaticLayout() {
+	public void restoreAutomaticLayout() {
 		sonarLayoutParams.clear();
 		invalidateParent();
 	}
@@ -221,4 +235,34 @@ public class SonarImageLayout implements LayoutManager {
 		});
 	}
 
+	private class LayoutSettings implements PamSettings {
+
+		@Override
+		public String getUnitName() {
+			return sonarsPanel.getNameProvider().getUnitName();
+		}
+
+		@Override
+		public String getUnitType() {
+			return "Sonar panel layout";
+		}
+
+		@Override
+		public Serializable getSettingsReference() {
+			return sonarLayoutParams;
+		}
+
+		@Override
+		public long getSettingsVersion() {
+			return SonarLayoutParams.serialVersionUID;
+		}
+
+		@Override
+		public boolean restoreSettings(PamControlledUnitSettings pamControlledUnitSettings) {
+			sonarLayoutParams = (SonarLayoutParams) pamControlledUnitSettings.getSettings();
+			sonarLayoutParams = sonarLayoutParams.clone();
+			return true;
+		}
+		
+	}
 }

@@ -31,6 +31,16 @@ public class SonarLayoutParams implements Cloneable, Serializable{
 		return rectangles.get(panelIndex);
 	}
 	
+	@Override
+	protected SonarLayoutParams clone() {
+		try {
+			return (SonarLayoutParams) super.clone();
+		} catch (CloneNotSupportedException e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+
 	public Rectangle getPanelRectangle(int panelIndex, JComponent parent) {
 		Rectangle r = new Rectangle();
 		Rectangle2D.Double scale = getPanelRectangle(panelIndex);

@@ -161,6 +161,13 @@ public class SonarsPanel extends PamPanel implements DataMenuParent {
 	}
 
 	/**
+	 * @return the nameProvider
+	 */
+	public SettingsNameProvider getNameProvider() {
+		return nameProvider;
+	}
+
+	/**
 	 * @return the imagesPanel
 	 */
 	public JPanel getImagesPanel() {
@@ -804,6 +811,14 @@ public class SonarsPanel extends PamPanel implements DataMenuParent {
 	public TritechAcquisition getTritechAcquisition() {
 		return tritechAcquisition;
 	}
+
+	/**
+	 * @return the sonarImageLayout
+	 */
+	public SonarImageLayout getSonarImageLayout() {
+		return sonarImageLayout;
+	}
+
 
 	/**
 	 * @return the clickedOnTrack

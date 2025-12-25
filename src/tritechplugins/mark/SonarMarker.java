@@ -86,9 +86,20 @@ public class SonarMarker implements SettingsNameProvider, OverlayMarkObserver {
 		}
 		List<RegionDataUnit> manualList = getManualDataList(dataList);
 		List<PamDataUnit> nonManualList = getNonManualDataList(dataList);
+		
+		/*
+		 * Dec 25, these lines dont' make sense and seem to stop
+		 * creation of a popup menu. On second thoughts, this does
+		 * seem to make sense for creating manual detections, but I 
+		 * can't work out how we're failing to create a detection group menu.
+		 */
 		if (nonManualList != null && nonManualList.size() > 0) {
 			return null;
 		}
+//		if (manualList.size() == 0 && nonManualList.size() == 0) {
+//			return null;
+//		}
+		
 		// it's a mark with no detections in it, so proceed to make a new region. 
 		JPopupMenu menu = new JPopupMenu();
 		JMenuItem menuItem = new JMenuItem("Create manual detection");

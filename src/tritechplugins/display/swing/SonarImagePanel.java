@@ -171,6 +171,8 @@ public class SonarImagePanel extends JPanel {
 	private LayoutInfo layoutInfo;
 
 	public int borderMouse;
+	
+	public boolean altKeyDown;
 
 	public SonarImagePanel(SonarsPanel sonarsPanel, int panelIndex) {
 		this.panelIndex = panelIndex;
@@ -263,7 +265,7 @@ public class SonarImagePanel extends JPanel {
 			int strokeWid = 4;
 			Stroke oldStroke = g2d.getStroke();
 			g2d.setStroke(new BasicStroke(strokeWid));
-			g.setColor(Color.BLACK);
+			g.setColor(Color.DARK_GRAY);
 			g.drawRect(strokeWid/2, strokeWid/2, getWidth()-strokeWid, getHeight()-strokeWid);
 			g2d.setStroke(oldStroke);
 		}
@@ -346,6 +348,9 @@ public class SonarImagePanel extends JPanel {
 			// this might not - just rotate about image centre
 			double tx = layoutInfo.getImageRectangle().width/2;
 			double ty = layoutInfo.getImageRectangle().height/2;
+			tx = getWidth()/2;
+			ty = getHeight()/2;
+//			tx -= 0.5*layoutInfo.getImageRectangle().height*Math.sin(r)/2;
 //			tx = getWidth()/2;
 //			ty = getHeight()/2;
 			AffineTransform rot = AffineTransform.getRotateInstance(r, tx, ty);
@@ -588,7 +593,7 @@ public class SonarImagePanel extends JPanel {
 	}
 
 	private boolean isDrawImageBorders() {
-		return borderMouse != 0;
+		return borderMouse != 0 || altKeyDown;
 	}
 
 	/**
@@ -681,11 +686,11 @@ public class SonarImagePanel extends JPanel {
 //		double rotatedAspect = rotatedAspectInf.getAspectRatio();
 		 rotW = Math.abs(Math.cos(angR)*aspect) + Math.abs(Math.sin(angR));
 		 rotH = Math.abs(Math.cos(angR)) + Math.abs(Math.sin(angR)*aspect);
-//		 rotW = Math.max(rotatedAspectInf.getxMax(), -rotatedAspectInf.getxMin())*2;
+		 rotW = Math.max(rotatedAspectInf.getxMax(), -rotatedAspectInf.getxMin())*2;
 //		 rotW = rotatedAspectInf.getxSize();
-//		 rotH = Math.max(rotatedAspectInf.getyMax(), -rotatedAspectInf.getyMin())*2;
-//		 rotH = rotatedAspectInf.getySize();
-			xCent = yCent = 0.5;
+//		 rotH = Math.max(rotatedAspectInf.getyMax(), -rotatedAspectInf.getyMin());
+		 rotH = rotatedAspectInf.getySize();
+		 xCent = yCent = 0.5;
 //			xCent = rotatedAspectInf.getxMax()/(rotatedAspectInf.getxSize());
 //			System.out.println("cxCent " + xCent);
 		}
@@ -700,43 +705,7 @@ public class SonarImagePanel extends JPanel {
 		r.height = (int) (r.width / aspect);
 		r.height = (int) Math.min(r.height, h/rotH);
 		r.width = (int) (r.height * aspect);
-//		double panelAspect = (double) getWidth() / (double) getHeight();
-//		if (aspect == panelAspect) {
-//			return r;
-//		}
-//		double sa = Math.abs(Math.sin(angR));
-//		double ca = Math.abs(Math.cos(angR));
-//		
-//		if (rotatedAspect >= panelAspect) {
-//			// image is too wide, so shrink in height
-//			System.out.printf("Clamp sonar %d image on width ra=%3.2f pa=%3.2f\n", 
-//					layoutInfo.getSonarId(), rotatedAspect, panelAspect);
-////			int newH = (int) (getWidth() / rotatedAspect);
-//			int newW = (int) (getWidth()/(sa + rotatedAspect*ca)*aspect);
-//			int newH = (int) (newW / aspect);
-////			int newW = (int) (newH *  aspect);
-//			r.y = (r.height-newH)/2;
-//			r.height = newH;
-//			r.width = newW;
-//		}
-//		else {
-//			// image is too high, so shrink in width
-////			System.out.printf("Clamp sonar %d image on height ra=%3.2f pa=%3.2f\n",
-////					layoutInfo.getSonarId(), rotatedAspect, panelAspect);
-//			double scale = ca+rotatedAspect*sa;
-//			int newH = (int) (getHeight()/scale);
-////			newH = (int) (608/aspect);
-//			int newW = (int) (newH * aspect);
-////			int newW = (int) (getHeight() * rotatedAspect);
-////			int newH = (int) (newW / aspect);
-//			r.x = (r.width-newW)/2;
-//			r.width = newW;
-//			r.height = newH;
-////			System.out.printf("Clamp sonar %d image on height ra=%3.2f pa=%3.2f panel(%d,%d) image(%d,%d)\n",
-////					layoutInfo.getSonarId(), rotatedAspect, panelAspect, getWidth(), getHeight(), newW, newH);
-//		}
-//		r.x = r.y = 0;
-//		Point 
+
 		double offsX = (getWidth()/2-r.getWidth()*xCent);
 		double offsY = (getHeight()/2-r.getHeight()*yCent);
 		if (angR == 0) {
@@ -1308,7 +1277,7 @@ public class SonarImagePanel extends JPanel {
 		// find where the mouse is in an image and show range-bearing data.
 		SonarCoordinate sonarCoord = findSonarCoordinate(event.getX(), event.getY());
 		if (sonarCoord == null) {
-			return null;
+			return "To manually resize images press the 'Alt' key and drag the boders";
 		}
 		SonarCoordinate absCoordinate = getAbsoluteCoordinate(sonarCoord);
 
@@ -1534,6 +1503,7 @@ public class SonarImagePanel extends JPanel {
 
 	/**
 	 * find a tool tip associated with some of the displayed text. 
+	 * 
 	 * @param point
 	 * @return
 	 */
@@ -1613,6 +1583,9 @@ public class SonarImagePanel extends JPanel {
 	}
 	
 	private int mouseOnBorder(Point pt) {
+		if (!altKeyDown) {
+			return 0;
+		}
 		int borders = 0;
 		int borderWidth = 4;
 		if (pt.y < borderWidth) {
@@ -1681,7 +1654,7 @@ public class SonarImagePanel extends JPanel {
 				return;
 			}
 			mouseDragPoint = e;
-			if (borderMouse != 0 && mouseDown) {
+			if (borderMouse != 0 && mouseDown && e.isAltDown()) {
 				dragBorder(mousePressPoint.getPoint(), e.getPoint());
 			}
 			repaint();
@@ -1736,11 +1709,13 @@ public class SonarImagePanel extends JPanel {
 			if (externalMouseHandler.mouseMoved(e)) {
 				return;
 			}
+			altKeyDown = e.isAltDown();
 			setBorderMouse(mouseOnBorder(e.getPoint()));
 		}
 
 		@Override
 		public void mouseExited(MouseEvent e) {
+			altKeyDown = false;
 			if (mouseDown == false) {
 				setBorderMouse(0);
 			}
@@ -1891,6 +1866,16 @@ public class SonarImagePanel extends JPanel {
 		});
 		standardItems.add(copyItem);
 		
+		JMenuItem layItem = new JMenuItem("Restore automatic layout");
+		layItem.setToolTipText("Restore automatic layout of sonar panels");
+		layItem.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				sonarsPanel.getSonarImageLayout().restoreAutomaticLayout();
+			}
+		});
+		standardItems.add(layItem);
+		
 		PamDataUnit hoveredData = xyProjector.getHoveredDataUnit();
 		if (hoveredData != null && hoveredData.getSuperDetection(0) != null) {
 			hoveredData = hoveredData.getSuperDetection(0);
@@ -1931,8 +1916,16 @@ public class SonarImagePanel extends JPanel {
 
 		@Override
 		public JPopupMenu getPopupMenuItems(DetectionGroupSummary markSummaryData) {
-			// TODO Auto-generated method stub
+//			if (markSummaryData == null) {
+//				return null;
+//			}
+//			if (markSummaryData.getDataList() == null || markSummaryData.getDataList().size() == 0) {
+//				return null;
+//			}
+//			sonarPanelMarker.getPopupMenuItems(null);
 			return null;
+//			sonarPanelMarker.getPopupMenuItems(null)
+//			return sonarPanelMarker.createJPopMenu(markSummaryData.getMouseEvent());
 		}
 
 		@Override
