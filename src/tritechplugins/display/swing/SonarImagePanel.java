@@ -306,7 +306,7 @@ public class SonarImagePanel extends JPanel {
 			maxRange = theFanimage.getFanData().getGeminiRecord().getMaxRange();
 			BufferedImage bufIm = theFanimage.getBufferedImage();
 			if (bufIm != null) {
-				// imagebounds is the dimensin of the buffered image. 
+				// imagebounds is the dimension of the buffered image. 
 				imageBounds = new Rectangle(0,0,bufIm.getWidth(),bufIm.getHeight());
 			}
 			currentTime = theFanimage.getFanData().getGeminiRecord().getRecordTime();
@@ -431,18 +431,17 @@ public class SonarImagePanel extends JPanel {
 
 
 	private void paintGrid(Graphics g, Rectangle destRect) {
-//		if (fanImage == null ||imageRecord == null) {
-//			return;
-//		}
 
 		Color col = sonarsPanel.getColourMap().getContrastingColour();
 		col = new Color(col.getRed(), col.getGreen(), col.getBlue(), 192);
 
 		g.setColor(col);
 		
-		double rotate = layoutInfo.getRotationDegrees();
+		if (sonarsPanel.getSonarsPanelParams().isUseSonarRotation()) {
+			SonarPosition sonarPosition = getSonarPosition();
+			rotate = sonarPosition.getHead();
+		}
 		double rotateRadians = rotate*Math.PI/180.;
-//		rotate = 0;
 
 		Coordinate3d zero = xyProjector.getCoord3d(0, 0, false);
 		if (zero == null) {
@@ -458,13 +457,9 @@ public class SonarImagePanel extends JPanel {
 			maxAng = Math.abs(bearings[0]);
 		}
 		double[] toPlot = {-1., -0.5, 0, .5, 1};
-		//		double x = 0, y = 0;
 		Coordinate3d end = null;
 		Coordinate3d maxXend = new Coordinate3d(0,0,0);
 		for (int i = 0; i < toPlot.length; i++) {
-			//			x = range*Math.sin(toPlot[i]*maxAng);
-			//			y = range*Math.cos(toPlot[i]*maxAng);
-			//			 end = xyProjector.getCoord3d(x, y, false);
 			end = xyProjector.getCoord3d(range, toPlot[i]*maxAng, false);
 			if (end.x > maxXend.x) {
 				maxXend = end;
@@ -491,22 +486,15 @@ public class SonarImagePanel extends JPanel {
 			if (aRange == null || aRange == 0) {
 				continue;
 			}
-			//			aRange = range*.5;
 			g.setColor(col);
-			//			x = aRange*Math.sin(maxAng);
-			//			y = aRange*Math.cos(maxAng);
 			end = xyProjector.getCoord3d(aRange*2, maxAng, false);
-			//			double width = Math.abs(end.x-zero.x);
-			//			y = end.y;
-			Coordinate3d end2 = xyProjector.getCoord3d(aRange*2, -maxAng-rotateRadians, false);
+			Coordinate3d end2 = xyProjector.getCoord3d(aRange, -maxAng-rotateRadians, false);
 			int maxDegs = (int) Math.toDegrees(maxAng);
 			int ang1 = (int) (90-maxDegs-1-rotate);
 			int ang2 = 2*maxDegs+2;
-			int h = (int) Math.abs(end2.y-zero.y);
+			int h = (int) end2.distance(zero);
 			g.drawArc((int) (zero.x-h), (int) (zero.y-h), (int) (2*+h), (int) (2*h), ang1, ang2);
-			//			g.drawRect((int) (zero.x-width), (int) (zero.y-h), (int) (2*+width), (int) (2*h));
-			//			g.drawLine((int) (zero.x-width), (int) (zero.y-h), (int) (zero.x+width), (int) (zero.y+h));
-			//			break;
+
 		}
 	}
 
