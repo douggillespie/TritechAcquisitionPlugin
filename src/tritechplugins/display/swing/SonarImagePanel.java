@@ -437,6 +437,7 @@ public class SonarImagePanel extends JPanel {
 
 		g.setColor(col);
 		
+		double rotate = 0; 
 		if (sonarsPanel.getSonarsPanelParams().isUseSonarRotation()) {
 			SonarPosition sonarPosition = getSonarPosition();
 			rotate = sonarPosition.getHead();
