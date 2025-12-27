@@ -375,7 +375,13 @@ public class SonarZoomTransform {
 		this.isFlip = isFlip;
 	}
 
-	private double[] translate(double x, double y) {
+	/**
+	 * Run the affine transform that rotates the image. 
+	 * @param x
+	 * @param y
+	 * @return
+	 */
+	public double[] translate(double x, double y) {
 		double[] dst = {x,y}; 
 		if (rTransform != null) {
 			double[] src = {x,y};
@@ -384,7 +390,13 @@ public class SonarZoomTransform {
 		return dst;
 	}
 
-	private double[] invTranslate(double x, double y) {
+	/**
+	 * Inverse of the affine transform that rotates the image. 
+	 * @param x
+	 * @param y
+	 * @return
+	 */
+	public double[] invTranslate(double x, double y) {
 		double[] dst = {x,y}; 
 		if (invTransform != null) {
 			double[] src = {x,y};
