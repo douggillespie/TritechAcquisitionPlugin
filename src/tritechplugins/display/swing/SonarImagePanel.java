@@ -461,29 +461,32 @@ public class SonarImagePanel extends JPanel {
 			double[] bearings = imageRecord.getBearingTable();
 			maxAng = Math.abs(bearings[0]);
 		}
-		double[] toPlot = {-1., -0.5, 0, .5, 1};
+		// draw radial lines every 30 degrees, whatever the sonar swath
+		double aStep = Math.toRadians(30);
+		double[] toPlot = {-0.5, 0, .5};
 		Coordinate3d end = null;
-		Coordinate3d maxXend = new Coordinate3d(0,0,0);
 		for (int i = 0; i < toPlot.length; i++) {
-			end = xyProjector.getCoord3d(range, toPlot[i]*maxAng, false);
-			if (end.x > maxXend.x) {
-				maxXend = end;
+			double a = toPlot[i]*aStep;
+			if (Math.abs(a) > maxAng) {
+				continue;
 			}
+			end = xyProjector.getCoord3d(range, toPlot[i]*maxAng, false);
 			g.drawLine((int)zero.x,  (int)zero.y,  (int)end.x,  (int)end.y);
 		}
-		if (end == null) {
-			return;
+		// draw axis both sides of the image
+		for (int ia = -1; ia <= 1; ia+=2) {
+			end = xyProjector.getCoord3d(range, ia*maxAng, false);
+			sideAxis.setRange(0, range);
+			sideAxis.setDrawLine(false);
+			sideAxis.setLabelPos(PamAxis.LABEL_NEAR_MAX);
+			if (ia*maxAng > 0) {
+				sideAxis.setTickPosition(PamAxis.ABOVE_LEFT);
+			}
+			else {
+				sideAxis.setTickPosition(PamAxis.BELOW_RIGHT);
+			}
+			sideAxis.drawAxis(g, (int)zero.x,  (int)zero.y,  (int)end.x,  (int)end.y);
 		}
-		sideAxis.setRange(0, range);
-		sideAxis.setDrawLine(false);
-		sideAxis.setLabelPos(PamAxis.LABEL_NEAR_MAX);
-		if (Math.abs(rotate) > 90) {
-			sideAxis.setTickPosition(PamAxis.ABOVE_LEFT);
-		}
-		else {
-			sideAxis.setTickPosition(PamAxis.BELOW_RIGHT);
-		}
-		sideAxis.drawAxis(g, (int)zero.x,  (int)zero.y,  (int)maxXend.x,  (int)maxXend.y);
 
 		// now the curves...
 		ArrayList<Double> ranges = sideAxis.getAxisValues();
