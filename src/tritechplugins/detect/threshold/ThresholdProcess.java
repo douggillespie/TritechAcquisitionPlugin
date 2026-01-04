@@ -47,7 +47,7 @@ public class ThresholdProcess extends PamProcess {
 		// not sure I need this - logging function get called from the super detection class. 
 //		regionDataBlock.SetLogging(regionLogging);
 		regionDataBlock.setPamSymbolManager(new SonarSymbolManager(regionDataBlock));
-		regionDataBlock.setOverlayDraw(new RegionOverlayDraw());
+		regionDataBlock.setOverlayDraw(new RegionOverlayDraw(thresholdDetector));
 	}
 
 	@Override

@@ -27,6 +27,7 @@ import tritechgemini.fileio.GLFFileCatalog;
 import tritechgemini.fileio.GeminiFileCatalog;
 import tritechgemini.imagedata.GLFStatusData;
 import tritechplugins.acquire.swing.DaqDialog;
+import tritechplugins.acquire.swing.SonarImageOverlay;
 
 /**
  * Tritech DAQ will acquire from and control the Gemini's. Because we're still not sure if
@@ -67,6 +68,7 @@ public class TritechDaqProcess extends PamProcess implements TritechRunMode, Con
 		super(tritechAcquisition, null);
 		this.tritechAcquisition = tritechAcquisition;
 		imageDataBlock = new ImageDataBlock(this);
+		imageDataBlock.setOverlayDraw(new SonarImageOverlay(tritechAcquisition, imageDataBlock));
 		addOutputDataBlock(imageDataBlock);
 		sonarStatusDataBlock = new SonarStatusDataBlock(this);
 		addOutputDataBlock(sonarStatusDataBlock);

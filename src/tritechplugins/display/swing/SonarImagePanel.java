@@ -1349,15 +1349,26 @@ public class SonarImagePanel extends JPanel {
 
 					//				if (toolTipImage == null) {
 					toolTipImage = new BufferedImage(imWid, imHei, BufferedImage.TYPE_INT_RGB);
-					//				}
+					//				}				
+					Graphics2D rg = toolTipImage.createGraphics();
+					double r = getDisplayRotation();
+					if (r != 0) {					
+						/*
+						 * If the sonar is rotated, then we should also rotate this image ? 
+						 * May make this an option in the display ??
+						 */
+						rg.setTransform(AffineTransform.getRotateInstance(Math.toRadians(r),imWid/2,imHei/2));
+					}
 					if ( panelParams.flipLeftRight) {
-						toolTipImage.createGraphics().drawImage(image, imWid, imHei, 0, 0, 
+						rg.drawImage(image, imWid, imHei, 0, 0, 
 								0, 0, image.getWidth(), image.getHeight(), sonarsPanel);
 					}
 					else {
-						toolTipImage.createGraphics().drawImage(image, 0, imHei, imWid, 0, 
+						rg.drawImage(image, 0, imHei, imWid, 0, 
 								0, 0, image.getWidth(), image.getHeight(), sonarsPanel);
 					}
+
+					/* end of image rotation */
 					ImageIO.write(toolTipImage, "jpg", toolTipImageFile);
 					// https://developer.mozilla.org/en-US/docs/Web/CSS/image-rendering
 					double imW = tipImage.getFanData().getMetresPerPixX()*image.getWidth();

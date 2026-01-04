@@ -126,7 +126,7 @@ public class TrackLinker {
 			if (usedRegions[i]) {
 				continue;
 			}
-			embryos.add(new TrackChain(regions.get(i)));
+			embryos.add(new TrackChain(trackLinkProcess, regions.get(i)));
 		}
 		return nComplete;
 	}
@@ -201,7 +201,7 @@ public class TrackLinker {
 	 * @param chain
 	 */
 	private void intiailiseDataUnit(TrackChain chain) {
-		TrackLinkDataUnit trackDataUnit = new TrackLinkDataUnit(chain);
+		TrackLinkDataUnit trackDataUnit = new TrackLinkDataUnit(trackLinkProcess, chain);
 		trackDataUnit.setEmbryonic(true);
 		/*
 		 *  me thinks that we're first going to have to make all the sub detections and
@@ -299,23 +299,29 @@ public class TrackLinker {
 		 *  since that may be quite unstable at the start of a track. However things are moving fast so if we were
 		 *  allowing 5m/s and a second, then we'd be jumping up to 5m ! so only do this if the track has < 3 points in 
 		 *  it.  
+		 *  Change everything to use absolute coordinates, which matters if two sonars are tracking together from
+		 *  different locations. This requires data in the TritechAcquisition module, which SHOULD
+		 *  be there, but there is a chance it won't exist. 
 		 */
 		double distanceScore = 0;
 		double maxDistance;
 		double[] predictedPos = new double[2];
 		if (trackChain.getChainLength() < 3) {
 			maxDistance = params.maxSpeed * (trackChain.getTrackDuration() + .2);
-			predictedPos[0] = lastRegion.getPeakX();
-			predictedPos[1] = lastRegion.getPeakY();
+			predictedPos = trackLinkProcess.getAbsoluteXY(lastRegion);
+//			predictedPos[0] = lastRegion.getPeakX();
+//			predictedPos[1] = lastRegion.getPeakY();
 		}
 		else {
 			maxDistance = params.maxSpeed * jumpTime;
 			double[] velocity = trackChain.getEndsVelocity();
-			predictedPos[0] = lastRegion.getPeakX() + velocity[0]*jumpTime;
-			predictedPos[1] = lastRegion.getPeakY() + velocity[1]*jumpTime;
+			predictedPos = trackLinkProcess.getAbsoluteXY(lastRegion);
+			predictedPos[0] += velocity[0]*jumpTime;
+			predictedPos[1] += velocity[1]*jumpTime;
 		}
 		// vector from where we think we should be to the current region. 
-		double[] newVec = {region.getPeakX() - predictedPos[0], region.getPeakY() - predictedPos[1]};
+		double[] regionXY = trackLinkProcess.getAbsoluteXY(region);
+		double[] newVec = {regionXY[0] - predictedPos[0], regionXY[1] - predictedPos[1]};
 		
 		double score = params.maxSpeed*jumpTime / getVectorMagnitude(newVec);
 		if (score < 1) {

@@ -1,13 +1,16 @@
 package tritechplugins.detect.swing;
 
+import java.awt.BorderLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Window;
 
+import javax.swing.ButtonGroup;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JRadioButton;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
 import javax.swing.border.TitledBorder;
@@ -16,6 +19,7 @@ import PamView.dialog.PamDialog;
 import PamView.dialog.PamDialogPanel;
 import PamView.dialog.PamGridBagContraints;
 import PamView.dialog.SourcePanel;
+import PamView.panel.PamAlignmentPanel;
 import PamguardMVC.PamDataBlock;
 import tritechgemini.detect.TwoThresholdDetector;
 import tritechplugins.acquire.ImageDataUnit;
@@ -59,6 +63,8 @@ public class ThresholdDialog extends PamDialog {
 	private JTextField maxSizeRatio;
 	
 	private JTextField minLength, minStraightLength;
+	
+	private JRadioButton combineSonars, separateSonars;
 	
 	private PamDialogPanel vetoPanel;
 	
@@ -206,6 +212,17 @@ public class ThresholdDialog extends PamDialog {
 		JPanel trackPanel = new JPanel(new GridBagLayout());
 		trackPanel.setBorder(new TitledBorder("Tracking"));
 		c = new PamGridBagContraints();
+		ButtonGroup bg = new ButtonGroup();
+		bg.add(combineSonars = new JRadioButton("Combine sonar data"));
+		bg.add(separateSonars = new JRadioButton("Track on each sonar separately"));
+		c.gridx = 0;
+		c.gridwidth = 3;
+		trackPanel.add(separateSonars, c);
+		c.gridy++;
+		trackPanel.add(combineSonars, c);
+		c.gridx = 0;
+		c.gridwidth = 1;
+		c.gridy++;
 		trackPanel.add(new JLabel("Max time step ", JLabel.RIGHT), c);
 		c.gridx++;
 		trackPanel.add(maxTimeStepS = new JTextField(4), c);
@@ -256,20 +273,22 @@ public class ThresholdDialog extends PamDialog {
 		
 		vetoPanel = thresholdDetector.getSpatialVetoManager().getDialogPanel(this);
 
+		combineSonars.setToolTipText("Use absolute x,y coordinates to build tracks on both sonars together");
+		separateSonars.setToolTipText("Run seprate track detectors for each sonar");
 		maxTimeStepS.setToolTipText("Max time gap within a track");
 		maxSeparationFrames.setToolTipText("Max number of frames that can be skipped in a track.");
 		
 		JTabbedPane tabbedPanel = new JTabbedPane();
 		tabbedPanel.add(thresholdPanel, "Threshold Detector");
 		tabbedPanel.add(vetoPanel.getDialogComponent(), "Spatial Vetos");
-		tabbedPanel.add(trackPanel, "Tracking");
+		tabbedPanel.add(new PamAlignmentPanel(trackPanel, BorderLayout.NORTH, true), "Tracking");
 		setDialogComponent(tabbedPanel);
 	}
 
 	public static ThresholdParams showDialog(Window parentFrame, ThresholdDetector thresholdDetector) {
-//		if (singleInstance == null || singleInstance.getOwner() != parentFrame || singleInstance.thresholdDetector != thresholdDetector) {
+		if (singleInstance == null || singleInstance.getOwner() != parentFrame || singleInstance.thresholdDetector != thresholdDetector) {
 			singleInstance = new ThresholdDialog(parentFrame, thresholdDetector);
-//		}
+		}
 		singleInstance.setParams(thresholdDetector.getThresholdParams());
 		singleInstance.setVisible(true);
 		return singleInstance.thresholdParams;
@@ -297,6 +316,8 @@ public class ThresholdDialog extends PamDialog {
 		}
 		
 		TrackLinkParameters trackParams = thresholdDetector.getTrackLinkProcess().getTrackLinkParams();
+		combineSonars.setSelected(trackParams.separateSonars == false);
+		separateSonars.setSelected(trackParams.separateSonars);
 		maxTimeStepS.setText(String.format("%3.2f", trackParams.maxTimeSeparation/1000.));
 		maxSeparationFrames.setText(String.format("%d", trackParams.maxSeparationFrames));
 		maxSpeed.setText(String.format("%3.2f", trackParams.maxSpeed));
@@ -342,6 +363,7 @@ public class ThresholdDialog extends PamDialog {
 		}
 
 		TrackLinkParameters trackParams = thresholdDetector.getTrackLinkProcess().getTrackLinkParams().clone();
+		trackParams.separateSonars = separateSonars.isSelected();
 		try {
 			trackParams.maxTimeSeparation = (long) (Double.valueOf(maxTimeStepS.getText()) * 1000.);
 			trackParams.maxSeparationFrames = Integer.valueOf(maxSeparationFrames.getText());

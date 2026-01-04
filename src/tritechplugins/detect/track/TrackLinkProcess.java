@@ -14,6 +14,7 @@ import PamguardMVC.PamProcess;
 import annotation.handler.AnnotationHandler;
 import annotation.handler.ManualAnnotationHandler;
 import tritechgemini.detect.DetectedRegion;
+import tritechplugins.acquire.TritechAcquisition;
 import tritechplugins.detect.threshold.RegionDataBlock;
 import tritechplugins.detect.threshold.RegionDataUnit;
 import tritechplugins.detect.threshold.ThresholdDetector;
@@ -78,6 +79,8 @@ public class TrackLinkProcess extends PamProcess implements PamSettings {
 	private TrackLogging trackLogging;
 
 private DetStatsDataBlock detStatsDataBlock;
+
+private TritechAcquisition foundAcquisition;
 	
 	private static final String defaultName = "Gemini Tracks";
 
@@ -85,7 +88,7 @@ private DetStatsDataBlock detStatsDataBlock;
 		super(thresholdDetector, null);
 		this.thresholdDetector = thresholdDetector;
 		trackLinkDataBlock = new TrackLinkDataBlock(getDataName(), this);
-		trackLogging = new TrackLogging(thresholdDetector, trackLinkDataBlock, true);
+		trackLogging = new TrackLogging(this, thresholdDetector, trackLinkDataBlock, true);
 		trackLogging.setSubLogging(thresholdProcess.getRegionLogging());
 		trackLinkDataBlock.SetLogging(trackLogging);
 		trackLinkDataBlock.setBinaryDataSource(new TrackBinarySource(this, trackLinkDataBlock));
@@ -133,6 +136,47 @@ private DetStatsDataBlock detStatsDataBlock;
 	public void pamStart() {
 		// TODO Auto-generated method stub
 		
+	}
+	
+	public double[] getAbsoluteXY(DetectedRegion region) {
+		TritechAcquisition daq = getTritechAcquisition();
+		double x = region.getPeakX();
+		double y = region.getPeakY();
+		double[] xy = {x,y};
+		if (daq != null) {
+			xy = daq.getAbsoluteXY(region.getSonarId(), x, y);
+		}
+		return xy;
+	}
+	
+	/**
+	 * Get the upstream TritechAcquisition module. Remembers the
+	 * result, so doesn't repeat a search once the module is found. 
+	 * @return
+	 */
+	public TritechAcquisition getTritechAcquisition() {
+		if (foundAcquisition == null) {
+			foundAcquisition = findTritechAcquisition();
+		}
+		return foundAcquisition;
+	}
+	
+	/***
+	 * Find the upstream TritechAcquisition module. Don't call this directly
+	 * but use the getTritechAcquisition function which will remember the result
+	 * and avoid repeating the search every time it's needed. 
+	 * @return upstream TritechAcquisition module, or null. 
+	 */
+	private TritechAcquisition findTritechAcquisition() {
+		// work back through the parents. 
+		PamProcess process = this;
+		while (process != null) {
+			if (process.getPamControlledUnit() instanceof TritechAcquisition) {
+				return (TritechAcquisition) process.getPamControlledUnit();
+			}
+			process = process.getParentProcess();
+		}
+		return null;
 	}
 
 	@Override

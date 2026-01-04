@@ -70,7 +70,7 @@ public class TrackBinarySource extends BinaryDataSource {
 			double straightLength = dis.readFloat(); // may not get used - was calculated on the fly
 			double wobblyLength = dis.readFloat();
 			double meanOccupancy = dis.readFloat();
-			trackDataUnit = new TrackLinkDataUnit(binaryObjectData.getTimeMilliseconds());
+			trackDataUnit = new TrackLinkDataUnit(trackLinkProcess, binaryObjectData.getTimeMilliseconds());
 			trackDataUnit.setMeanOccupancy(meanOccupancy);
 			for (int i = 0; i < nPoints; i++) {
 				/*

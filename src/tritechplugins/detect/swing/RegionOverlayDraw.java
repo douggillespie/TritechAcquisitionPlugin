@@ -9,7 +9,9 @@ import java.awt.Polygon;
 import java.awt.Rectangle;
 import java.awt.Shape;
 
+import Map.MapRectProjector;
 import PamUtils.Coordinate3d;
+import PamUtils.LatLong;
 import PamView.GeneralProjector;
 import PamView.GeneralProjector.ParameterType;
 import PamView.GeneralProjector.ParameterUnits;
@@ -20,8 +22,13 @@ import PamView.PanelOverlayDraw;
 import PamView.symbol.PamSymbolChooser;
 import PamguardMVC.PamDataUnit;
 import tritechgemini.detect.DetectedRegion;
+import tritechplugins.acquire.SonarPosition;
+import tritechplugins.acquire.TritechAcquisition;
+import tritechplugins.acquire.swing.SonarOverlayDraw;
 import tritechplugins.detect.threshold.RegionDataUnit;
+import tritechplugins.detect.threshold.ThresholdDetector;
 import tritechplugins.detect.track.TrackLinkDataUnit;
+import tritechplugins.detect.track.TrackLinkProcess;
 import tritechplugins.display.swing.SonarRThiProjector;
 import tritechplugins.display.swing.overlays.SonarSymbolChooser;
 import tritechplugins.display.swing.overlays.SonarSymbolOptions;
@@ -31,19 +38,140 @@ import tritechplugins.display.swing.overlays.SonarSymbolOptions;
  * @author dg50
  *
  */
-public class RegionOverlayDraw extends PanelOverlayDraw {
+public class RegionOverlayDraw extends SonarOverlayDraw {
 
 	public static PamSymbol defaultSymbol = new PamSymbol(PamSymbolType.SYMBOL_CROSS, 2, 2, false, Color.BLUE, Color.BLUE);
 	
 	private Color highlightCol = Color.YELLOW;
+
+	private ThresholdDetector thresholdDetector;
 	
-	public RegionOverlayDraw() {
+	public RegionOverlayDraw(ThresholdDetector thresholdDetector) {
 		super(defaultSymbol);
+		this.thresholdDetector = thresholdDetector;
 	}
 
 	@Override
 	public Rectangle drawDataUnit(Graphics g, PamDataUnit pamDataUnit, GeneralProjector generalProjector) {
 		RegionDataUnit regionDataUnit = (RegionDataUnit) pamDataUnit;
+		ParameterType[] parameterTypes = generalProjector.getParameterTypes();
+		if ((parameterTypes[0] == ParameterType.RANGE && parameterTypes[1] == ParameterType.BEARING)) {
+			return drawOnSonarDisplay(g, regionDataUnit, generalProjector);
+		}
+		if (parameterTypes[0] == ParameterType.LATITUDE
+				&& parameterTypes[1] == ParameterType.LONGITUDE) {
+			return drawOnMap(g, regionDataUnit, generalProjector);
+		}
+		
+		return null;
+	}
+	private Rectangle drawOnMap(Graphics g, RegionDataUnit regionDataUnit, GeneralProjector generalProjector) {
+
+		if (generalProjector instanceof MapRectProjector == false) {
+			return null;
+		}
+		DetectedRegion region = regionDataUnit.getRegion();
+		MapRectProjector mapProj = (MapRectProjector) generalProjector;
+		/*
+		 *  doesn't work because we dont' have access to the sonar Record, so can just do this manually 
+		 *  by working out the lat long of the point using standard transforms. 
+		 */
+//		regionDataUnit.get
+//		MapRectProjector mapProj = (MapRectProjector) generalProjector;
+//		Graphics2D g2d = (Graphics2D) g.create();
+//		Rectangle r = setupDrawRectangle(g2d, mapProj, sonarRecord);
+		LatLong origin = getStreamerOrigin(0, regionDataUnit.getTimeMilliseconds());
+		SonarPosition sonarPosition = getSonarPosition(regionDataUnit.getSonarId());
+		origin = origin.addDistanceMeters(sonarPosition.getX(), sonarPosition.getY());
+
+		PamSymbol symbol = getPamSymbol(regionDataUnit, generalProjector);
+		
+		PamSymbolChooser symbolChooser = generalProjector.getPamSymbolChooser();
+		SonarSymbolOptions symbolOptions;
+		if (symbolChooser instanceof SonarSymbolChooser) {
+			SonarSymbolChooser sonarSymbolChooser = (SonarSymbolChooser) symbolChooser;
+			symbolOptions = sonarSymbolChooser.getSymbolOptions();
+		}
+		else {
+			symbolOptions = new SonarSymbolOptions();
+		}
+		if (symbolOptions.symbolType == SonarSymbolOptions.DRAW_BOX) {
+			return drawMapBox(g, regionDataUnit, sonarPosition, origin, mapProj, symbol);
+		}
+		else {
+			return drawMapSymbol(g, regionDataUnit, sonarPosition, origin, mapProj, symbol);
+		}
+		
+
+	}
+
+	private Rectangle drawMapBox(Graphics g, RegionDataUnit regionDataUnit, SonarPosition sonarPosition, LatLong origin,
+			MapRectProjector mapProj, PamSymbol symbol) {
+		int[] x = new int[4];
+		int[] y = new int[4];
+		double a, r;
+		DetectedRegion region = regionDataUnit.getRegion();
+		// work through the four corners. 
+		a = -Math.toDegrees(region.getMinBearing()) + sonarPosition.getHead();
+		r = region.getMinRange();
+		LatLong coord = origin.travelDistanceMeters(a, r);
+		Coordinate3d pos = mapProj.getCoord3d(coord);
+		x[0] = (int) pos.x;
+		y[0] = (int) pos.y;
+
+		a = -Math.toDegrees(region.getMinBearing()) + sonarPosition.getHead();
+		r = region.getMaxRange();
+		 coord = origin.travelDistanceMeters(a, r);
+		 pos = mapProj.getCoord3d(coord);
+		x[1] = (int) pos.x;
+		y[1] = (int) pos.y;
+
+		a = -Math.toDegrees(region.getMaxBearing()) + sonarPosition.getHead();
+		r = region.getMaxRange();
+		 coord = origin.travelDistanceMeters(a, r);
+		 pos = mapProj.getCoord3d(coord);
+		x[2] = (int) pos.x;
+		y[2] = (int) pos.y;
+
+		a = -Math.toDegrees(region.getMaxBearing()) + sonarPosition.getHead();
+		r = region.getMinRange();
+		 coord = origin.travelDistanceMeters(a, r);
+		 pos = mapProj.getCoord3d(coord);
+		x[3] = (int) pos.x;
+		y[3] = (int) pos.y;
+		
+		if (symbol.isFill()) {
+			g.setColor(symbol.getFillColor());
+			g.fillPolygon(x, y, 4);
+		}
+		g.setColor(symbol.getLineColor());
+		g.drawPolygon(x, y, 4);
+
+		Shape shape = new Polygon(x, y, 4);
+		mapProj.addHoverData(shape, regionDataUnit);
+		
+		return null;
+	}
+
+	private Rectangle drawMapSymbol(Graphics g, RegionDataUnit regionDataUnit, 
+			SonarPosition sonarPosition, LatLong origin, MapRectProjector mapProj,
+			PamSymbol symbol) {		
+		DetectedRegion region = regionDataUnit.getRegion();
+		double a = -Math.toDegrees(region.getPeakBearing()) + sonarPosition.getHead();
+		double r = region.getPeakRange();
+		LatLong coord = origin.travelDistanceMeters(a, r);
+		Coordinate3d pos = mapProj.getCoord3d(coord);
+
+		Rectangle dr = symbol.draw(g, pos.getXYPoint());
+		mapProj.addHoverData(pos, regionDataUnit);
+		return dr;
+	}
+
+	private TrackLinkProcess getTrackLinkProcess() {
+		return thresholdDetector.getTrackLinkProcess();
+	}
+
+	public Rectangle drawOnSonarDisplay(Graphics g, RegionDataUnit regionDataUnit, GeneralProjector generalProjector) {	
 		DetectedRegion region = regionDataUnit.getRegion();
 		if (region == null) {
 			return null;
@@ -230,12 +358,18 @@ public class RegionOverlayDraw extends PanelOverlayDraw {
 				return true;
 			}
 			if (parameterTypes.length >= 2) {
-				return (parameterTypes[0] == ParameterType.RANGE && parameterTypes[1] == ParameterType.BEARING)
-				|| (parameterTypes[0] == ParameterType.X && parameterTypes[1] == ParameterType.Y);
+				if ((parameterTypes[0] == ParameterType.RANGE && parameterTypes[1] == ParameterType.BEARING)
+				|| (parameterTypes[0] == ParameterType.X && parameterTypes[1] == ParameterType.Y)) {
+					return true;
+				}
 			}
 		}
 		catch (Exception e) {
 			return false;
+		}
+		if (parameterTypes[0] == ParameterType.LATITUDE
+				&& parameterTypes[1] == ParameterType.LONGITUDE) {
+			return true; // can draw on map
 		}
 		return false;
 	}
@@ -278,6 +412,15 @@ public class RegionOverlayDraw extends PanelOverlayDraw {
 		}
 		return false;
 		
+	}
+
+	@Override
+	public SonarPosition getSonarPosition(int sonarId) {
+		TritechAcquisition daq = thresholdDetector.getTrackLinkProcess().getTritechAcquisition();
+		if (daq == null) {
+			return new SonarPosition();
+		}
+		return daq.getDaqParams().getSonarPosition(sonarId);
 	}
 
 }

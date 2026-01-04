@@ -13,16 +13,19 @@ import tritechplugins.detect.threshold.RegionDataUnit;
 public class TrackLinkDataUnit extends SuperDetection<RegionDataUnit> implements PamDetection {
 	
 	private TrackChain trackChain;
+	private TrackLinkProcess trackLinkProces;
 
-	public TrackLinkDataUnit(TrackChain trackChain) {
+	public TrackLinkDataUnit(TrackLinkProcess trackLinkProces, TrackChain trackChain) {
 		super(trackChain.getFirstTime());
+		this.trackLinkProces = trackLinkProces;
 		this.trackChain = trackChain;
 		trackChain.setParentDataUnit(this);
 	}
 	
-	public TrackLinkDataUnit(long timeMilliseconds) {
+	public TrackLinkDataUnit(TrackLinkProcess trackLinkProces, long timeMilliseconds) {
 		super(timeMilliseconds);
-		this.trackChain = new TrackChain(null);
+		this.trackLinkProces = trackLinkProces;
+		this.trackChain = new TrackChain(trackLinkProces, null);
 	}
 
 	@Override

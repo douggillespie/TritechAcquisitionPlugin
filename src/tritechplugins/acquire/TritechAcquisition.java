@@ -33,12 +33,14 @@ import dataGram.DatagramManager;
 import dataMap.OfflineDataMap;
 import dataMap.OfflineDataMapPoint;
 import pamScrollSystem.ViewLoadObserver;
+import tritechgemini.detect.DetectedRegion;
 import tritechgemini.fileio.GeminiFileCatalog;
 import tritechplugins.acquire.backup.GLFBackup;
 import tritechplugins.acquire.offline.TritechOffline;
 import tritechplugins.acquire.swing.SonarPositionDialog;
 import tritechplugins.acquire.swing.TritechSidePanel;
 import tritechplugins.acquire.swing.framerate.FrameRateDisplayProvider;
+import tritechplugins.detect.threshold.RegionDataUnit;
 import tritechplugins.detect.threshold.ThresholdDetector;
 import tritechplugins.detect.track.TrackLinkDataBlock;
 import tritechplugins.detect.track.TrackLinkProcess;
@@ -161,6 +163,59 @@ public class TritechAcquisition extends RawInputControlledUnit implements PamSet
 	 */
 	public TritechRunMode getTritechRunMode() {
 		return tritechRunMode;
+	}
+
+	/**	 
+	 * Get a points absolute position, allowing for the sonar position data. 
+	 * If sonar position data don't exist the coordinates will be returned 
+	 * in the sonar coordinate frame.
+	 * @param regionDataUnit detected region data unit
+	 * @return xy as a two element vector
+	 */
+	public double[] getAbsoluteXY(RegionDataUnit regionDataUnit) {
+		return getAbsoluteXY(regionDataUnit.getRegion());
+	}
+	/**	 
+	 * Get a points absolute position, allowing for the sonar position data. 
+	 * If sonar position data don't exist the coordinates will be returned 
+	 * in the sonar coordinate frame.
+	 * @param region detected region
+	 * @return xy as a two element vector
+	 */
+	public double[] getAbsoluteXY(DetectedRegion region) {
+		return getAbsoluteXY(region.getSonarId(), region.getPeakX(), region.getPeakY());
+	}
+
+	/**
+	 * Get a points absolute position, allowing for the sonar position data. 
+	 * If sonar position data don't exist the coordinates will be returned 
+	 * in the sonar coordinate frame. 
+	 * @param sonarId sonar Id. Used to find the correct orientation data
+	 * @param peakX x coordinate to translate
+	 * @param peakY y coordinate to translate
+	 * @return xy as a two element vector
+	 */
+	public double[] getAbsoluteXY(int sonarId, double peakX, double peakY) {
+		SonarPosition sonarPosition = daqParams.getSonarPosition(sonarId);
+		if (sonarPosition == null) {
+			double[] pos = {peakX, peakY};
+			return pos;
+		}
+		double rX = peakX;
+		double rY = peakY;
+		if (sonarPosition.getHead() != 0) {
+			// rotate clockwise by heading degrees. 
+			double a = Math.toRadians(sonarPosition.getHead());
+			double c = Math.cos(a);
+			double s = Math.sin(a);
+			rX = peakX*c + peakY*s;
+			rY = -peakX*s + peakY*c;
+		}
+		rX += sonarPosition.getX();
+		rY += sonarPosition.getY();
+		
+		double[] pos = {rX, rY};
+		return pos;
 	}
 
 	@Override

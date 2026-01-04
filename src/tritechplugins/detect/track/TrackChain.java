@@ -27,8 +27,11 @@ public class TrackChain {
 	 * added to this chain. 
 	 */
 	public int imageSkips;
+
+	private TrackLinkProcess trackLinkProcess;
 	
-	public TrackChain(DetectedRegion region) {
+	public TrackChain(TrackLinkProcess trackLinkProcess, DetectedRegion region) {
+		this.trackLinkProcess = trackLinkProcess;
 		this.regions = new LinkedList<>();
 		if (region != null) {
 			addRegion(region);
@@ -82,6 +85,7 @@ public class TrackChain {
 	
 	/**
 	 * Get a Cartesian vector from the track start to the track end.  
+	 * @param trackLinkProcess 
 	 * @return end to end velocity. 
 	 */
 	public double[] getEndsVector() {
@@ -90,8 +94,18 @@ public class TrackChain {
 		}
 		DetectedRegion r1 = regions.get(0);
 		DetectedRegion r2 = regions.get(regions.size()-1);
-		double x = (r2.getPeakX()-r1.getPeakX());
-		double y = (r2.getPeakY()-r1.getPeakY());
+		double x, y;
+		if (trackLinkProcess != null) {
+			double[] xy1 = trackLinkProcess.getAbsoluteXY(r1);
+			double[] xy2 = trackLinkProcess.getAbsoluteXY(r2);
+			x = xy2[0]-xy1[0];
+			y = xy2[1]-xy1[1];
+		}
+		else {
+			// this should never happen
+			x = (r2.getPeakX()-r1.getPeakX());
+			y = (r2.getPeakY()-r1.getPeakY());
+		}
 		double[] velocityVec = {x, y};
 		return velocityVec;
 	}
@@ -104,8 +118,11 @@ public class TrackChain {
 	public TrackVector getTrackVector() {
 		DetectedRegion r1 = regions.get(0);
 		DetectedRegion r2 = regions.get(regions.size()-1);
-		return new TrackVector(-r1.getPeakX(), r1.getPeakY(), -r2.getPeakX(), 
-				r2.getPeakY(), getFirstTime(), getLastTime());
+		double[] xy1 = trackLinkProcess.getAbsoluteXY(r1);
+		double[] xy2 = trackLinkProcess.getAbsoluteXY(r2);
+		return new TrackVector(xy1[0], xy1[1], xy2[1], xy2[1], getFirstTime(), getLastTime());
+//		return new TrackVector(-r1.getPeakX(), r1.getPeakY(), -r2.getPeakX(), 
+//				r2.getPeakY(), getFirstTime(), getLastTime());
 	}
 	
 	/**
@@ -244,6 +261,7 @@ public class TrackChain {
 	/**
 	 * Velocity vector from end to end of the track. Null
 	 * if only one point so far. 
+	 * @param trackLinkProcess 
 	 * @return end to end velocity. 
 	 */
 	public double[] getEndsVelocity() {

@@ -15,16 +15,18 @@ public class TrackLogging extends SuperDetLogging {
 
 	PamTableItem nPoints, endTime, sonarIds, durationSecs, straightLength, wobblyLength, occupancy;
 	private ThresholdDetector thresholdDetector;
+	private TrackLinkProcess trackLinkProcess;
 	
-	public TrackLogging(ThresholdDetector thresholdDetector, SuperDetDataBlock pamDataBlock, boolean createDataUnits) {
+	public TrackLogging(TrackLinkProcess trackLinkProcess, ThresholdDetector thresholdDetector, SuperDetDataBlock pamDataBlock, boolean createDataUnits) {
 		super(pamDataBlock, createDataUnits);
+		this.trackLinkProcess = trackLinkProcess;
 		this.thresholdDetector = thresholdDetector;
 		setTableDefinition(makeBasicTable());
 	}
 
 	@Override
 	protected PamDataUnit createDataUnit(SQLTypes sqlTypes, long timeMilliseconds, int databaseIndex) {
-		TrackLinkDataUnit trackLinkDataUnit = new TrackLinkDataUnit(timeMilliseconds);
+		TrackLinkDataUnit trackLinkDataUnit = new TrackLinkDataUnit(trackLinkProcess, timeMilliseconds);
 		double occ = occupancy.getFloatValue();
 		trackLinkDataUnit.setMeanOccupancy(occ);
 		return trackLinkDataUnit;
