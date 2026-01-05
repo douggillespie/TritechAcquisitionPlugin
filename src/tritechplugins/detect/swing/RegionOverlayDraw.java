@@ -44,11 +44,18 @@ public class RegionOverlayDraw extends SonarOverlayDraw {
 	
 	private Color highlightCol = Color.YELLOW;
 
-	private ThresholdDetector thresholdDetector;
+	private TritechAcquisition tritechAcquisition;
 	
-	public RegionOverlayDraw(ThresholdDetector thresholdDetector) {
+	/**
+	 * Best pass this a TrtechAcquisition module, since that's what it
+	 * needs to get an absolute sonar position. A Bit messy in the 
+	 * detector, since that's a different module, so it may not know the
+	 * TrtechAcquisition at time of construction. 
+	 * @param thresholdDetector
+	 */
+	public RegionOverlayDraw(TritechAcquisition tritechAcquisition) {
 		super(defaultSymbol);
-		this.thresholdDetector = thresholdDetector;
+		this.tritechAcquisition = tritechAcquisition;
 	}
 
 	@Override
@@ -165,10 +172,6 @@ public class RegionOverlayDraw extends SonarOverlayDraw {
 		Rectangle dr = symbol.draw(g, pos.getXYPoint());
 		mapProj.addHoverData(pos, regionDataUnit);
 		return dr;
-	}
-
-	private TrackLinkProcess getTrackLinkProcess() {
-		return thresholdDetector.getTrackLinkProcess();
 	}
 
 	public Rectangle drawOnSonarDisplay(Graphics g, RegionDataUnit regionDataUnit, GeneralProjector generalProjector) {	
@@ -414,13 +417,26 @@ public class RegionOverlayDraw extends SonarOverlayDraw {
 		
 	}
 
+	/**
+	 * @return the tritechAcquisition
+	 */
+	public TritechAcquisition getTritechAcquisition() {
+		return tritechAcquisition;
+	}
+
+	/**
+	 * @param tritechAcquisition the tritechAcquisition to set
+	 */
+	public void setTritechAcquisition(TritechAcquisition tritechAcquisition) {
+		this.tritechAcquisition = tritechAcquisition;
+	}
+
 	@Override
 	public SonarPosition getSonarPosition(int sonarId) {
-		TritechAcquisition daq = thresholdDetector.getTrackLinkProcess().getTritechAcquisition();
-		if (daq == null) {
+		if (tritechAcquisition == null) {
 			return new SonarPosition();
 		}
-		return daq.getDaqParams().getSonarPosition(sonarId);
+		return tritechAcquisition.getDaqParams().getSonarPosition(sonarId);
 	}
 
 }

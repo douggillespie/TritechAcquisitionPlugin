@@ -21,7 +21,8 @@ import tritechgemini.imagedata.GeminiImageRecordI;
 import tritechplugins.acquire.SonarPosition;
 
 /**
- * Base class for sonar drawing. 
+ * Base class for sonar drawing. Contains a couple of useful functions for
+ * some of the transforms. 
  * @author dg50
  *
  */
@@ -29,7 +30,6 @@ public abstract class SonarOverlayDraw extends PanelOverlayDraw {
 
 	public SonarOverlayDraw(PamSymbol defaultSymbol) {
 		super(defaultSymbol);
-		// TODO Auto-generated constructor stub
 	}
 
 	public LatLong getStreamerOrigin(int streamerInd, long timeMillis) {

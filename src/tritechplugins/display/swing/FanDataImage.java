@@ -128,7 +128,7 @@ public class FanDataImage {
 		for (int i = 0; i < cols.length; i++) {
 			Color col = cols[i];
 			byte[] bRow = byteData[i];
-			bRow[0] = (byte) 0xFF; // opaque; 
+			bRow[0] = (byte) col.getAlpha(); 
 			bRow[1] = (byte) col.getBlue(); 
 			bRow[2] = (byte) col.getGreen();
 			bRow[3] = (byte) col.getRed();

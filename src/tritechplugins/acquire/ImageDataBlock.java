@@ -11,6 +11,7 @@ import tritechgemini.fileio.GeminiFileCatalog;
 import tritechgemini.fileio.MultiFileCatalog;
 import tritechgemini.imagedata.GeminiImageRecordI;
 import tritechplugins.acquire.offline.TritechOffline;
+import tritechplugins.acquire.swing.SonarImageSymbolManager;
 
 /**
  * Datablock for image data. This has slightly odd / bespoke behaviour since
@@ -29,7 +30,7 @@ public class ImageDataBlock extends PamDataBlock<ImageDataUnit> {
 	public ImageDataBlock(TritechDaqProcess parentProcess) {
 		super(ImageDataUnit.class, "Tritech Image Data", parentProcess, 0);
 		this.tritechDaqProcess = parentProcess;
-	
+		setPamSymbolManager(new SonarImageSymbolManager(this));
 	}
 	public ImageDataBlock(TritechDaqProcess parentProcess, String blockName) {
 		super(ImageDataUnit.class, blockName, parentProcess, 0);

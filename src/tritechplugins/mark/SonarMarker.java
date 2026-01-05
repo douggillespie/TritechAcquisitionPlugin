@@ -62,7 +62,7 @@ public class SonarMarker implements SettingsNameProvider, OverlayMarkObserver {
 		regionDataBlock = new RegionDataBlock("Manual selections", daqProcess);
 		regionDataBlock.SetLogging(regionLogging = new RegionLogging(this, regionDataBlock));
 		regionDataBlock.setPamSymbolManager(new SonarSymbolManager(regionDataBlock));
-		RegionOverlayDraw overlay = new RegionOverlayDraw();
+		RegionOverlayDraw overlay = new RegionOverlayDraw(tritechAcquisition);
 		regionDataBlock.setOverlayDraw(overlay);
 		daqProcess.addOutputDataBlock(regionDataBlock);
 	}

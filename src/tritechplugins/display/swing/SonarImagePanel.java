@@ -1305,7 +1305,7 @@ public class SonarImagePanel extends JPanel {
 		// find where the mouse is in an image and show range-bearing data.
 		SonarCoordinate sonarCoord = findSonarCoordinate(event.getX(), event.getY());
 		if (sonarCoord == null) {
-			return "To manually resize images press the 'Alt' key and drag the boders";
+			return "To manually resize images press the 'Alt' key and drag the borders";
 		}
 		SonarCoordinate absCoordinate = getAbsoluteCoordinate(sonarCoord);
 

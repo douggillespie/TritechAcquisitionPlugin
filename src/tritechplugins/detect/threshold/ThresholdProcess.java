@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+import PamController.PamControlledUnit;
 import PamController.PamController;
 import PamguardMVC.PamDataBlock;
 import PamguardMVC.PamDataUnit;
@@ -12,6 +13,7 @@ import PamguardMVC.PamProcess;
 import tritechgemini.detect.DetectedRegion;
 import tritechplugins.acquire.ImageDataBlock;
 import tritechplugins.acquire.ImageDataUnit;
+import tritechplugins.acquire.TritechAcquisition;
 import tritechplugins.detect.swing.RegionOverlayDraw;
 import tritechplugins.detect.threshold.dataselect.RegionDataSelectorCreator;
 import tritechplugins.detect.track.TrackLinkProcess;
@@ -28,6 +30,7 @@ public class ThresholdProcess extends PamProcess {
 	private RegionLogging regionLogging;
 	
 	private int imageCount = 0;
+	private RegionOverlayDraw regionOverlayDraw;
 	
 	/**
 	 * @return the regionLogging
@@ -47,7 +50,7 @@ public class ThresholdProcess extends PamProcess {
 		// not sure I need this - logging function get called from the super detection class. 
 //		regionDataBlock.SetLogging(regionLogging);
 		regionDataBlock.setPamSymbolManager(new SonarSymbolManager(regionDataBlock));
-		regionDataBlock.setOverlayDraw(new RegionOverlayDraw(thresholdDetector));
+		regionDataBlock.setOverlayDraw(regionOverlayDraw = new RegionOverlayDraw(null));
 	}
 
 	@Override
@@ -96,11 +99,23 @@ public class ThresholdProcess extends PamProcess {
 			imageDataBlock = findAnySource();
 			if (imageDataBlock != null) {
 				params.imageDataSource = imageDataBlock.getLongDataName();
+				regionOverlayDraw.setTritechAcquisition(findTritechAcquisition());
 			}
 		}
 		setParentDataBlock(imageDataBlock);
 	}
 
+	private TritechAcquisition findTritechAcquisition() {
+		if (imageDataBlock == null) {
+			return null;
+		}
+		PamControlledUnit module = imageDataBlock.getParentProcess().getPamControlledUnit();
+		if (module instanceof TritechAcquisition) {
+			return (TritechAcquisition) module;
+		}
+		module = PamController.getInstance().findControlledUnit(TritechAcquisition.unitType);
+		return (TritechAcquisition) module;
+	}
 
 	/**
 	 * Find the channel detector for the given sonar. 
