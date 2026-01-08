@@ -17,6 +17,8 @@ public class SonarPosition implements Cloneable, Serializable{
 
 	private double head, pitch, roll;
 	
+	private boolean flipLR;
+	
 	@Override
 	public SonarPosition clone() {
 		try {
@@ -153,6 +155,20 @@ public class SonarPosition implements Cloneable, Serializable{
 	 */
 	public void setSonarName(String sonarName) {
 		this.sonarName = sonarName;
+	}
+
+	/**
+	 * @return the flipLR
+	 */
+	public boolean isFlipLR() {
+		return flipLR;
+	}
+
+	/**
+	 * @param flipLR the flipLR to set
+	 */
+	public void setFlipLR(boolean flipLR) {
+		this.flipLR = flipLR;
 	}
 
 

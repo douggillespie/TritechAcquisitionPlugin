@@ -291,6 +291,7 @@ public class SonarImagePanel extends JPanel {
 		//		g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
 
 		SonarsPanelParams sonarsPanelParams = sonarsPanel.getSonarsPanelParams();
+		SonarPosition sonarPosition = getSonarPosition();
 		/*
 		 * sort out zoom transforms and projectors
 		 */
@@ -318,7 +319,7 @@ public class SonarImagePanel extends JPanel {
 		}
 		sonarZoomTransform = new SonarZoomTransform(maxRange, drawRect, imageBounds, 
 				sonarsPanel.getZoomFactor(), sonarsPanel.getZoomCentre(),
-				sonarsPanelParams.flipLeftRight);
+				sonarPosition.isFlipLR());
 		xyProjector.setLayout(sonarZoomTransform);
 		/*
 		 * Sort out a rotated transform if the image is rotated in any way. 
@@ -427,6 +428,7 @@ public class SonarImagePanel extends JPanel {
 		SonarPosition posData = daqParams.getSonarPosition(layoutInfo.getSonarId());
 		return posData.getHead();
 	}
+	
 
 	private void paintVetos(Graphics g, Rectangle destRect) {
 		Graphics2D g2d = (Graphics2D) g;
@@ -609,7 +611,8 @@ public class SonarImagePanel extends JPanel {
 		if (image == null) {
 			return;
 		}
-		boolean flip = sonarsPanel.getSonarsPanelParams().flipLeftRight;
+		SonarPosition sonarPosition = getSonarPosition();
+		boolean flip = sonarPosition.isFlipLR();
 		Rectangle imageClip = sonarZoomTransform.getImageClipRect();
 		//		rotatedG.setColor(Color.BLUE);
 
@@ -1316,6 +1319,8 @@ public class SonarImagePanel extends JPanel {
 
 		String str;
 
+		SonarPosition sonarPosition = getSonarPosition();
+
 		if (overlayText != null) {
 			// this is the overlay from the detector. 
 			str = overlayText;
@@ -1359,7 +1364,7 @@ public class SonarImagePanel extends JPanel {
 						 */
 						rg.setTransform(AffineTransform.getRotateInstance(Math.toRadians(r),imWid/2,imHei/2));
 					}
-					if ( panelParams.flipLeftRight) {
+					if ( sonarPosition.isFlipLR()) {
 						rg.drawImage(image, imWid, imHei, 0, 0, 
 								0, 0, image.getWidth(), image.getHeight(), sonarsPanel);
 					}
@@ -1515,11 +1520,12 @@ public class SonarImagePanel extends JPanel {
 				usedRec = backgroundSub.removeBackground(usedRec, usedRec != backgroundSub.getLastBackgroundRecord());
 			}
 
+			SonarPosition sonarPosition = getSonarPosition();
 			int usePix = sonarsPanel.getImagePixels(usedRec.getnBeam(), usedRec.getnRange(), getWidth());
 			FanImageData fanData = imageFanMaker.createFanData(usedRec, usePix);
 			// now need to clip a part of that out around our bit. 
 			DetectedRegion region = regionDataUnit.getRegion();
-			double flip = panelParams.flipLeftRight ? -1 : -1;
+			double flip = sonarPosition.isFlipLR() ? -1 : -1;
 			double maxS = Math.max(Math.sin(region.getMinBearing()), Math.sin(region.getMaxBearing()));
 			double minS = Math.min(Math.sin(region.getMinBearing()), Math.sin(region.getMaxBearing()));
 			double maxC = Math.max(Math.cos(region.getMinBearing()), Math.cos(region.getMaxBearing()));
@@ -1610,7 +1616,7 @@ public class SonarImagePanel extends JPanel {
 				.toDegrees(Math.atan2(dragCoord.getY() - downCoord.getY(), dragCoord.getX() - downCoord.getX()));
 		double bearing = 90. - angle;
 
-		if (sonarsPanel.getSonarsPanelParams().flipLeftRight) {
+		if (getSonarPosition().isFlipLR()) {
 			bearing = -bearing;
 		}
 		bearing = PamUtils.constrainedAngle(bearing);

@@ -22,6 +22,8 @@ import PamView.GeneralProjector.ParameterUnits;
 import PamView.PamColors;
 import PamView.PamColors.PamColor;
 import PamView.PamKeyItem;
+import PamView.PamSymbol;
+import PamView.PamSymbolType;
 import PamView.PanelOverlayDraw;
 import PamView.symbol.PamSymbolChooser;
 import PamView.symbol.PamSymbolOptions;
@@ -51,12 +53,14 @@ public class SonarImageOverlay extends SonarOverlayDraw {
 	private ColourArray colourArray = ColourArray.createMergedArray(nColours, Color.BLACK, Color.GREEN);
 	
 	private PamAxis mapAxis;
+	
+	private static PamSymbol defaultSymbol = new PamSymbol(PamSymbolType.SYMBOL_TRIANGLEU, 5, 5, false, Color.RED, Color.RED);
 
 	public SonarImageOverlay(TritechAcquisition tritechAcquisition, ImageDataBlock imageDataBlock) {
-		super(null);
+		super(defaultSymbol);
 		this.tritechAcquisition = tritechAcquisition;
 		this.imageDataBlock = imageDataBlock;
-		mapAxis = new PamAxis(0, 1, 0, 1, 0, 1, PamAxis.BELOW_RIGHT, "m", PamAxis.LABEL_NEAR_MAX, "%d");
+		mapAxis = new PamAxis(0, 1, 0, 1, 0, 1, PamAxis.BELOW_RIGHT, null, PamAxis.LABEL_NEAR_MAX, "%d");
 	}
 
 	@Override
@@ -95,11 +99,14 @@ public class SonarImageOverlay extends SonarOverlayDraw {
 		}
 		MultiFileCatalog fileCatalog = imageDataBlock.findFileCatalog();
 		for (int i = 0; i < sonarIds.length; i++) {
-			GeminiImageRecordI sonarRecord = fileCatalog.findRecordForTime(sonarIds[i], mapTime);
+			GeminiImageRecordI sonarRecord = null;
+			if (fileCatalog != null) {
+				sonarRecord = fileCatalog.findRecordForTime(sonarIds[i], mapTime);
+			}
 			if (sonarRecord != null && symbolOptions.showImage) {
-//				if (sonarRecord.isFullyLoaded() == false) {
-//					sonarRecord = fileCatalog.getRecord(sonarRecord.getRecordNumber(), true);
-//				}
+				//				if (sonarRecord.isFullyLoaded() == false) {
+				//					sonarRecord = fileCatalog.getRecord(sonarRecord.getRecordNumber(), true);
+				//				}
 				drawSonarImageOnMap(g, mapProj, sonarRecord, symbolOptions);
 			}
 			if (symbolOptions.showGrid) {
@@ -163,6 +170,7 @@ public class SonarImageOverlay extends SonarOverlayDraw {
 		for (int i = 0; i < axVals.size(); i++) {
 			double r = scale * axVals.get(i);
 			Rectangle rect = new Rectangle((int) (originXY.x-r), (int) (originXY.y-r), (int) (2*r), (int) (2*r));
+			g.setColor(col);
 			g.drawArc((int) (originXY.x-r), (int) (originXY.y-r), (int) (2*r), (int) (2*r), a1, a2);
 		}
 		
@@ -198,19 +206,22 @@ public class SonarImageOverlay extends SonarOverlayDraw {
 		Graphics2D g2d = (Graphics2D) g.create();
 		
 //		g2d.setColor(Color.RED);
-//		g2d.drawRect(r.x, r.y, r.width, r.height);
+		//		g2d.drawRect(r.x, r.y, r.width, r.height);
 		Rectangle r = setupDrawRectangle(g2d, mapProj, sonarRecord);
-			int pix = (int) (r.width);
-			pix = Math.min(pix,  sonarRecord.getnRange()*2);
-			ImageFanMaker fanMaker = getFanMaker(sonarRecord.getDeviceId());
-			FanImageData fanImageData = fanMaker.createFanData(sonarRecord, pix);
-			if (fanImageData == null) {
-				return;
-			}	
-			FanDataImage aFanImage = new FanDataImage(fanImageData, colourArray, true, symbolOptions.displayGain);
-			BufferedImage bi = aFanImage.getBufferedImage();
+		int pix = (int) (r.width);
+		if (pix < 4) {
+			return;
+		}
+		pix = Math.min(pix,  sonarRecord.getnRange()*2);
+		ImageFanMaker fanMaker = getFanMaker(sonarRecord.getDeviceId());
+		FanImageData fanImageData = fanMaker.createFanData(sonarRecord, pix);
+		if (fanImageData == null) {
+			return;
+		}	
+		FanDataImage aFanImage = new FanDataImage(fanImageData, colourArray, true, symbolOptions.displayGain);
+		BufferedImage bi = aFanImage.getBufferedImage();
 
-			g2d.drawImage(bi,r.x, r.y+r.height, r.x+r.width, r.y,0,0,bi.getWidth(),bi.getHeight(),null);
+		g2d.drawImage(bi,r.x, r.y+r.height, r.x+r.width, r.y,0,0,bi.getWidth(),bi.getHeight(),null);
 		
 	}
 	@Override

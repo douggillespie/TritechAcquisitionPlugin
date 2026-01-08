@@ -38,7 +38,8 @@ public class DisplayControlPanel {
 	
 	private JCheckBox showGrid;
 	
-	private JCheckBox flipLeftRight, useRotation;
+//	private JCheckBox flipLeftRight,;
+	private JCheckBox useRotation;
 
 	private JPanel mainPanel;
 
@@ -86,10 +87,10 @@ public class DisplayControlPanel {
 		useRotation.addActionListener(generalAction);
 		c.gridx += c.gridwidth;
 		c.gridwidth = 1;
-		mainPanel.add(flipLeftRight = new PamCheckBox("Flip"), c);
-		flipLeftRight.addActionListener(generalAction);
-		c.gridx+=c.gridwidth+1;
-		c.gridwidth = 1;
+//		mainPanel.add(flipLeftRight = new PamCheckBox("Flip"), c);
+//		flipLeftRight.addActionListener(generalAction);
+//		c.gridx+=c.gridwidth+1;
+//		c.gridwidth = 1;
 		SettingsButton moreButton = new SettingsButton();
 		mainPanel.add(moreButton, c);
 		moreButton.setToolTipText("Resolution and Colour)");
@@ -163,7 +164,7 @@ public class DisplayControlPanel {
 		gainSlider.setToolTipText("Amplify the image");
 //		colourComboBox.setToolTipText("Select colour scheme");
 		showGrid.setToolTipText("Overlay grid");
-		flipLeftRight.setToolTipText("Flip images left-right");
+//		flipLeftRight.setToolTipText("Flip images left-right");
 		useRotation.setToolTipText("Use rotation values from Acquisition sonar position settings");
 		removeBackground.setToolTipText("Automatically remove stationary background from image");
 		backgroundTimeFac.setToolTipText("Background scale factor: big numbers = slow background update, small = fast update");
@@ -222,7 +223,7 @@ public class DisplayControlPanel {
 		SonarsPanelParams params = sonarsPanel.getSonarsPanelParams();
 		params.showGrid = showGrid.isSelected();
 		params.setUseSonarRotation(useRotation.isSelected());
-		params.flipLeftRight = flipLeftRight.isSelected();
+//		params.flipLeftRight = flipLeftRight.isSelected();
 		params.subtractBackground = removeBackground.isSelected();
 		params.usePersistence = usePersistence.isSelected();
 		params.rescalePersistence = rescalePersistence.isSelected();
@@ -275,7 +276,7 @@ public class DisplayControlPanel {
 		SonarsPanelParams params = sonarsPanel.getSonarsPanelParams();
 		showGrid.setSelected(params.showGrid);
 		useRotation.setSelected(params.isUseSonarRotation());
-		flipLeftRight.setSelected(params.flipLeftRight);
+//		flipLeftRight.setSelected(params.flipLeftRight);
 //		colourComboBox.setSelectedColourMap(params.colourMap);
 		gainSlider.setValue(params.displayGain);
 		removeBackground.setSelected(params.subtractBackground);

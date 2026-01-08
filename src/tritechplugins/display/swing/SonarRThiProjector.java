@@ -4,6 +4,12 @@ import PamUtils.Coordinate3d;
 import PamUtils.PamCoordinate;
 import tritechplugins.display.swing.overlays.SonarOverlayManager;
 
+/**
+ * Project range and bearing
+ * coordinate[0] is range, [1] bearing in radians, anticlockwise I think.
+ * @author dg50
+ *
+ */
 public class SonarRThiProjector extends SonarXYProjector {
 
 	public static final ParameterType[] requiredParams = SonarOverlayManager.paramTypes;

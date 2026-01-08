@@ -7,6 +7,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
@@ -24,6 +25,7 @@ public class SonarPositionPanel extends JPanel {
 	
 	private JTextField x, y, head;
 	private JTextField name;
+	private JCheckBox flipLR;
 	private SonarRemoveObserver removeObserver;
 
 	public SonarPositionPanel(int sonarId, SonarRemoveObserver removeObserver) {
@@ -57,6 +59,14 @@ public class SonarPositionPanel extends JPanel {
 		add(y, c);
 		c.gridx++;
 		add(new JLabel( " m"), c);
+		
+		c.gridx = 1;
+		c.gridy++;
+		c.gridwidth = 1;
+		add(new JLabel("Flip sonar", JLabel.RIGHT), c);
+		c.gridx++;
+		c.gridwidth = 4;
+		add(flipLR = new JCheckBox(" (upside down)"), c);
 		
 		c.gridx = 0;
 		c.gridwidth = 2;
@@ -92,11 +102,13 @@ public class SonarPositionPanel extends JPanel {
 		x.setText(String.format("%3.2f", sonarPos.getX()));
 		y.setText(String.format("%3.2f", sonarPos.getY()));
 		head.setText(String.format("%3.1f", sonarPos.getHead()));
+		flipLR.setSelected(sonarPos.isFlipLR());
 	}
 	
 	public boolean getParams(TritechDaqParams daqParams) {
 		SonarPosition sonarPos = daqParams.getSonarPosition(sonarId);
 		sonarPos.setSonarName(name.getText());
+		sonarPos.setFlipLR(flipLR.isSelected());
 		try {
 			sonarPos.setX(Double.valueOf(x.getText()));
 			sonarPos.setY(Double.valueOf(y.getText()));

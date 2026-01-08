@@ -35,7 +35,7 @@ public class SonarImageSymbolPanel implements SwingSymbolOptionsPanel {
 		this.symbolChooser = sonarImageSymbolChooser;
 		mainPanel = new JPanel(new GridBagLayout());
 		mainPanel.setBorder(new TitledBorder("Sonar image options"));
-		colourComboBox = new ColourComboBox();
+		colourComboBox = new ColourComboBox(200, 15);
 		colourComboBox.setBorder(null);
 		colourComboBox.setToolTipText("Select colour scheme");
 		gainSlider = new JSlider(1, 10);

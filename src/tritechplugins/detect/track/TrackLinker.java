@@ -322,6 +322,14 @@ public class TrackLinker {
 		// vector from where we think we should be to the current region. 
 		double[] regionXY = trackLinkProcess.getAbsoluteXY(region);
 		double[] newVec = {regionXY[0] - predictedPos[0], regionXY[1] - predictedPos[1]};
+//		long d1 = PamCalendar.unpackStandardDateTime("20251217_152140");
+//		long d2 = PamCalendar.unpackStandardDateTime("20251217_152157");
+//		long d = region.getTimeMilliseconds();
+//		if (d >= d1 && d <= d2) {
+//		System.out.printf("Sonare %d: Pred (%3.1f,%3.1f) Get (%3.1f,%3.1f) at %s\n", 
+//				region.getSonarId(), predictedPos[0],predictedPos[1],
+//				regionXY[0],regionXY[1],PamCalendar.formatTime(region.getTimeMilliseconds()));
+//		}
 		
 		double score = params.maxSpeed*jumpTime / getVectorMagnitude(newVec);
 		if (score < 1) {

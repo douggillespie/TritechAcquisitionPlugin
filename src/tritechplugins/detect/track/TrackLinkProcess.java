@@ -67,7 +67,7 @@ public class TrackLinkProcess extends PamProcess implements PamSettings {
 	/**
 	 * Hash map for when sonars being processed separately
 	 */
-	private HashMap<Integer, TrackLinker> trackLinkers;
+	private HashMap<Integer, TrackLinker> trackLinkers = new HashMap<>();
 	
 	/**
 	 * simple reference for when being processed together. 

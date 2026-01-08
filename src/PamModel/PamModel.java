@@ -50,9 +50,8 @@ import networkTransfer.receive.NetworkReceiver;
 import printscreen.PrintScreenControl;
 import rockBlock.RockBlockControl;
 import tritechplugins.acquire.TritechAcquisition;
-import tritechplugins.acquire.TritechDaqPlugin;
 import tritechplugins.detect.threshold.ThresholdDetector;
-import tritechplugins.record.GLFRecorderCtrl;
+import tritechplugins.detect.track.TrackLinkDataUnit;
 import turbineops.TurbineOperationControl;
 import GPS.GpsDataUnit;
 import Map.MapController;
@@ -500,10 +499,10 @@ final public class PamModel implements PamModelInterface, PamSettings {
 		mi.setHidden(SMRUEnable.isEnable() == false);
 //		mi.setHidden(SMRUEnable.isEnable() == false);
 
-		mi = PamModuleInfo.registerControlledUnit("d3.D3Control", "D3 Sensor Data");
-		mi.setModulesMenuGroup(sensorsGroup);
-		mi.setToolTipText("Display sensor data from D3 recorders / DTags, etc");
-		mi.setHidden(SMRUEnable.isEnable() == false);
+//		mi = PamModuleInfo.registerControlledUnit("d3.D3Control", "D3 Sensor Data");
+//		mi.setModulesMenuGroup(sensorsGroup);
+//		mi.setToolTipText("Display sensor data from D3 recorders / DTags, etc");
+//		mi.setHidden(SMRUEnable.isEnable() == false);
 
 		mi = PamModuleInfo.registerControlledUnit("soundtrap.STToolsControl", "SoundTrap Detector Import");
 		mi.setModulesMenuGroup(sensorsGroup);
@@ -529,10 +528,15 @@ final public class PamModel implements PamModelInterface, PamSettings {
 //		mi.setMaxNumber(1);
 		mi.setToolTipText("Basic detector for Tritech image data");
 
-		mi = PamModuleInfo.registerControlledUnit(GLFRecorderCtrl.class.getName(), GLFRecorderCtrl.unitType);
-		mi.setModulesMenuGroup(tritechGroup);
+//		mi = PamModuleInfo.registerControlledUnit(RiverTriggerControl.class.getName(), RiverTriggerControl.unitType);
+//		mi.setModulesMenuGroup(tritechGroup);
+////		mi.setMaxNumber(1);
+//		mi.setToolTipText("Trigger system for river seals");
+//
+//		mi = PamModuleInfo.registerControlledUnit(GenusControl.class.getName(), GenusControl.unitType);
+//		mi.setModulesMenuGroup(tritechGroup);
 //		mi.setMaxNumber(1);
-		mi.setToolTipText("Recorder for GLF data");
+//		mi.setToolTipText("Genuswave TAST Control");
 
 //		mi = PamModuleInfo.registerControlledUnit(MeygenVetoControl.class.getName(), MeygenVetoControl.unitType);
 //		mi.setModulesMenuGroup(tritechGroup);
@@ -958,8 +962,7 @@ final public class PamModel implements PamModelInterface, PamSettings {
 		
 		// load any plugins in the plugin folder
 		loadPlugins(mi);
-
-		pluginList.add(new TritechDaqPlugin());
+		
 	}
 
 	/* (non-Javadoc)
@@ -1018,7 +1021,7 @@ final public class PamModel implements PamModelInterface, PamSettings {
 
 	}
 
-//	@Override
+	@Override
 	public boolean modelSettings(JFrame frame) {
 		PamModelSettings newSettings = ThreadingDialog.showDialog(frame, pamModelSettings);
 		if (newSettings != null) {
@@ -1106,6 +1109,7 @@ final public class PamModel implements PamModelInterface, PamSettings {
 		// an echoDetector data unit.
 //		URLClassLoader cl = (URLClassLoader) this.getClass().getClassLoader();
 //		ClassLoader cl = this.getClass().getClassLoader();
+		
 		
 		// first, compile a list of all classes implementing the PamPluginInterface.  Have to jump through a
 		// lot of hoops to try and get the installed directory of the jar from a class running inside the

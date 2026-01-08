@@ -51,12 +51,19 @@ public abstract class SonarOverlayDraw extends PanelOverlayDraw {
 		double maxRange = sonarRecord.getMaxRange();
 		double maxAng = Math.abs(sonarRecord.getBearingTable()[0]);
 		SonarPosition sonarPos = getSonarPosition(sonarRecord.getDeviceId());
+		return setupDrawRectangle(g2d, mapProj, sonarPos, maxAng, sonarRecord.getMaxRange(), sonarRecord.getRecordTime());
+
+	}
+	
+	public Rectangle setupDrawRectangle(Graphics2D g2d, MapRectProjector mapProj, SonarPosition sonarPos, 
+			double maxAngleRadians, double maxRange, long dateTime) {
+
 		/*
 		 *  get the four corners of the image, then work out a transform to draw into 
 		 *  that rectangle. 
 		 */
-		double xm = maxRange*Math.sin(maxAng); // half width of image. 
-		LatLong origin = getStreamerOrigin(0, sonarRecord.getRecordTime());
+		double xm = maxRange*Math.sin(maxAngleRadians); // half width of image. 
+		LatLong origin = getStreamerOrigin(0, dateTime);
 		if (origin == null) {
 			origin = new LatLong(0,0);
 		}
