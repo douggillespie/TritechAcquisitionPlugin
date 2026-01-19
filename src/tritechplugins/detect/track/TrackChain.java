@@ -120,7 +120,8 @@ public class TrackChain {
 		DetectedRegion r2 = regions.get(regions.size()-1);
 		double[] xy1 = trackLinkProcess.getAbsoluteXY(r1);
 		double[] xy2 = trackLinkProcess.getAbsoluteXY(r2);
-		return new TrackVector(xy1[0], xy1[1], xy2[1], xy2[1], getFirstTime(), getLastTime());
+		TrackVector v = new TrackVector(xy1[0], xy1[1], xy2[0], xy2[1], getFirstTime(), getLastTime());
+		return v;
 //		return new TrackVector(-r1.getPeakX(), r1.getPeakY(), -r2.getPeakX(), 
 //				r2.getPeakY(), getFirstTime(), getLastTime());
 	}

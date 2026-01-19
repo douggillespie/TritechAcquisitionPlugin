@@ -28,6 +28,39 @@ public class SonarPosition implements Cloneable, Serializable{
 			return null;
 		}
 	}
+
+	/**
+	 * Translate an absolute XY coordinate into a coordinate relative to the 
+	 * origin position of a sonar. 
+	 * @param x absolute x coordinate
+	 * @param y absolute y coordinate
+	 * @return x and y relative to the sonar (not in the sonar frame). 
+	 */
+	public double[] absXY2SonarXY(double x, double y) {
+		double[] sonarXY = {x, y};
+		sonarXY[0] -= getX();
+		sonarXY[1] -= getY();
+		return sonarXY;
+	}
+	
+	/**
+	 * Translate an absolute XY coordinate into a rthi position within the reference 
+	 * frame of the sonar. 
+	 * @param x absolute x coordinate
+	 * @param y absolute y coordinate
+	 * @return r and phi as two element array in sonar frame. 
+	 */
+	public double[] absXY2SonarRThi(double x, double y) {
+		// get the cartesian coordinate in the frame of this sonar. 
+		double[] sonarXY = absXY2SonarXY(x, y);
+		double r = Math.sqrt(sonarXY[0]*sonarXY[0] + sonarXY[1]*sonarXY[1]);
+		// absolute angle (from N)
+		double a = Math.atan2(sonarXY[0], sonarXY[1]);
+		a -= Math.toRadians(getHead());
+		// remember angles in sonar frame are backwards !
+		double[] rthi = {r, -a};
+		return rthi;
+	}
 	
 	/**
 	 * Return true if everything is zero, so no point in doing any transforms. 

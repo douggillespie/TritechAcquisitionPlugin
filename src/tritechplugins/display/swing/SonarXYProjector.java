@@ -32,7 +32,7 @@ public class SonarXYProjector extends GeneralProjector {
 	@Override
 	public Coordinate3d getCoord3d(double x, double y, double z) {
 		
-		return getCoord3d(new Coordinate3d(x, y, z));
+		return getCoord3d(new Coordinate3d(x, y, z), false);
 	}
 
 	/**
@@ -72,7 +72,12 @@ public class SonarXYProjector extends GeneralProjector {
 	//	}
 	@Override
 	public Coordinate3d getCoord3d(PamCoordinate dataObject) {
-		return getCoord3d(dataObject, true);
+		/**
+		 * Make the default NOT to clip, or it can mess up the OverlayMarker which 
+		 * doesn't do too well with null values in it's array of points. 
+		 * If something needs to clip, call getCoord3d(obj, true);
+		 */
+		return getCoord3d(dataObject, false);
 	}
 	
 	/**

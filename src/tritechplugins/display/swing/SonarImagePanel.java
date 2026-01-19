@@ -2024,4 +2024,11 @@ public class SonarImagePanel extends JPanel {
 		this.layoutInfo = layoutInfo;
 		setBounds(layoutInfo.getImageRectangle());
 	}
+
+	/**
+	 * @return the sonarsPanel
+	 */
+	public SonarsPanel getSonarsPanel() {
+		return sonarsPanel;
+	}
 }

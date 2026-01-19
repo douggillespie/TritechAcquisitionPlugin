@@ -145,6 +145,7 @@ private TritechAcquisition foundAcquisition;
 		double[] xy = {x,y};
 		if (daq != null) {
 			xy = daq.getAbsoluteXY(region.getSonarId(), x, y);
+//			xy[0] = -xy[0];
 		}
 		return xy;
 	}
