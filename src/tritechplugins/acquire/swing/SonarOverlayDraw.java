@@ -55,6 +55,7 @@ public abstract class SonarOverlayDraw extends PanelOverlayDraw {
 
 	}
 	
+	
 	public Rectangle setupDrawRectangle(Graphics2D g2d, MapRectProjector mapProj, SonarPosition sonarPos, 
 			double maxAngleRadians, double maxRange, long dateTime) {
 
@@ -68,7 +69,7 @@ public abstract class SonarOverlayDraw extends PanelOverlayDraw {
 			origin = new LatLong(0,0);
 		}
 		LatLong sonarOrigin = origin.addDistanceMeters(sonarPos.getX(), sonarPos.getY());
-		double sonarR = Math.toRadians(sonarPos.getHead());
+		double sonarR = Math.toRadians(sonarPos.getHead() + mapProj.getMapRotationDegrees());
 		/*
 		 *  find the middle of the image rectangle and it's extent, then set up a transform
 		 *  to draw a rotated image about that centre ? 

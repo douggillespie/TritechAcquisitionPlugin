@@ -141,7 +141,7 @@ public class SonarImageOverlay extends SonarOverlayDraw {
 		SonarPosition sonarPos = getSonarPosition(sonarId);
 		origin = origin.addDistanceMeters(sonarPos.getX(), sonarPos.getY());
 		Coordinate3d originXY = mapProj.getCoord3d(origin);
-		double sonarHead = Math.toRadians(sonarPos.getHead());
+		double sonarHead = Math.toRadians(sonarPos.getHead()+mapProj.getMapRotationDegrees());
 		double maxAng = Math.toRadians(60);
 		double[] steps = {-1., -.5, 0., .5, 1.0};
 		double scale = mapProj.getPixelsPerMetre();
@@ -165,7 +165,7 @@ public class SonarImageOverlay extends SonarOverlayDraw {
 		if (axVals.size() == 0 || axVals.get(axVals.size()-1) < maxR) {
 			axVals.add(maxR);
 		}
-		int a1 = (int) (90-Math.toDegrees(maxAng)-sonarPos.getHead());
+		int a1 = (int) (90-Math.toDegrees(maxAng)-sonarPos.getHead()-mapProj.getMapRotationDegrees());
 		int a2 = (int) Math.ceil(Math.toDegrees(maxAng*2));
 		for (int i = 0; i < axVals.size(); i++) {
 			double r = scale * axVals.get(i);
