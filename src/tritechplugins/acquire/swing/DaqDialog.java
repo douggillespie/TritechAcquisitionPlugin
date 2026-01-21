@@ -345,7 +345,7 @@ public class DaqDialog extends PamDialog {
 			ok |= sonarPanel.getParams(daqParams);
 		}
 
-		String[] zones = TimeZone.getAvailableIDs();
+//		String[] zones = TimeZone.getAvailableIDs();
 		String selTZ = timeZonePanel.getTimeZoneId();
 		daqParams.setOfflinetimeZoneId(selTZ);
 		
