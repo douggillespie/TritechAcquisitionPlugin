@@ -242,15 +242,15 @@ public class SonarsPanel extends PamPanel implements DataMenuParent {
 		 * Check the layout aspect. 
 		 */
 		if (imageRecord != null) {
-		double[] bt = imageRecord.getBearingTable();
-		if (bt != null && bt.length > 0) {
-			double ma = Math.abs(bt[0]);
-			ma = Math.toDegrees(ma);
-			boolean change = sonarImageLayout.setMaxAngleDegrees(ma);
-			if (change) {
-				imagesPanel.invalidate();
+			double[] bt = imageRecord.getBearingTable();
+			if (bt != null && bt.length > 0) {
+				double ma = Math.abs(bt[0]);
+				ma = Math.toDegrees(ma);
+				boolean change = sonarImageLayout.setMaxAngleDegrees(ma);
+				if (change) {
+					imagesPanel.invalidate();
+				}
 			}
-		}
 		}
 		
 		addSonarId(sonarID);
