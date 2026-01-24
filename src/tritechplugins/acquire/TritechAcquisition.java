@@ -46,6 +46,7 @@ import tritechplugins.detect.track.TrackLinkDataBlock;
 import tritechplugins.detect.track.TrackLinkProcess;
 import tritechplugins.display.swing.SonarPanelProvider;
 import tritechplugins.display.swing.SonarsPanelParams;
+import tritechplugins.echogram.EchogramProcess;
 import tritechplugins.mark.SonarMarker;
 import userDisplay.UserDisplayControl;
 
@@ -68,6 +69,8 @@ public class TritechAcquisition extends RawInputControlledUnit implements PamSet
 	private SonarMarker sonarMarker;
 	
 	private TritechSidePanel daqSidePanel;
+
+	private EchogramProcess echogramProcess;
 	
 	public TritechAcquisition(String unitName) {
 		super(unitType, unitName);
@@ -82,6 +85,12 @@ public class TritechAcquisition extends RawInputControlledUnit implements PamSet
 		else {
 			tritechRunMode = tritechDaqProcess;
 		}
+		
+		/*
+		 * Make this after TritechOffline since it needs to reference it. 
+		 */
+		echogramProcess = new EchogramProcess(this);
+		addPamProcess(echogramProcess);
 		
 		backupInformation = new BackupInformation(new GLFBackup(this));
 		
