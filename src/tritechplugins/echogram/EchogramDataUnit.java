@@ -26,7 +26,7 @@ public class EchogramDataUnit extends DataUnit2D<PamDataUnit, SuperDetection> {
 		short[] dat = echogramLine.getData();
 		double[] mag = new double[dat.length];
 		for (int i = 0; i < dat.length; i++) {
-			mag[i] = (double) dat[i] / 256.;
+			mag[i] = (double) dat[i];
 		}
 		return mag;
 	}
