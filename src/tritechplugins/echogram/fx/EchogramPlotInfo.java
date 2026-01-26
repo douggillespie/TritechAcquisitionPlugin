@@ -1,14 +1,19 @@
 package tritechplugins.echogram.fx;
 
+import javax.swing.SwingUtilities;
+
+import PamController.PamController;
 import PamView.GeneralProjector.ParameterType;
 import PamView.GeneralProjector.ParameterUnits;
 import PamguardMVC.DataBlock2D;
 import PamguardMVC.PamDataUnit;
+import PamguardMVC.dataOffline.OfflineDataLoadInfo;
 import dataPlotsFX.data.TDDataProviderFX;
 import dataPlotsFX.data.TDScaleInfo;
 import dataPlotsFX.layout.TDGraphFX;
 import dataPlotsFX.layout.TDSettingsPane;
 import dataPlotsFX.projector.TDProjectorFX;
+import dataPlotsFX.scroller.TDAcousticScroller;
 import dataPlotsFX.scrollingPlot2D.PlotParams2D;
 import dataPlotsFX.scrollingPlot2D.Scrolling2DPlotDataFX;
 import dataPlotsFX.scrollingPlot2D.Scrolling2DPlotInfo;
@@ -16,6 +21,7 @@ import javafx.beans.value.ChangeListener;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.shape.Polygon;
 import pamViewFX.fxNodes.sliders.PamRangeSlider;
+import tritechplugins.echogram.EchogramDataBlock;
 import tritechplugins.echogram.EchogramProcess;
 
 public class EchogramPlotInfo extends Scrolling2DPlotInfo {
@@ -24,11 +30,13 @@ public class EchogramPlotInfo extends Scrolling2DPlotInfo {
 	private TDScaleInfo echogramScaleInfo; // the range scale. 
 	private EchogramControlPane echogramControlPane;
 	private volatile boolean stopLoop;
+	private EchogramDataBlock echogramDataBlock;
 
 	public EchogramPlotInfo(EchogramProcess echogramProcess,  EchogramPlotProviderFX tdDataProvider, 
-			TDGraphFX tdGraph, DataBlock2D pamDataBlock) {
+			TDGraphFX tdGraph, EchogramDataBlock pamDataBlock) {
 		super(tdDataProvider, tdGraph, pamDataBlock);
 		this.echogramProcess = echogramProcess;
+		this.echogramDataBlock = pamDataBlock;
 	}
 
 	@Override
@@ -85,6 +93,8 @@ public class EchogramPlotInfo extends Scrolling2DPlotInfo {
 					stopLoop=true; 
 					echogramScaleInfo.setMaxVal(newVal.doubleValue());
 					stopLoop=false; 
+//					System.out.println("Set max 'frequency' val to " + newVal);
+					getTDGraph().repaint(0);
 				}
 			});
 			freqSlider.lowValueProperty().addListener((obsVal, oldVal, newVal)->{
@@ -92,6 +102,8 @@ public class EchogramPlotInfo extends Scrolling2DPlotInfo {
 					stopLoop=true; 
 					echogramScaleInfo.setMinVal(newVal.doubleValue());
 					stopLoop=false; 
+//					System.out.println("Set min 'frequency' val to " + newVal);
+					getTDGraph().repaint(0);
 				}
 			});
 			
@@ -113,6 +125,35 @@ public class EchogramPlotInfo extends Scrolling2DPlotInfo {
 	@Override
 	public Double getDataValue(PamDataUnit pamDataUnit) {
 		return super.getDataValue(pamDataUnit);
+	}
+
+	/**
+	 * @return the echogramDataBlock
+	 */
+	public EchogramDataBlock getEchogramDataBlock() {
+		return echogramDataBlock;
+	}
+
+	private int loadCount = 0;
+	@Override
+	public void notifyChange(int changeType) {
+		if (changeType == PamController.CHANGED_OFFLINE_DATASTORE) {
+//			System.out.println("Offline data loaded " + echogramProcess.getTritechAcquisition().getImageDataBlock().getUnitsCount());
+			if (loadCount++ < 5) {
+				SwingUtilities.invokeLater(new Runnable() {
+					@Override
+					public void run() {
+						forceDataLoad();
+					}
+				});
+			}
+		}
+	}
+
+	private void forceDataLoad() {
+		TDAcousticScroller scroller = getTDGraph().getTDDisplay().getTimeScroller();
+		OfflineDataLoadInfo offLoadinf = new OfflineDataLoadInfo(scroller.getMinimumMillis(), scroller.getMaximumMillis());
+		echogramProcess.getOfflineData(offLoadinf);
 	}
 
 }

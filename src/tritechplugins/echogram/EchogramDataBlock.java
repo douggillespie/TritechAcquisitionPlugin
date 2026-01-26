@@ -15,9 +15,12 @@ public class EchogramDataBlock extends DataBlock2D<EchogramDataUnit>{
 	private int[] dataWidths = new int[PamConstants.MAX_CHANNELS];
 
 	private double maxDataRange = 50;
+
+	private EchogramProcess echogramProcess;
 	
 	public EchogramDataBlock(EchogramProcess echogramProcess) {
 		super(EchogramDataUnit.class, "Echogram Data", echogramProcess, 0);
+		this.echogramProcess = echogramProcess;
 		dataTypeInfo = new DataTypeInfo(ParameterType.RANGE, ParameterUnits.METERS);
 	}
 
@@ -64,7 +67,9 @@ public class EchogramDataBlock extends DataBlock2D<EchogramDataUnit>{
 
 	@Override
 	public float getSampleRate() {
-		return super.getSampleRate();
+//		float fs = super.getSampleRate();
+//		return fs*2;
+		return echogramProcess.getFSforLoad();
 	}
 
 	@Override
