@@ -10,6 +10,7 @@ import java.util.TimeZone;
 
 import geminisdk.structures.ChirpMode;
 import geminisdk.structures.RangeFrequencyConfig;
+import tritechplugins.echogram.EchogramSettings;
 
 public class TritechDaqParams implements Serializable, Cloneable{
 
@@ -74,6 +75,8 @@ public class TritechDaqParams implements Serializable, Cloneable{
 	private HashMap<Integer, SonarDaqParams> sonarSpecificParams;
 	
 	private HashMap<Integer, SonarPosition> sonarPositions;
+	
+	private EchogramSettings echogramSettings;
 	
 	/**
 	 * 1200i only
@@ -472,5 +475,22 @@ public class TritechDaqParams implements Serializable, Cloneable{
 			sonarPositions = new HashMap<>();
 		}
 		sonarPositions.put(sonarId, sonarPosition);
+	}
+
+	/**
+	 * @return the echogramSettings
+	 */
+	public EchogramSettings getEchogramSettings() {
+		if (echogramSettings == null) {
+			echogramSettings = new EchogramSettings();
+		}
+		return echogramSettings;
+	}
+
+	/**
+	 * @param echogramSettings the echogramSettings to set
+	 */
+	public void setEchogramSettings(EchogramSettings echogramSettings) {
+		this.echogramSettings = echogramSettings;
 	}
 }

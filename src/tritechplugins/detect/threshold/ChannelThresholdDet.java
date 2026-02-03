@@ -90,7 +90,7 @@ public class ChannelThresholdDet extends ChannelDetector {
 		 * Can escape here if the background has recently been reset in order to avoid the problem of lots
 		 * of false dets firing off as things settle. 
 		 */
-		if (backgroundRemoval.getUpdateCount() < params.backgroundTimeConst*2) {
+		if (backgroundRemoval.getUpdateCount() < params.backgroundTimeConst*5) {
 			return null;
 		}
 		

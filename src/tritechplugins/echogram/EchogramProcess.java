@@ -28,6 +28,7 @@ import tritechplugins.acquire.ImageDataUnit;
 import tritechplugins.acquire.TritechAcquisition;
 import tritechplugins.acquire.TritechDaqParams;
 import tritechplugins.acquire.offline.TritechOffline;
+import tritechplugins.echogram.EchogramSettings.ValueType;
 import tritechplugins.echogram.fx.EchogramPlotProviderFX;
 
 public class EchogramProcess extends PamProcess{
@@ -186,13 +187,21 @@ public class EchogramProcess extends PamProcess{
 	}
 
 	private EchoLineDef[] getEchoLineDefs(int nBearing) {
-		int nDef = 1;
+		EchogramSettings eSets = tritechAcquisition.getDaqParams().getEchogramSettings();
+		int nDef = eSets.getnBands();
 		EchoLineDef[] defs = new EchoLineDef[nDef];
 		int bStep = nBearing / nDef;
+		int maxOf;
+		if (eSets.getValueType() == ValueType.MEAN) {
+			maxOf = bStep;
+		}
+		else {
+			maxOf = eSets.getMaxOf();
+		}
 		for (int i = 0; i < nDef; i++) {
 			int bin1 = i * bStep;
 			int bin2 = bin1 + bStep;
-			defs[i] = new EchoLineDef(bin1, bin2);
+			defs[i] = new EchoLineDef(bin1, bin2, maxOf);
 		}
 		return defs;
 	}

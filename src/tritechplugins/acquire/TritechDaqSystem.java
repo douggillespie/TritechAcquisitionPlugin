@@ -271,8 +271,8 @@ public abstract class TritechDaqSystem {
 	public void setRecording(boolean record) {
 	}
 	
-	public void newGLFLiveImage(GLFImageRecord glfImage) {
-		SonarStatusData sonarData = findSonarStatusData(glfImage.genericHeader.tm_deviceId);
+	public void newGLFLiveImage(GeminiImageRecordI glfImage) {
+		SonarStatusData sonarData = findSonarStatusData(glfImage.getDeviceId());
 		if (sonarData != null) {
 			sonarData.totalImages++;
 			sonarData.lastImageTime = glfImage.getRecordTime();
@@ -282,7 +282,7 @@ public abstract class TritechDaqSystem {
 //			System.out.printf("Unable to find sonar data for id %d\n", glfImage.genericHeader.tm_deviceId);
 		}
 		int chan = glfImage.getSonarIndex();
-		glfImage.recordIndex = recordIndexes[chan]++;;
+		glfImage.setRecordNumber(recordIndexes[chan]++);
 		long timeMS = glfImage.getRecordTime();
 		if (glfImage instanceof GeminiImageRecordI) {
 			totalFrames++;
@@ -420,7 +420,9 @@ public abstract class TritechDaqSystem {
 			int[] ids = new int[sonarValues.size()];
 			int i = 0;
 			for (SonarStatusData val : sonarValues) {
-				ids[i++] = val.getDeviceId();
+				if (val != null) {
+					ids[i++] = val.getDeviceId();
+				}
 			}
 			return ids;
 		}
