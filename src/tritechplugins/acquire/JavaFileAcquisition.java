@@ -284,6 +284,28 @@ public class JavaFileAcquisition extends TritechDaqSystem  implements CatalogStr
 						restartLater();
 						break;
 					}
+					if (streamSummary.endReason == CatalogStreamSummary.DATAGAP && stopPressed == false) {
+						/**
+						 * There was a gap in the data, which may be within a file, or may be between files. 
+						 * in either case, we'll be in the right place in the right file, so need to leave
+						 * this loop with a stop, but then restart from the same record number. This is the same
+						 * as happens above I believe, but don't up the file number. 
+						 */						
+						restartFirstRecordTime = streamSummary.lastRecordTime;
+//						if (streamSummary.recordsStreamed <= 1) {
+//							// there seems to be an error in that file, so skip to
+//							// the next
+//							//								currentFile++;
+//							return currentFile;
+//						}
+//						else {
+							recordsSkipAtStart = streamSummary.recordsStreamed-1;
+//						}
+						PamController.getInstance().pamStop();
+						restartLater();
+						return currentFile;
+//						break;
+					}
 					recordsSkipAtStart = 0;
 //					if (carryOn == false) {
 //						currentFile++;
@@ -399,7 +421,7 @@ public class JavaFileAcquisition extends TritechDaqSystem  implements CatalogStr
 		}
 		lastRecordTime = glfImage.getRecordTime();
 		
-		super.newGLFLiveImage((GLFImageRecord) glfImage);
+		super.newGLFLiveImage(glfImage);
 //		
 //		ImageDataBlock datablock = tritechProcess.getImageDataBlock();
 //		ImageDataUnit imageDataUnit = new ImageDataUnit(glfImage.getRecordTime(), 0, glfImage);

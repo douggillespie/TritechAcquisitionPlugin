@@ -329,6 +329,7 @@ public class TritechOffline implements TritechRunMode, OfflineDataStore {
 				if (mapControl != null) {
 					mapControl.notifyModelChanged(PamControllerInterface.EXTERNAL_DATA_IMPORTED);
 				}
+				PamController.getInstance().notifyModelChanged(PamController.CHANGED_OFFLINE_DATASTORE);
 			}
 		});
 	}

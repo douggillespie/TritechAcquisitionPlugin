@@ -2,6 +2,8 @@ package tritechplugins.acquire;
 
 import java.awt.Frame;
 import java.awt.Window;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -46,6 +48,9 @@ import tritechplugins.detect.track.TrackLinkDataBlock;
 import tritechplugins.detect.track.TrackLinkProcess;
 import tritechplugins.display.swing.SonarPanelProvider;
 import tritechplugins.display.swing.SonarsPanelParams;
+import tritechplugins.echogram.EchogramProcess;
+import tritechplugins.echogram.EchogramSettings;
+import tritechplugins.echogram.swing.EchogramDialog;
 import tritechplugins.mark.SonarMarker;
 import userDisplay.UserDisplayControl;
 
@@ -68,6 +73,8 @@ public class TritechAcquisition extends RawInputControlledUnit implements PamSet
 	private SonarMarker sonarMarker;
 	
 	private TritechSidePanel daqSidePanel;
+
+	private EchogramProcess echogramProcess;
 	
 	public TritechAcquisition(String unitName) {
 		super(unitType, unitName);
@@ -82,6 +89,12 @@ public class TritechAcquisition extends RawInputControlledUnit implements PamSet
 		else {
 			tritechRunMode = tritechDaqProcess;
 		}
+		
+		/*
+		 * Make this after TritechOffline since it needs to reference it. 
+		 */
+		echogramProcess = new EchogramProcess(this);
+		addPamProcess(echogramProcess);
 		
 		backupInformation = new BackupInformation(new GLFBackup(this));
 		
@@ -133,11 +146,32 @@ public class TritechAcquisition extends RawInputControlledUnit implements PamSet
 
 	@Override
 	public JMenuItem createDetectionMenu(Frame parentFrame) {
+		JMenuItem menuItem;
 		if (isViewer()) {
-			return tritechOffline.createViewerMenu(parentFrame);
+			menuItem = tritechOffline.createViewerMenu(parentFrame);
 		}
 		else {
-			return tritechDaqProcess.createDaqMenu(parentFrame);
+			menuItem = tritechDaqProcess.createDaqMenu(parentFrame);
+		}
+		
+		JMenuItem echoItem = new JMenuItem("Echogram settings ...");
+		echoItem.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				showEchogramDialog();
+			}
+		});
+		menuItem.add(echoItem);
+		return menuItem;
+	}
+
+	protected void showEchogramDialog() {
+		EchogramSettings newSettings = EchogramDialog.showDialog(getGuiFrame(), daqParams.getEchogramSettings());
+		if (newSettings != null) {
+			daqParams.setEchogramSettings(newSettings);
+			if (echogramProcess != null) {
+				echogramProcess.prepareProcess();
+			}
 		}
 	}
 

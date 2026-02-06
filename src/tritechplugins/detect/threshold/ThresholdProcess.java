@@ -72,6 +72,9 @@ public class ThresholdProcess extends PamProcess {
 	private void newImageData(PamObservable o, ImageDataUnit imageData) {
 		ChannelDetector cd = findChannelDetector(imageData.getGeminiImage().getDeviceId(), true);
 		List<DetectedRegion> regions = cd.newData(imageData);
+//		if (regions != null) {
+//			System.out.println(regions == null ? "No regions" : "Region count" + regions.size());
+//		}
 		regions = thresholdDetector.getSpatialVetoManager().runVetos(regions);
 		TrackLinkProcess trackLinkProcess = thresholdDetector.getTrackLinkProcess();
 		if (trackLinkProcess != null) {

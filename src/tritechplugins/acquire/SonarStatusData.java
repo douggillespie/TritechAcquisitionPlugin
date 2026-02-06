@@ -36,9 +36,12 @@ public class SonarStatusData {
 
 	/**
 	 * Get the device id. 
-	 * @return Device id
+	 * @return Device i
 	 */
 	public int getDeviceId() {
+		if (statusPacket == null) {
+			return 0;
+		}
 		return statusPacket.m_deviceID;
 	}
 
