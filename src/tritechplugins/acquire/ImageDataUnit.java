@@ -1,7 +1,7 @@
 package tritechplugins.acquire;
 
 import PamguardMVC.PamDataUnit;
-import tritechgemini.imagedata.GeminiImageRecordI;
+import tritechgemini.imagedata.SonarImageRecordI;
 
 /**
  * This can hold either a image record OR a status record. Never both. 
@@ -13,11 +13,11 @@ import tritechgemini.imagedata.GeminiImageRecordI;
 @SuppressWarnings("rawtypes")
 public class ImageDataUnit extends PamDataUnit {
 
-	private GeminiImageRecordI geminiImage;
+	private SonarImageRecordI geminiImage;
 	
 	private SonarStatusData sonarStatusData;
 
-	public ImageDataUnit(long timeMilliseconds, int channelMap, GeminiImageRecordI geminiImage) {
+	public ImageDataUnit(long timeMilliseconds, int channelMap, SonarImageRecordI geminiImage) {
 		super(timeMilliseconds);
 		setChannelBitmap(channelMap);
 		this.geminiImage = geminiImage;
@@ -45,7 +45,7 @@ public class ImageDataUnit extends PamDataUnit {
 	/**
 	 * @return the geminiImage
 	 */
-	public GeminiImageRecordI getGeminiImage() {
+	public SonarImageRecordI getGeminiImage() {
 		return geminiImage;
 	}
 	
@@ -53,7 +53,7 @@ public class ImageDataUnit extends PamDataUnit {
 	 * Set the gemini image record. 
 	 * @param imageRecord
 	 */
-	public void setGeminiImage(GeminiImageRecordI imageRecord) {
+	public void setGeminiImage(SonarImageRecordI imageRecord) {
 		this.geminiImage = imageRecord;
 	}
 

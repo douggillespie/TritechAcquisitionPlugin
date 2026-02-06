@@ -32,7 +32,7 @@ import PamguardMVC.PamDataUnit;
 import tritechgemini.fileio.MultiFileCatalog;
 import tritechgemini.imagedata.FanImageData;
 import tritechgemini.imagedata.FanPicksFromData;
-import tritechgemini.imagedata.GeminiImageRecordI;
+import tritechgemini.imagedata.SonarImageRecordI;
 import tritechgemini.imagedata.ImageFanMaker;
 import tritechplugins.acquire.ImageDataBlock;
 import tritechplugins.acquire.SonarDaqParams;
@@ -99,7 +99,7 @@ public class SonarImageOverlay extends SonarOverlayDraw {
 		}
 		MultiFileCatalog fileCatalog = imageDataBlock.findFileCatalog();
 		for (int i = 0; i < sonarIds.length; i++) {
-			GeminiImageRecordI sonarRecord = null;
+			SonarImageRecordI sonarRecord = null;
 			if (fileCatalog != null) {
 				sonarRecord = fileCatalog.findRecordForTime(sonarIds[i], mapTime);
 			}
@@ -130,7 +130,7 @@ public class SonarImageOverlay extends SonarOverlayDraw {
 		
 	}
 
-	private void drawSonarGridOnMap(Graphics g, MapRectProjector mapProj, int sonarId, GeminiImageRecordI sonarRecord,
+	private void drawSonarGridOnMap(Graphics g, MapRectProjector mapProj, int sonarId, SonarImageRecordI sonarRecord,
 			SonarImageSymbolOptions symbolOptions) {
 		double maxR = getMaxRange(sonarId, sonarRecord);
 		if (maxR < 0) {
@@ -176,7 +176,7 @@ public class SonarImageOverlay extends SonarOverlayDraw {
 		
 	}
 
-	private double getMaxRange(int sonarId, GeminiImageRecordI sonarRecord) {
+	private double getMaxRange(int sonarId, SonarImageRecordI sonarRecord) {
 		if (sonarRecord != null) {
 			return sonarRecord.getMaxRange();
 		}
@@ -198,7 +198,7 @@ public class SonarImageOverlay extends SonarOverlayDraw {
 	 * @param sonarRecord
 	 * @param symbolOptions 
 	 */
-	private void drawSonarImageOnMap(Graphics g, MapRectProjector mapProj, GeminiImageRecordI sonarRecord, SonarImageSymbolOptions symbolOptions) {
+	private void drawSonarImageOnMap(Graphics g, MapRectProjector mapProj, SonarImageRecordI sonarRecord, SonarImageSymbolOptions symbolOptions) {
 		if (sonarRecord == null || sonarRecord.getImageData()== null) {
 			return;
 		}

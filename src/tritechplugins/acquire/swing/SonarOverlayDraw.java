@@ -17,7 +17,7 @@ import PamView.PamKeyItem;
 import PamView.PamSymbol;
 import PamView.PanelOverlayDraw;
 import PamguardMVC.PamDataUnit;
-import tritechgemini.imagedata.GeminiImageRecordI;
+import tritechgemini.imagedata.SonarImageRecordI;
 import tritechplugins.acquire.SonarPosition;
 
 /**
@@ -47,7 +47,7 @@ public abstract class SonarOverlayDraw extends PanelOverlayDraw {
 	 * @param imageRecord
 	 * @return
 	 */
-	public Rectangle setupDrawRectangle(Graphics2D g2d, MapRectProjector mapProj, GeminiImageRecordI sonarRecord) {
+	public Rectangle setupDrawRectangle(Graphics2D g2d, MapRectProjector mapProj, SonarImageRecordI sonarRecord) {
 		double maxRange = sonarRecord.getMaxRange();
 		double maxAng = Math.abs(sonarRecord.getBearingTable()[0]);
 		SonarPosition sonarPos = getSonarPosition(sonarRecord.getDeviceId());

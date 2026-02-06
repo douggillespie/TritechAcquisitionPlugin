@@ -21,7 +21,7 @@ import tritechgemini.fileio.CatalogStreamSummary;
 import tritechgemini.fileio.GeminiFileCatalog;
 import tritechgemini.imagedata.GLFImageRecord;
 import tritechgemini.imagedata.GLFStatusData;
-import tritechgemini.imagedata.GeminiImageRecordI;
+import tritechgemini.imagedata.SonarImageRecordI;
 import tritechplugins.acquire.offline.TritechFileFilter;
 import tritechplugins.acquire.swing.JavaFileStatusBar;
 import tritechplugins.display.swing.SonarDisplayDecoration;
@@ -52,7 +52,7 @@ public class JavaFileAcquisition extends TritechDaqSystem  implements CatalogStr
 	
 	private ArrayList<JavaFileObserver> javaFileObservers = new ArrayList<>();
 	
-	private GeminiFileCatalog<GeminiImageRecordI> currentCatalog;
+	private GeminiFileCatalog<SonarImageRecordI> currentCatalog;
 
 	private volatile boolean continueStream;
 	
@@ -150,7 +150,7 @@ public class JavaFileAcquisition extends TritechDaqSystem  implements CatalogStr
 			return false;
 		}
 		try {
-			GeminiFileCatalog<GeminiImageRecordI> fileCatalog = GeminiFileCatalog.getFileCatalog(filePath, true);
+			GeminiFileCatalog<SonarImageRecordI> fileCatalog = GeminiFileCatalog.getFileCatalog(filePath, true);
 			long recordTime = fileCatalog.getFirstRecordTime();
 			if (recordTime != Long.MIN_VALUE) {
 				PamCalendar.setSoundFile(true);
@@ -363,7 +363,7 @@ public class JavaFileAcquisition extends TritechDaqSystem  implements CatalogStr
 	private double processingRate;
  
 	@Override
-	public boolean newImageRecord(GeminiImageRecordI glfImage) {
+	public boolean newImageRecord(SonarImageRecordI glfImage) {
 
 		// bodge to send / use only every other frame
 //		send = !send;

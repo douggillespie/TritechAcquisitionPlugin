@@ -22,7 +22,7 @@ import geminisdk.structures.GeminiStructure;
 import geminisdk.structures.LoggerPlaybackUpdate;
 import tritechgemini.imagedata.GLFImageRecord;
 import tritechgemini.imagedata.GLFStatusData;
-import tritechgemini.imagedata.GeminiImageRecordI;
+import tritechgemini.imagedata.SonarImageRecordI;
 import warnings.PamWarning;
 import warnings.WarningSystem;
 

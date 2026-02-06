@@ -9,7 +9,7 @@ import PamguardMVC.dataOffline.OfflineDataLoadInfo;
 import pamScrollSystem.ViewLoadObserver;
 import tritechgemini.fileio.GeminiFileCatalog;
 import tritechgemini.fileio.MultiFileCatalog;
-import tritechgemini.imagedata.GeminiImageRecordI;
+import tritechgemini.imagedata.SonarImageRecordI;
 import tritechplugins.acquire.offline.TritechOffline;
 import tritechplugins.acquire.swing.SonarImageSymbolManager;
 
@@ -74,7 +74,7 @@ public class ImageDataBlock extends PamDataBlock<ImageDataUnit> {
 				break;
 			}
 			for (int i = 0; i < catRecords; i++) {
-				GeminiImageRecordI aRecord = glfCat.getRecord(i);
+				SonarImageRecordI aRecord = glfCat.getRecord(i);
 				if (aRecord.getRecordTime() < tStart) {
 					continue;
 				}

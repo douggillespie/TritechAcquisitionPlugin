@@ -32,7 +32,7 @@ import tritechgemini.fileio.LittleEndianDataOutputStream;
 import tritechgemini.fileio.UnzippedWriter;
 import tritechgemini.imagedata.GLFImageRecord;
 import tritechgemini.imagedata.GLFStatusData;
-import tritechgemini.imagedata.GeminiImageRecordI;
+import tritechgemini.imagedata.SonarImageRecordI;
 import tritechplugins.acquire.ImageDataBlock;
 import tritechplugins.acquire.ImageDataUnit;
 import tritechplugins.acquire.SonarStatusData;

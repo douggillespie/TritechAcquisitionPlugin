@@ -15,7 +15,7 @@ import PamguardMVC.ThreadedObserver;
 import PamguardMVC.dataSelector.DataSelector;
 import difar.DifarParameters.DifarTriggerParams;
 import tritechgemini.imagedata.GLFImageRecord;
-import tritechgemini.imagedata.GeminiImageRecordI;
+import tritechgemini.imagedata.SonarImageRecordI;
 import tritechplugins.acquire.ImageDataBlock;
 import tritechplugins.acquire.ImageDataUnit;
 import tritechplugins.record.logging.GLFRecorderLogging;

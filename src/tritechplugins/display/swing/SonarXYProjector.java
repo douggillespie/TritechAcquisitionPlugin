@@ -7,7 +7,7 @@ import PamUtils.Coordinate3d;
 import PamUtils.PamCoordinate;
 import PamView.GeneralProjector;
 import PamView.GeneralProjector.ParameterType;
-import tritechgemini.imagedata.GeminiImageRecordI;
+import tritechgemini.imagedata.SonarImageRecordI;
 
 /**
  * Projector for sonar data. Most of the work however is done in 
@@ -19,7 +19,7 @@ public class SonarXYProjector extends GeneralProjector {
 
 	private SonarImagePanel imagePanel;
 //	private Rectangle rectangle;
-	private GeminiImageRecordI imageRecord;
+	private SonarImageRecordI imageRecord;
 //	private boolean flipImage = false;
 	private SonarZoomTransform sonarZoomTransform;
 

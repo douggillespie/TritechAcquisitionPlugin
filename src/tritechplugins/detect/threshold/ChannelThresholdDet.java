@@ -11,7 +11,7 @@ import tritechgemini.detect.DetectedRegion;
 import tritechgemini.detect.RegionDetector;
 import tritechgemini.detect.TwoThresholdDetector;
 import tritechgemini.imagedata.GLFImageRecord;
-import tritechgemini.imagedata.GeminiImageRecordI;
+import tritechgemini.imagedata.SonarImageRecordI;
 import tritechplugins.acquire.ImageDataUnit;
 import tritechplugins.detect.threshold.background.ThresholdBackgroundDataUnit;
 import tritechplugins.detect.threshold.rangefilter.ImageRangeFilter;
@@ -59,7 +59,7 @@ public class ChannelThresholdDet extends ChannelDetector {
 		if (lastBackgroundWrite == 0) {
 			lastBackgroundWrite = imageDataUnit.getTimeMilliseconds();
 		}
-		GeminiImageRecordI image = imageDataUnit.getGeminiImage();
+		SonarImageRecordI image = imageDataUnit.getGeminiImage();
 		byte[] imageData = image.getImageData();
 		if (imageData == null) {
 			return null;
@@ -94,7 +94,7 @@ public class ChannelThresholdDet extends ChannelDetector {
 			return null;
 		}
 		
-		GeminiImageRecordI clonedImage = image.clone();
+		SonarImageRecordI clonedImage = image.clone();
 		clonedImage.setImageData(noBackground);
 		
 		regionDetector.setMinObjectSize(params.minSize);
@@ -146,7 +146,7 @@ public class ChannelThresholdDet extends ChannelDetector {
 	}
 
 	private void writeBackground(ImageDataUnit imageDataUnit, long lastBackgroundWrite2, long timeMilliseconds) {
-		GeminiImageRecordI geminiImage = imageDataUnit.getGeminiImage();
+		SonarImageRecordI geminiImage = imageDataUnit.getGeminiImage();
 		if (geminiImage instanceof GLFImageRecord == false) {
 			// this system only works with GLF data, not with ECD data
 			return;

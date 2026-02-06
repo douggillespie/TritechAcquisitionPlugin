@@ -20,7 +20,7 @@ import pamScrollSystem.PamScrollSlider;
 import tritechgemini.fileio.CatalogObserver;
 import tritechgemini.fileio.MultiFileCatalog;
 import tritechgemini.fileio.OfflineCatalogProgress;
-import tritechgemini.imagedata.GeminiImageRecordI;
+import tritechgemini.imagedata.SonarImageRecordI;
 import tritechplugins.acquire.ConfigurationObserver;
 import tritechplugins.acquire.ImageDataUnit;
 import tritechplugins.acquire.SonarImageObserver;
@@ -283,7 +283,7 @@ public class SonarsOuterPanel implements ConfigurationObserver {
 		public void addImageData(PamObservable observable, ImageDataUnit imageDataUnit) {
 //			sonarsPanel.setNumSonars(tritechAcquisition.get);
 //			int index = getSonarIndex(imageDataUnit.getGeminiImage().getDeviceId());
-			GeminiImageRecordI image = imageDataUnit.getGeminiImage();
+			SonarImageRecordI image = imageDataUnit.getGeminiImage();
 			sonarsPanel.setImageRecord(image.getDeviceId(), image);			
 		}
 
@@ -348,7 +348,7 @@ public class SonarsOuterPanel implements ConfigurationObserver {
 			return;
 		}
 		// get current frame numbers
-		GeminiImageRecordI[] currentImages = sonarsPanel.getCurrentImages();
+		SonarImageRecordI[] currentImages = sonarsPanel.getCurrentImages();
 		if (currentImages == null || currentImages.length == 0) {
 			return;
 		}
@@ -362,7 +362,7 @@ public class SonarsOuterPanel implements ConfigurationObserver {
 			if (currentImages[i] == null) {
 				continue;
 			}
-			GeminiImageRecordI relImage = geminiCatalog.findRelativeRecord(currentImages[i], scrollFrames);
+			SonarImageRecordI relImage = geminiCatalog.findRelativeRecord(currentImages[i], scrollFrames);
 			if (relImage == null) {
 				continue;
 			}

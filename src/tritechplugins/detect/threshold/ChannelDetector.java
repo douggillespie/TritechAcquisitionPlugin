@@ -16,7 +16,7 @@ import tritechgemini.detect.RegionDetector;
 import tritechgemini.detect.TwoThresholdDetector;
 import tritechgemini.imagedata.GLFImageRecord;
 import tritechgemini.imagedata.GLFStatusData;
-import tritechgemini.imagedata.GeminiImageRecordI;
+import tritechgemini.imagedata.SonarImageRecordI;
 import tritechplugins.acquire.ImageDataUnit;
 import tritechplugins.acquire.SonarDaqParams;
 import tritechplugins.acquire.SonarStatusData;
@@ -92,7 +92,7 @@ public abstract class ChannelDetector {
 	 */
 	public abstract List<DetectedRegion> newData(ImageDataUnit imageDataUnit);
 
-	public boolean wantRegion(GeminiImageRecordI image, DetectedRegion region, byte[] imageData) {
+	public boolean wantRegion(SonarImageRecordI image, DetectedRegion region, byte[] imageData) {
 		if (region == null) {
 			return false; // case for regions that were merged into others. 
 		}

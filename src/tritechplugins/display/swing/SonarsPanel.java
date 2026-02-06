@@ -56,7 +56,7 @@ import annotation.handler.AnnotationHandler;
 import offlineProcessing.superdet.OfflineSuperDetFilter;
 import pamScrollSystem.PamScrollSlider;
 import tritechgemini.fileio.MultiFileCatalog;
-import tritechgemini.imagedata.GeminiImageRecordI;
+import tritechgemini.imagedata.SonarImageRecordI;
 import tritechplugins.acquire.ImageDataBlock;
 import tritechplugins.acquire.SonarDaqParams;
 import tritechplugins.acquire.TritechAcquisition;
@@ -228,7 +228,7 @@ public class SonarsPanel extends PamPanel implements DataMenuParent {
 	 * @param sonarID Needed even though it's in image record to clear image if null. 
 	 * @param imageRecord
 	 */
-	public void setImageRecord(int sonarID, GeminiImageRecordI imageRecord) {
+	public void setImageRecord(int sonarID, SonarImageRecordI imageRecord) {
 //		 System.out.printf("New image record for id %d %s\n", sonarIndex,
 //		 imageRecord);
 //		if (imageRecord != null) {
@@ -329,7 +329,7 @@ public class SonarsPanel extends PamPanel implements DataMenuParent {
 		
 //		System.out.printf("Find image records for time %s\n", PamCalendar.formatDateTime(valueMillis));
 		for (int i = 0; i < sonarIDs.length; i++) {
-			GeminiImageRecordI imageRec = geminiCatalog.findRecordForTime(sonarIDs[i], currentScrollTime);
+			SonarImageRecordI imageRec = geminiCatalog.findRecordForTime(sonarIDs[i], currentScrollTime);
 //			if (imageRec == null) {
 //				System.out.println("No image for sonar " + sonarIDs[i]);
 //			}
@@ -502,7 +502,7 @@ public class SonarsPanel extends PamPanel implements DataMenuParent {
 	 * @param imageRecord
 	 * @return max range. 
 	 */
-	public double getImageRange(int imageIndex, GeminiImageRecordI imageRecord) {
+	public double getImageRange(int imageIndex, SonarImageRecordI imageRecord) {
 		if (imageRecord != null) {
 			double r = imageRecord.getMaxRange();
 			sonarsPanelParams.setLastKnownRange(imageIndex, r);
@@ -796,9 +796,9 @@ public class SonarsPanel extends PamPanel implements DataMenuParent {
 	 * Get the images currently displayed. 
 	 * @return 
 	 */
-	public GeminiImageRecordI[] getCurrentImages() {
+	public SonarImageRecordI[] getCurrentImages() {
 		int n = getNumImagePanels();
-		GeminiImageRecordI[] currentRecords = new GeminiImageRecordI[n];
+		SonarImageRecordI[] currentRecords = new SonarImageRecordI[n];
 		for (int i = 0; i < n; i++) {
 			currentRecords[i] = getImagePanel(i).getImageRecord();
 		}

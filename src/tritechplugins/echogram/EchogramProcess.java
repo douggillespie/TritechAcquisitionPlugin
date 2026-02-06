@@ -22,7 +22,7 @@ import tritechgemini.echogram.EchogramLineMaker;
 import tritechgemini.echogram.StandardEchogramLineMaker;
 import tritechgemini.fileio.GeminiFileCatalog;
 import tritechgemini.fileio.MultiFileCatalog;
-import tritechgemini.imagedata.GeminiImageRecordI;
+import tritechgemini.imagedata.SonarImageRecordI;
 import tritechplugins.acquire.ImageDataBlock;
 import tritechplugins.acquire.ImageDataUnit;
 import tritechplugins.acquire.TritechAcquisition;
@@ -104,7 +104,7 @@ public class EchogramProcess extends PamProcess{
 
 		// otherwise will need to make as many echolines lines and data units as required
 		int nBands = 1; // assume only one band for now
-		GeminiImageRecordI image = imageDataUnit.getGeminiImage();
+		SonarImageRecordI image = imageDataUnit.getGeminiImage();
 		int nBeam = image.getnBeam();
 		int sonarInd = getSonarIndex(image.getDeviceId());
 		EchoLineDef[] echoLineDefs = getEchoLineDefs(nBeam);
@@ -155,7 +155,7 @@ public class EchogramProcess extends PamProcess{
 				if (image.getImageData() == null) {
 					return;
 				}
-				GeminiImageRecordI tempImage = backgroundSub.removeBackground(image, true);
+				SonarImageRecordI tempImage = backgroundSub.removeBackground(image, true);
 				echoLine = echogramLineMaker.makeEchogramLine(tempImage, es);
 			}
 			if (echoLine != null) {

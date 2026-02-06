@@ -1,7 +1,7 @@
 package tritechplugins.detect.threshold;
 
 import tritechgemini.detect.BackgroundSub;
-import tritechgemini.imagedata.GeminiImageRecordI;
+import tritechgemini.imagedata.SonarImageRecordI;
 import tritechplugins.acquire.ImageDataUnit;
 
 /**
@@ -22,11 +22,11 @@ public class BackgroundRemoval extends BackgroundSub {
 	 * @return
 	 */
 	public ImageDataUnit removeBackground(ImageDataUnit imageDataUnit, boolean updateFirst) {
-		GeminiImageRecordI image = imageDataUnit.getGeminiImage();
+		SonarImageRecordI image = imageDataUnit.getGeminiImage();
 		if (image == null) {
 			return null;
 		}
-		GeminiImageRecordI newImage = removeBackground(image, updateFirst);
+		SonarImageRecordI newImage = removeBackground(image, updateFirst);
 		ImageDataUnit newDataUnit = new ImageDataUnit(imageDataUnit.getTimeMilliseconds(), imageDataUnit.getChannelBitmap(), newImage);
 		return newDataUnit;
 	}

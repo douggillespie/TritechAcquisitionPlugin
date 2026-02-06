@@ -72,7 +72,7 @@ import tritechgemini.fileio.MultiFileCatalog;
 import tritechgemini.imagedata.FanImageData;
 import tritechgemini.imagedata.FanPicksFromData;
 import tritechgemini.imagedata.GLFImageRecord;
-import tritechgemini.imagedata.GeminiImageRecordI;
+import tritechgemini.imagedata.SonarImageRecordI;
 import tritechgemini.imagedata.ImageFanMaker;
 import tritechplugins.acquire.SonarPosition;
 import tritechplugins.acquire.TritechAcquisition;
@@ -104,7 +104,7 @@ public class SonarImagePanel extends JPanel {
 
 	private FanDataImage fanImage;
 
-	private GeminiImageRecordI imageRecord;
+	private SonarImageRecordI imageRecord;
 
 	private boolean isViewer;
 
@@ -928,18 +928,18 @@ public class SonarImagePanel extends JPanel {
 	}
 
 	public void paintTextinformation(Graphics g,
-			GeminiImageRecordI geminiImageRecord) {
+			SonarImageRecordI geminiImageRecord) {
 		LayoutInfo layoutInfo = sonarsPanel.sonarImageLayout.getLayoutInfo(this.panelIndex);
 		paintTextinformation(g, layoutInfo.getTextPoint(), geminiImageRecord);
 
 	}
 	public void paintTextinformation(Graphics g, LayoutInfo layoutInfo,
-			GeminiImageRecordI geminiImageRecord) {
+			SonarImageRecordI geminiImageRecord) {
 		paintTextinformation(g, layoutInfo.getTextPoint(), geminiImageRecord);
 	}
 
 	public void paintTextinformation(Graphics g, Point txtPoint,
-			GeminiImageRecordI geminiImageRecord) {
+			SonarImageRecordI geminiImageRecord) {
 
 		textTips.clear();
 
@@ -1164,7 +1164,7 @@ public class SonarImagePanel extends JPanel {
 	 * possible that not every frame will get painted. 
 	 * @param imageRec
 	 */
-	public void setImageRecord(GeminiImageRecordI imageRec) {
+	public void setImageRecord(SonarImageRecordI imageRec) {
 		this.imageRecord = imageRec;
 		if (imageRecord == null) {
 			fanImage = null;
@@ -1185,7 +1185,7 @@ public class SonarImagePanel extends JPanel {
 	 * Get the current image record. 
 	 * @return current image record.
 	 */
-	public GeminiImageRecordI getImageRecord() {
+	public SonarImageRecordI getImageRecord() {
 		return imageRecord;
 	}
 
@@ -1498,7 +1498,7 @@ public class SonarImagePanel extends JPanel {
 			MultiFileCatalog geminiCatalog = tritechOffline.getMultiFileCatalog();
 
 			//		System.out.printf("Find image records for time %s\n", PamCalendar.formatDateTime(valueMillis));
-			GeminiImageRecordI imageRec = geminiCatalog.findRecordForTime(regionDataUnit.getSonarId(), regionDataUnit.getTimeMilliseconds());
+			SonarImageRecordI imageRec = geminiCatalog.findRecordForTime(regionDataUnit.getSonarId(), regionDataUnit.getTimeMilliseconds());
 			if (imageRec == null) {
 				return null;
 			}
@@ -1506,7 +1506,7 @@ public class SonarImagePanel extends JPanel {
 			/*
 			 * If background subtraction is included as a display option, do it now. 
 			 */
-			GeminiImageRecordI usedRec = imageRec;
+			SonarImageRecordI usedRec = imageRec;
 			if (panelParams.subtractBackground) {
 				BackgroundRemoval backgroundSub = sonarsPanel.findBackgroundSub(usedRec.getDeviceId());
 				backgroundSub.setTimeConstant(panelParams.backgroundTimeFactor);

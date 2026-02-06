@@ -7,7 +7,7 @@ import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 
 import PamUtils.Coordinate3d;
-import tritechgemini.imagedata.GeminiImageRecordI;
+import tritechgemini.imagedata.SonarImageRecordI;
 
 /**
  * Zoom transforms which allow moving between three coordinate systems. <br>
@@ -68,7 +68,7 @@ public class SonarZoomTransform {
 	/**
 	 * @param imageRecord the imageRecord to set
 	 */
-	public void setImageRecord(GeminiImageRecordI imageRecord) {
+	public void setImageRecord(SonarImageRecordI imageRecord) {
 		//		this.imageRecord = imageRecord;
 		this.maximumRange = imageRecord.getMaxRange();
 		calculateTransforms();
@@ -124,7 +124,7 @@ public class SonarZoomTransform {
 	 * @param zoomFactor
 	 * @param zoomCentre
 	 */
-	public SonarZoomTransform(GeminiImageRecordI imageRecord, Rectangle screenRectangle, BufferedImage fanImage, 
+	public SonarZoomTransform(SonarImageRecordI imageRecord, Rectangle screenRectangle, BufferedImage fanImage, 
 			double zoomFactor, Coordinate3d zoomCentre, boolean isFlip) {
 		this(imageRecord.getMaxRange(), screenRectangle, new Rectangle(0,0,fanImage.getWidth(), fanImage.getHeight()), 
 				zoomFactor, zoomCentre, isFlip);

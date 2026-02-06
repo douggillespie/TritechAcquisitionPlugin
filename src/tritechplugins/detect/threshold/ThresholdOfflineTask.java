@@ -5,7 +5,7 @@ import PamguardMVC.PamDataUnit;
 import dataMap.OfflineDataMapPoint;
 import offlineProcessing.OfflineTask;
 import tritechgemini.fileio.MultiFileCatalog;
-import tritechgemini.imagedata.GeminiImageRecordI;
+import tritechgemini.imagedata.SonarImageRecordI;
 import tritechplugins.acquire.ImageDataBlock;
 import tritechplugins.acquire.ImageDataUnit;
 
@@ -60,7 +60,7 @@ public class ThresholdOfflineTask extends OfflineTask {
 		if (imageDataUnit.getGeminiImage() == null) {
 			return false; // it's status data. 
 		}
-		GeminiImageRecordI record = imageDataUnit.getGeminiImage();
+		SonarImageRecordI record = imageDataUnit.getGeminiImage();
 		if (record.isFullyLoaded() == false) {
 			// really inefficient and needs serious sorting out. 
 			record = fileCatalog.findRecordForTime(record.getDeviceId(), record.getRecordTime());

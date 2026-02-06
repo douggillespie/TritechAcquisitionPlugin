@@ -22,7 +22,7 @@ import generalDatabase.DBControl;
 import generalDatabase.DBControlUnit;
 import javafx.scene.input.MouseEvent;
 import tritechgemini.detect.DetectedRegion;
-import tritechgemini.imagedata.GeminiImageRecordI;
+import tritechgemini.imagedata.SonarImageRecordI;
 import tritechplugins.acquire.TritechAcquisition;
 import tritechplugins.acquire.TritechDaqProcess;
 import tritechplugins.detect.swing.RegionOverlayDraw;
@@ -212,12 +212,12 @@ public class SonarMarker implements SettingsNameProvider, OverlayMarkObserver {
 		if (imageIndex < 0) {
 			return;
 		}
-		GeminiImageRecordI[] currentImages = sonarsPanel.getCurrentImages();
+		SonarImageRecordI[] currentImages = sonarsPanel.getCurrentImages();
 		if (currentImages == null || imageIndex >= currentImages.length) {
 			return;
 		}
 		// the image array may exist, but contain null values.
-		GeminiImageRecordI sonarImage = currentImages[imageIndex];
+		SonarImageRecordI sonarImage = currentImages[imageIndex];
 		if (sonarImage == null) {
 			return;
 		}

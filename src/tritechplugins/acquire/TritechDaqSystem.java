@@ -7,7 +7,7 @@ import PamUtils.PamCalendar;
 import tritechgemini.fileio.GLFFileCatalog;
 import tritechgemini.imagedata.GLFImageRecord;
 import tritechgemini.imagedata.GLFStatusData;
-import tritechgemini.imagedata.GeminiImageRecordI;
+import tritechgemini.imagedata.SonarImageRecordI;
 import tritechplugins.display.swing.SonarDisplayDecorations;
 import warnings.PamWarning;
 import warnings.WarningSystem;
@@ -271,7 +271,7 @@ public abstract class TritechDaqSystem {
 	public void setRecording(boolean record) {
 	}
 	
-	public void newGLFLiveImage(GeminiImageRecordI glfImage) {
+	public void newGLFLiveImage(SonarImageRecordI glfImage) {
 		SonarStatusData sonarData = findSonarStatusData(glfImage.getDeviceId());
 		if (sonarData != null) {
 			sonarData.totalImages++;
@@ -284,9 +284,9 @@ public abstract class TritechDaqSystem {
 		int chan = glfImage.getSonarIndex();
 		glfImage.setRecordNumber(recordIndexes[chan]++);
 		long timeMS = glfImage.getRecordTime();
-		if (glfImage instanceof GeminiImageRecordI) {
+		if (glfImage instanceof SonarImageRecordI) {
 			totalFrames++;
-			ImageDataUnit imageDataUnit = new ImageDataUnit(timeMS, 1<<(chan-1), (GeminiImageRecordI) glfImage);
+			ImageDataUnit imageDataUnit = new ImageDataUnit(timeMS, 1<<(chan-1), (SonarImageRecordI) glfImage);
 			tritechProcess.getImageDataBlock().addPamData(imageDataUnit);
 		}
 	}
