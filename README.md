@@ -1,36 +1,93 @@
+---
+editor_options: 
+  markdown: 
+    wrap: 72
+---
+
 [![DOI](https://zenodo.org/badge/491806135.svg)](https://doi.org/10.5281/zenodo.13627797)
 
 # TritechAcquisitionPlugin
 
-[Online help is now available here](https://douggillespie.github.io/TritechAcquisitionPlugin/docs/tritechoverview.html)
+[Online help is now available
+here](https://douggillespie.github.io/TritechAcquisitionPlugin/docs/tritechoverview.html)
 
-This is the PAMGuard Tritech acquisition plugin which allows PAMGuard to 1) Acquire data directly from Tritech Gemini sonars 2) Run track detectors in real time on the sonar data 3) Make triggered recordings of Tritech data 4) Process data from Tritech GLF data files offline 5) View and annotate detection data using the PAMGuard viewer.
+This is the PAMGuard Tritech acquisition plugin which allows PAMGuard to
+1) Acquire data directly from Tritech Gemini sonars 2) Run track
+detectors in real time on the sonar data 3) Make triggered recordings of
+Tritech data 4) Process data from Tritech GLF data files offline 5) View
+and annotate detection data using the PAMGuard viewer.
 
 ## Installation
 
-1)  Ensure that you have an up to date PAMGuard installation (v.2.02.17 or later)
-2)  locate the PAMGuard installation directory (probably C:\Program Files\Pamguard)
+1)  Ensure that you have an up to date PAMGuard installation (v.2.02.17
+    or later)
+2)  locate the PAMGuard installation directory (probably C:\Program
+    Files\Pamguard)
 3)  copy the two folders 'plugins' and 'lib64' into the folder
 
-Any previous versions of the plugin in the plugins folder (e.g. TritechAcquisitionV1_47.jar) should be deleted.
+Any previous versions of the plugin in the plugins folder (e.g.
+TritechAcquisitionV1_47.jar) should be deleted.
 
-The lib64 folder will already exist in your PAMGuard installation folder, so you are effectively just adding the additional library files to the installation. The plugins folder may or may not exist, depending on whether or not you have existing plugins (for a standard installation the folder will not exist). Even if you have a previous installation of the Tritech lib64 files, copy the release files over the existing ones, since they may contain important updates.
+The lib64 folder will already exist in your PAMGuard installation
+folder, so you are effectively just adding the additional library files
+to the installation. The plugins folder may or may not exist, depending
+on whether or not you have existing plugins (for a standard installation
+the folder will not exist). Even if you have a previous installation of
+the Tritech lib64 files, copy the release files over the existing ones,
+since they may contain important updates.
 
 ## Limitations
 
-This version of the software correctly synchronizes pulses from multiple sonars so is suitable for multi-sonar use. Note however, that this has only been tested in small tanks, so I strongly suggest that you use the frame rate display and keep an eye on performance.
+This version of the software correctly synchronizes pulses from multiple
+sonars so is suitable for multi-sonar use. Note however, that this has
+only been tested in small tanks, so I strongly suggest that you use the
+frame rate display and keep an eye on performance.
 
 Latest Features and bug fixes
 
-**V1.4? (pending)**
+**V2.00**
 
-Update to Tritech Svs5 library verion 2.0.40.2
+Sonar geometry: add absolute sonar coordinates to the sonar
+configuration settings. These are used in a number of places.
 
-Handling out of water (OOW) alarms. When an OOW occurs, detection in GLF file data is paused. When acquiring data, the sonars stop pinging until the OOW alarm clears. When the alarm clears the background measurements are reset to avoid a flurry of false detections when the sonar re-enters the water.
+-   Firstly if multiple sonars are in use, the absolute positions of
+    detection points are used in tracking, that joins tracks across
+    sonars.
 
-GLF Recorder: Addition of a GLF Recorder module. This includes a trigger mechanism and a data buffer, so recording can start some time before the trigger occurs. Files are in standard glf format which is a zip archive of the data and some additional metadata. The main .dat file in the archive is identical to that created by the Tritech library, but the additinal xml files, which seem to describe Genesis software detector configuration, are not created.
+-   Second, the sonar data can be shown on the PAMGuard map display, in
+    which case the absolute positions are used relative to the position
+    of the hydrophone streamer. For a static installation, set the
+    reference position of the streamer to a fixed position.
 
-Online Help: Some basic help pages are available [here](https://douggillespie.github.io/TritechAcquisitionPlugin/docs/tritechoverview.html) and will also be available within the PAMGuard online help system when the plugin is loaded.
+-   Third, on the main Tritech sonar display, the rotated positions of
+    the sonars can be used to correctly orientate the sonars, although
+    the absolute positions are not used on this display.
+
+Absolute positions are also used by other modules, such as the
+RiverTrigger module.
+
+On the main Tritech display, you can hold down the Alt key and drag the
+border of a bounding box controlling where each sonar is drawn on the
+display.
+
+Handling out of water (OOW) alarms. When an OOW occurs, detection in GLF
+file data is paused. When acquiring data, the sonars stop pinging until
+the OOW alarm clears. When the alarm clears the background measurements
+are reset to avoid a flurry of false detections when the sonar re-enters
+the water.
+
+GLF Recorder: Addition of a GLF Recorder module. This includes a trigger
+mechanism and a data buffer, so recording can start some time before the
+trigger occurs. Files are in standard glf format which is a zip archive
+of the data and some additional metadata. The main .dat file in the
+archive is identical to that created by the Tritech library, but the
+additinal xml files, which seem to describe Genesis software detector
+configuration, are not created.
+
+Online Help: Some basic help pages are available
+[here](https://douggillespie.github.io/TritechAcquisitionPlugin/docs/tritechoverview.html)
+and will also be available within the PAMGuard online help system when
+the plugin is loaded.
 
 **V1.43**
 
@@ -40,44 +97,80 @@ Improve data loading speed in viewer mode.
 
 **V1.41**
 
-Offline display improvements, so that most display of detections will now work even if raw sonar image data (glf files) is not available. Note however, that in it's current form you are strongly advised to keep raw glf data.
+Offline display improvements, so that most display of detections will
+now work even if raw sonar image data (glf files) is not available. Note
+however, that in it's current form you are strongly advised to keep raw
+glf data.
 
-Significant speed improvements in image rendering (conversion from rectangular data to fan image).
+Significant speed improvements in image rendering (conversion from
+rectangular data to fan image).
 
-Detector improvements: Filtering in range for the detector, and setting maximum track gaps in frames as well as in time.
+Detector improvements: Filtering in range for the detector, and setting
+maximum track gaps in frames as well as in time.
 
 **V1.27**
 
 Fixed display of spatial vetos on sonar image.
 
-Added option to colour tracks sequentially from blue to red (so you can easily see direction of travel).
+Added option to colour tracks sequentially from blue to red (so you can
+easily see direction of travel).
 
 ## Files
 
-/plugins/TritechAcquisitionV1_27.jar is a pure Java PAMGuard plugin that adds new modules and functionality to the PAMGuard software
+/plugins/TritechAcquisitionV1_27.jar is a pure Java PAMGuard plugin that
+adds new modules and functionality to the PAMGuard software
 
-/lib64/GENESISJAVAINTERFACE.dll is a Windows C library developed by D. Gillespie which wraps the Tritech Gemini software development kit (SDK(=), making the functions in the SDK available to Java (the language used for PAMGuard)
+/lib64/GENESISJAVAINTERFACE.dll is a Windows C library developed by D.
+Gillespie which wraps the Tritech Gemini software development kit
+(SDK(=), making the functions in the SDK available to Java (the language
+used for PAMGuard)
 
-lib64/Svs5SeqLib.dll, GenesisSerializer.dll, GeminiComms.dll are libraries developed by Tritech which form part of their SDK.
+lib64/Svs5SeqLib.dll, GenesisSerializer.dll, GeminiComms.dll are
+libraries developed by Tritech which form part of their SDK.
 
-Other files in the lib64 folder are other standard Windows libraries required for the operation of the Tritech SDK and hence the PAMGuard plugin.
+Other files in the lib64 folder are other standard Windows libraries
+required for the operation of the Tritech SDK and hence the PAMGuard
+plugin.
 
-Note that all the files in lib64 are only required if you wish to acquire and process Tritech data in real time. If you are only processing Gemini files offline then you should only need the PAMGuard plugin.
+Note that all the files in lib64 are only required if you wish to
+acquire and process Tritech data in real time. If you are only
+processing Gemini files offline then you should only need the PAMGuard
+plugin.
 
 ## Building and Source code
 
-The code should be built as a PAMGuard plugin, which can be added to a standard PAMGuard installation. For development though it's much easier to work with the code in an Ecliplse workspace containing this code, the TritechFiles and GenesisJavaJNAInterface projects and the main PAMGuard project. You can then run, change and debug all four projects at the same time.
+The code should be built as a PAMGuard plugin, which can be added to a
+standard PAMGuard installation. For development though it's much easier
+to work with the code in an Ecliplse workspace containing this code, the
+TritechFiles and GenesisJavaJNAInterface projects and the main PAMGuard
+project. You can then run, change and debug all four projects at the
+same time.
 
-Additional information on building PAMGuard plugins is available at <http://www.pamguard.org/16_HowtomakePlug-Ins.html>
+Additional information on building PAMGuard plugins is available at
+<http://www.pamguard.org/16_HowtomakePlug-Ins.html>
 
-Source code is split across four different repositories. All are available under [the GPL3 license](https://www.gnu.org/licenses/gpl-3.0.en.html).
+Source code is split across four different repositories. All are
+available under [the GPL3
+license](https://www.gnu.org/licenses/gpl-3.0.en.html).
 
-<https://github.com/douggillespie/TritechAcquisitionPlugin> contains the code for making the Plugin. This is dependent on PAMGuard classes for data management, display, etc, so requires PAMGuard to build and run. It also requires TritechFiles and
+<https://github.com/douggillespie/TritechAcquisitionPlugin> contains the
+code for making the Plugin. This is dependent on PAMGuard classes for
+data management, display, etc, so requires PAMGuard to build and run. It
+also requires TritechFiles and
 
-<https://github.com/douggillespie/TritechFiles> is a pure Java file reader for Tritech GLF and ECD files. It can be built for earlier Java versions (e.g. Java 8) and does not require PAMGuard, so can be used to import Gemini data into other Java programmes or Matlab.
+<https://github.com/douggillespie/TritechFiles> is a pure Java file
+reader for Tritech GLF and ECD files. It can be built for earlier Java
+versions (e.g. Java 8) and does not require PAMGuard, so can be used to
+import Gemini data into other Java programmes or Matlab.
 
-<https://github.com/douggillespie/GenesisJavaJNAInterface> is a JNA interface to the C functions in the GENESISJAVAINTERFACE.dll. It does not require PAMGuard, so can be used to import Gemini data into other Java programmes.
+<https://github.com/douggillespie/GenesisJavaJNAInterface> is a JNA
+interface to the C functions in the GENESISJAVAINTERFACE.dll. It does
+not require PAMGuard, so can be used to import Gemini data into other
+Java programmes.
 
-<https://github.com/douggillespie/GenesisJavaCInterface> is the C/C++ code that acts as an interface between the Java code in GenesisJavaJNAInterface and the Tritech SDK libraries.
+<https://github.com/douggillespie/GenesisJavaCInterface> is the C/C++
+code that acts as an interface between the Java code in
+GenesisJavaJNAInterface and the Tritech SDK libraries.
 
-The main repository for PAMGuard source code is at <https://github.com/PAMGuard/PAMGuard>
+The main repository for PAMGuard source code is at
+<https://github.com/PAMGuard/PAMGuard>
