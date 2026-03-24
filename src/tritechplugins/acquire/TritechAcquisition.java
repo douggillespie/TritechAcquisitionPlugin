@@ -74,7 +74,7 @@ public class TritechAcquisition extends RawInputControlledUnit implements PamSet
 	
 	private TritechSidePanel daqSidePanel;
 
-	private EchogramProcess echogramProcess;
+//	private EchogramProcess echogramProcess;
 	
 	public TritechAcquisition(String unitName) {
 		super(unitType, unitName);
@@ -93,8 +93,8 @@ public class TritechAcquisition extends RawInputControlledUnit implements PamSet
 		/*
 		 * Make this after TritechOffline since it needs to reference it. 
 		 */
-		echogramProcess = new EchogramProcess(this);
-		addPamProcess(echogramProcess);
+//		echogramProcess = new EchogramProcess(this);
+//		addPamProcess(echogramProcess);
 		
 		backupInformation = new BackupInformation(new GLFBackup(this));
 		
@@ -154,26 +154,26 @@ public class TritechAcquisition extends RawInputControlledUnit implements PamSet
 			menuItem = tritechDaqProcess.createDaqMenu(parentFrame);
 		}
 		
-		JMenuItem echoItem = new JMenuItem("Echogram settings ...");
-		echoItem.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				showEchogramDialog();
-			}
-		});
-		menuItem.add(echoItem);
+//		JMenuItem echoItem = new JMenuItem("Echogram settings ...");
+//		echoItem.addActionListener(new ActionListener() {
+//			@Override
+//			public void actionPerformed(ActionEvent e) {
+//				showEchogramDialog();
+//			}
+//		});
+//		menuItem.add(echoItem);
 		return menuItem;
 	}
 
-	protected void showEchogramDialog() {
-		EchogramSettings newSettings = EchogramDialog.showDialog(getGuiFrame(), daqParams.getEchogramSettings());
-		if (newSettings != null) {
-			daqParams.setEchogramSettings(newSettings);
-			if (echogramProcess != null) {
-				echogramProcess.prepareProcess();
-			}
-		}
-	}
+//	protected void showEchogramDialog() {
+//		EchogramSettings newSettings = EchogramDialog.showDialog(getGuiFrame(), daqParams.getEchogramSettings());
+//		if (newSettings != null) {
+//			daqParams.setEchogramSettings(newSettings);
+//			if (echogramProcess != null) {
+//				echogramProcess.prepareProcess();
+//			}
+//		}
+//	}
 
 	@Override
 	public Serializable getSettingsReference() {

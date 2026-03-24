@@ -250,10 +250,10 @@ ul.task-list li input[type="checkbox"] {
 </header>
 
 
-<p>For some internal calculations and display purposes, it’s useful to know the absolute sonar positions. These are entered as positions relative to the coordinates of the first hydrophone streamer configured in the PAMGuard array manager.</p>
+<p>For some internal calculations and display purposes, it’s useful to know the absolute sonar positions. These are entered as positions relative to the coordinates of the first hydrophone streamer configured in the <a href="https://www.pamguard.org/olhelp/utilities/hydrophoneArrayManagerHelp/docs/Array_Overview.html">PAMGuard array manager</a>.</p>
 <p>To set the sonar coordinates, from the PAMGuard settings menu select ‘Tritech Acquisition&gt;Sonar positions …’</p>
 <p><img src="images/sonarpositions.png" class="img-fluid"></p>
-<p>In the dialog, you should see a panel for each sonar that’s been detected by the system. For each, enter the absolute coordinates in metres and as a clockwise rotation. You can also give the sonars a name, which will appear on the sonar display.</p>
+<p>In the dialog, you should see a panel for each sonar that’s been detected by the system. For each, enter the absolute coordinates in metres and as a clockwise rotation and whether the sonar is mounted upside down. (support for other orientations may be added later). You can also give the sonars a name, which will appear on the sonar display.</p>
 <ol type="1">
 <li>If multiple sonars are in use, the absolute positions of detection points are used in tracking, that joins tracks across sonars.</li>
 <li>The sonar data can be shown on the PAMGuard map display, in which case the absolute positions are used relative to the position of the hydrophone streamer. For a static installation, set the reference position of the streamer to a fixed position.</li>

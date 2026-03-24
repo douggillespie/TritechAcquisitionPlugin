@@ -50,9 +50,9 @@ public class EchogramProcess extends PamProcess{
 		createLineMaker();
 
 		echogramDataBlock = new EchogramDataBlock(this);
-		addOutputDataBlock(echogramDataBlock);
-		echogramPlotProvider = new EchogramPlotProviderFX(this, echogramDataBlock);
-		TDDataProviderRegisterFX.getInstance().registerDataInfo(echogramPlotProvider);
+//		addOutputDataBlock(echogramDataBlock);
+//		echogramPlotProvider = new EchogramPlotProviderFX(this, echogramDataBlock);
+//		TDDataProviderRegisterFX.getInstance().registerDataInfo(echogramPlotProvider);
 
 		imageDataBlock = tritechAcquisition.getImageDataBlock();
 		setParentDataBlock(imageDataBlock);

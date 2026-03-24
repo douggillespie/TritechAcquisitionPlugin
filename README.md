@@ -36,14 +36,12 @@ the folder will not exist). Even if you have a previous installation of
 the Tritech lib64 files, copy the release files over the existing ones,
 since they may contain important updates.
 
-## Limitations
-
 This version of the software correctly synchronizes pulses from multiple
 sonars so is suitable for multi-sonar use. Note however, that this has
 only been tested in small tanks, so I strongly suggest that you use the
 frame rate display and keep an eye on performance.
 
-Latest Features and bug fixes
+## Latest Features and bug fixes
 
 **V2.00**
 
