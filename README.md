@@ -1,10 +1,5 @@
----
-editor_options: 
-  markdown: 
-    wrap: 72
----
 
-[![DOI](https://zenodo.org/badge/491806135.svg)](https://doi.org/10.5281/zenodo.13627797)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.17999634.svg)](https://doi.org/10.5281/zenodo.17999634)
 
 # TritechAcquisitionPlugin
 
