@@ -7,19 +7,13 @@ import java.awt.event.ActionListener;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashSet;
-import java.util.Set;
-import java.util.TreeSet;
-import java.util.concurrent.ConcurrentHashMap.KeySetView;
 
 import javax.swing.JMenuItem;
 
 import PamController.DataInputStore;
 import PamController.InputStoreInfo;
 import PamController.OfflineDataStore;
-import PamController.OfflineFileDataStore;
-import PamController.PamControlledUnit;
 import PamController.PamControlledUnitSettings;
 import PamController.PamController;
 import PamController.PamSettingManager;
@@ -30,11 +24,10 @@ import PamView.PamSidePanel;
 import PamguardMVC.PamDataBlock;
 import PamguardMVC.dataOffline.OfflineDataLoadInfo;
 import backupmanager.BackupInformation;
-import binaryFileStorage.BinaryStore;
 import dataGram.DatagramManager;
-import dataMap.OfflineDataMap;
 import dataMap.OfflineDataMapPoint;
 import pamScrollSystem.ViewLoadObserver;
+import pamguard.CommandLine;
 import tritechgemini.detect.DetectedRegion;
 import tritechgemini.fileio.GeminiFileCatalog;
 import tritechplugins.acquire.backup.GLFBackup;
@@ -43,11 +36,7 @@ import tritechplugins.acquire.swing.SonarPositionDialog;
 import tritechplugins.acquire.swing.TritechSidePanel;
 import tritechplugins.acquire.swing.framerate.FrameRateDisplayProvider;
 import tritechplugins.detect.threshold.RegionDataUnit;
-import tritechplugins.detect.threshold.ThresholdDetector;
-import tritechplugins.detect.track.TrackLinkDataBlock;
-import tritechplugins.detect.track.TrackLinkProcess;
 import tritechplugins.display.swing.SonarPanelProvider;
-import tritechplugins.display.swing.SonarsPanelParams;
 import tritechplugins.echogram.EchogramProcess;
 import tritechplugins.echogram.EchogramSettings;
 import tritechplugins.echogram.swing.EchogramDialog;
@@ -57,51 +46,66 @@ import userDisplay.UserDisplayControl;
 public class TritechAcquisition extends RawInputControlledUnit implements PamSettings, OfflineDataStore, DataInputStore {
 
 	public static final String unitType = "Tritech Acquisition";
-	
+
 	private TritechDaqParams daqParams = new TritechDaqParams();
-	
+
 	private TritechOffline tritechOffline;
-	
+
 	private ArrayList<ConfigurationObserver> configurationObservers = new ArrayList();
-	
+
 	private TritechRunMode tritechRunMode;
-	
+
 	private TritechDaqProcess tritechDaqProcess;
-	
+
 	private BackupInformation backupInformation;
-	
+
 	private SonarMarker sonarMarker;
-	
+
 	private TritechSidePanel daqSidePanel;
 
-//	private EchogramProcess echogramProcess;
+	private EchogramProcess echogramProcess;
 	
+	public static final String GLFFOLDERARG = "-glffolder";
+
 	public TritechAcquisition(String unitName) {
 		super(unitType, unitName);
 		PamSettingManager.getInstance().registerSettings(this);
 		
+		checkGlobalArguments();
+
 		tritechDaqProcess = new TritechDaqProcess(this);
 		addPamProcess(tritechDaqProcess);
-		
+
 		if (isViewer()) {
 			tritechRunMode = tritechOffline = new TritechOffline(this);
 		}
 		else {
 			tritechRunMode = tritechDaqProcess;
 		}
-		
+
 		/*
 		 * Make this after TritechOffline since it needs to reference it. 
 		 */
-//		echogramProcess = new EchogramProcess(this);
-//		addPamProcess(echogramProcess);
-		
+		echogramProcess = new EchogramProcess(this);
+		addPamProcess(echogramProcess);
+
 		backupInformation = new BackupInformation(new GLFBackup(this));
-		
+
 		sonarMarker = new SonarMarker(this);
-		
+
 		UserDisplayControl.addUserDisplayProvider(new SonarPanelProvider(this));
 		UserDisplayControl.addUserDisplayProvider(new FrameRateDisplayProvider(this));
+	}
+
+	/**
+	 * Check for global argument to set glf folder
+	 */
+	private void checkGlobalArguments() {
+		String arg = CommandLine.getCommandLine().getCommandParameter(GLFFOLDERARG);
+		if (arg == null) {
+			return;
+		}
+		daqParams.setOfflineFileFolder(arg);
 	}
 
 	public TritechDaqProcess getTritechDaqProcess() {
@@ -153,27 +157,29 @@ public class TritechAcquisition extends RawInputControlledUnit implements PamSet
 		else {
 			menuItem = tritechDaqProcess.createDaqMenu(parentFrame);
 		}
-		
-//		JMenuItem echoItem = new JMenuItem("Echogram settings ...");
-//		echoItem.addActionListener(new ActionListener() {
-//			@Override
-//			public void actionPerformed(ActionEvent e) {
-//				showEchogramDialog();
-//			}
-//		});
-//		menuItem.add(echoItem);
+
+		if (echogramProcess != null) {
+			JMenuItem echoItem = new JMenuItem("Echogram settings ...");
+			echoItem.addActionListener(new ActionListener() {
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					showEchogramDialog();
+				}
+			});
+			menuItem.add(echoItem);
+		}
 		return menuItem;
 	}
 
-//	protected void showEchogramDialog() {
-//		EchogramSettings newSettings = EchogramDialog.showDialog(getGuiFrame(), daqParams.getEchogramSettings());
-//		if (newSettings != null) {
-//			daqParams.setEchogramSettings(newSettings);
-//			if (echogramProcess != null) {
-//				echogramProcess.prepareProcess();
-//			}
-//		}
-//	}
+	protected void showEchogramDialog() {
+		EchogramSettings newSettings = EchogramDialog.showDialog(getGuiFrame(), daqParams.getEchogramSettings());
+		if (newSettings != null) {
+			daqParams.setEchogramSettings(newSettings);
+			if (echogramProcess != null) {
+				echogramProcess.prepareProcess();
+			}
+		}
+	}
 
 	@Override
 	public Serializable getSettingsReference() {
@@ -247,18 +253,18 @@ public class TritechAcquisition extends RawInputControlledUnit implements PamSet
 		}
 		rX += sonarPosition.getX();
 		rY += sonarPosition.getY();
-		
+
 		double[] pos = {rX, rY};
 		return pos;
 	}
 
 	@Override
 	public void createOfflineDataMap(Window parentFrame) {
-//		if (tritechOffline != null) {
-//			tritechOffline.createOfflineDataMap(parentFrame);
-//		}		
+		//		if (tritechOffline != null) {
+		//			tritechOffline.createOfflineDataMap(parentFrame);
+		//		}		
 	}
-	
+
 	/**
 	 * Get the image datablock from the process. 
 	 * @return image datablock
@@ -311,7 +317,7 @@ public class TritechAcquisition extends RawInputControlledUnit implements PamSet
 			return null;
 		}
 	}
-	
+
 	/**
 	 * Add observer to get notifications of major configuration changes. 
 	 * @param configObserver
@@ -326,7 +332,7 @@ public class TritechAcquisition extends RawInputControlledUnit implements PamSet
 	public void removeConfigurationObserver(ConfigurationObserver configObserver) {
 		configurationObservers.remove(configObserver);
 	}
-	
+
 	public void notifyConfigurationObservers() {
 		for (ConfigurationObserver configObs : configurationObservers) {
 			configObs.configurationChanged();
@@ -386,7 +392,7 @@ public class TritechAcquisition extends RawInputControlledUnit implements PamSet
 		}
 		return daqSidePanel;
 	}
-	
+
 	public int[] getSonarIds() {
 		if (isViewer()) {
 			/*
@@ -400,15 +406,15 @@ public class TritechAcquisition extends RawInputControlledUnit implements PamSet
 			}
 			int[] pIds = daqParams.getSonarIds();
 			int[] ids = combineIntArrays(offlineIds, pIds);
-//			int[] binaryIds = null;
-//			ThresholdDetector threshDet = (ThresholdDetector) getPamConfiguration().findControlledUnit(ThresholdDetector.unitType);
-//			BinaryStore binaryStore = (BinaryStore) getPamConfiguration().findControlledUnit(BinaryStore.defUnitType);
-//			if (threshDet != null && binaryStore != null) {
-//				TrackLinkProcess linkProcess = threshDet.getTrackLinkProcess();
-//				TrackLinkDataBlock linkDataBlock = linkProcess.getTrackLinkDataBlock();
-//				OfflineDataMap dataMap = linkDataBlock.getPrimaryDataMap();
-//				dataMap.getAllStartsAndEnds();
-//			}
+			//			int[] binaryIds = null;
+			//			ThresholdDetector threshDet = (ThresholdDetector) getPamConfiguration().findControlledUnit(ThresholdDetector.unitType);
+			//			BinaryStore binaryStore = (BinaryStore) getPamConfiguration().findControlledUnit(BinaryStore.defUnitType);
+			//			if (threshDet != null && binaryStore != null) {
+			//				TrackLinkProcess linkProcess = threshDet.getTrackLinkProcess();
+			//				TrackLinkDataBlock linkDataBlock = linkProcess.getTrackLinkDataBlock();
+			//				OfflineDataMap dataMap = linkDataBlock.getPrimaryDataMap();
+			//				dataMap.getAllStartsAndEnds();
+			//			}
 			return ids;
 		}
 		else {
@@ -443,39 +449,44 @@ public class TritechAcquisition extends RawInputControlledUnit implements PamSet
 		TritechDaqParams params = SonarPositionDialog.showDialog(parentFrame, this);
 		if (params != null) {
 			this.setDaqParams(params);
-//			notifyConfigurationObservers(); // calling this seems to mess the glf catalogue 
+			//			notifyConfigurationObservers(); // calling this seems to mess the glf catalogue 
 		}
 	}
 
-//	/**
-//	 * Get a set of current sonar id's being used in this configuration. This may be
-//	 * because they appear in a GLF catalog, or in the binary data map. 
-//	 * @return the currentSonarIds
-//	 */
-//	public Set<Integer> getCurrentSonarIds() {
-//		return currentSonarIds;
-//	}
-//	
-//	/**
-//	 * Add a sonar id to the map of sonar id's. 
-//	 * @param sonarId
-//	 */
-//	public void addSonarId(int sonarId) {
-//		currentSonarIds.add(sonarId);
-//	}
-//	
-//	/**
-//	 * Rebuild the map of sonar id's. 
-//	 */
-//	public void rebuildSonarIds() {
-//		currentSonarIds.clear();
-//		TritechDaqSystem daqSystem = tritechDaqProcess.getTritechDaqSystem();
-//		if (daqSystem != null) {
-//			int[] sonarIds = daqSystem.getSonarIds();
-//			for (int i = 0; i < sonarIds.length; i++) {
-//				addSonarId(sonarIds[i]);
-//			}
-//		}
-//	}
+	@Override
+	public String getModuleSummary(boolean clear, String format) {
+		return tritechDaqProcess.getModuleSummary(clear, format);
+	}
+
+	//	/**
+	//	 * Get a set of current sonar id's being used in this configuration. This may be
+	//	 * because they appear in a GLF catalog, or in the binary data map. 
+	//	 * @return the currentSonarIds
+	//	 */
+	//	public Set<Integer> getCurrentSonarIds() {
+	//		return currentSonarIds;
+	//	}
+	//	
+	//	/**
+	//	 * Add a sonar id to the map of sonar id's. 
+	//	 * @param sonarId
+	//	 */
+	//	public void addSonarId(int sonarId) {
+	//		currentSonarIds.add(sonarId);
+	//	}
+	//	
+	//	/**
+	//	 * Rebuild the map of sonar id's. 
+	//	 */
+	//	public void rebuildSonarIds() {
+	//		currentSonarIds.clear();
+	//		TritechDaqSystem daqSystem = tritechDaqProcess.getTritechDaqSystem();
+	//		if (daqSystem != null) {
+	//			int[] sonarIds = daqSystem.getSonarIds();
+	//			for (int i = 0; i < sonarIds.length; i++) {
+	//				addSonarId(sonarIds[i]);
+	//			}
+	//		}
+	//	}
 
 }

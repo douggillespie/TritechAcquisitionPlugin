@@ -16,6 +16,7 @@ import javax.swing.Timer;
 import PamController.DataInputStore;
 import PamController.InputStoreInfo;
 import PamController.PamController;
+import PamController.command.SummaryCommand;
 import PamUtils.PamCalendar;
 import PamUtils.worker.PamWorkMonitor;
 import PamguardMVC.PamProcess;
@@ -587,6 +588,55 @@ public class TritechDaqProcess extends PamProcess implements TritechRunMode, Con
 	@Override
 	public void configurationChanged() {
 		setGLFLogging();
+	}
+
+	private HashMap<Integer, Integer> prevImageCount = new HashMap<>();
+	public String getModuleSummary(boolean clear, String format) {
+		if (tritechDaqSystem == null) {
+			return null;
+		}
+		int[] sonarIds = tritechDaqSystem.getSonarIds();
+		if (sonarIds == null) {
+			return null;
+		}
+		int[] imageCount = new int[sonarIds.length];
+		for (int i = 0; i < sonarIds.length; i++) {
+			SonarStatusData status = tritechDaqSystem.getSonarStatusData(sonarIds[i]);
+			
+			if (status == null) {
+				continue;
+			}
+			imageCount[i] = status.totalImages;
+			Integer prev = prevImageCount.get(sonarIds[i]);
+			if (prev != null) {
+				imageCount[i] -= prev;
+			}
+			if (clear) {
+				prevImageCount.put(sonarIds[i], status.totalImages);
+			}
+//			el
+
+		}
+			
+		String summary = null;
+		switch (format) {
+		case SummaryCommand.CSV:
+			summary = "" + sonarIds.length;
+			for (int i = 0; i < sonarIds.length; i++) {
+				summary += String.format(",S%d,%d", sonarIds[i], imageCount[i]);
+			}
+			break;
+		case SummaryCommand.JSON:
+			summary = "{\"sonars\":" + sonarIds.length + ",\"data\":[";
+			for (int i = 0; i < sonarIds.length; i++) {
+				summary += String.format("\"Sonar\":%d,\"Images\":%d", sonarIds[i], imageCount[i]);
+			}
+			summary += "],}";
+			break;
+		case SummaryCommand.XML:
+			break;
+		}
+		return summary;
 	}
 
 
