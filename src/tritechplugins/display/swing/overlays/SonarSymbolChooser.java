@@ -1,5 +1,6 @@
 package tritechplugins.display.swing.overlays;
 
+import java.awt.Window;
 import java.util.ArrayList;
 
 import PamView.GeneralProjector;
@@ -46,8 +47,8 @@ public class SonarSymbolChooser extends StandardSymbolChooser{
 	}
 
 	@Override
-	public SwingSymbolOptionsPanel getSwingOptionsPanel(GeneralProjector projector) {
-		return new SonarSymbolPanel(getSymbolManager(), this);
+	public SwingSymbolOptionsPanel getSwingOptionsPanel(Window parent, GeneralProjector projector) {
+		return new SonarSymbolPanel(parent, getSymbolManager(), this);
 	}
 
 	@Override

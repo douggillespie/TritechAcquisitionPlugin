@@ -162,6 +162,7 @@ public class TritechJNADaqG extends TritechJNADaq {
 				//				svs5Commands.gemxSetRangeCompression(deviceId, 8, 1);
 				//				setOnline(false, deviceId);
 				//				svs5Commands.setPingMode(false, (short) 0);
+				setLastPingTime(System.nanoTime());
 				svs5Commands.gemxSendGeminiPingConfig(deviceId);
 				
 

@@ -38,7 +38,8 @@ public class FrameRateDisplayProvider implements UserDisplayProvider{
 
 	@Override
 	public boolean canCreate() {
-		return PamController.getInstance().getRunMode() == PamController.RUN_NORMAL;
+		return true;
+//		return PamController.getInstance().getRunMode() == PamController.RUN_NORMAL;
 	}
 
 	@Override

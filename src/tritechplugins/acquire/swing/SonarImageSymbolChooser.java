@@ -1,5 +1,7 @@
 package tritechplugins.acquire.swing;
 
+import java.awt.Window;
+
 import PamView.GeneralProjector;
 import PamView.symbol.PamSymbolChooser;
 import PamView.symbol.PamSymbolManager;
@@ -43,7 +45,7 @@ public class SonarImageSymbolChooser extends PamSymbolChooser {
 	}
 
 	@Override
-	public SwingSymbolOptionsPanel getSwingOptionsPanel(GeneralProjector projector) {
+	public SwingSymbolOptionsPanel getSwingOptionsPanel(Window parent, GeneralProjector projector) {
 		return new SonarImageSymbolPanel(this, projector);
 	}
 

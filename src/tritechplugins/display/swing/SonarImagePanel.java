@@ -1024,9 +1024,9 @@ public class SonarImagePanel extends JPanel {
 			tip = "L=load time, T=transform time, P=paint time";
 		}
 		else {
-			str = String.format("T=%3.1fms; P=%3.1fms", 
+			str = String.format("P=%3.1fms; T=%3.1fms; P=%3.1fms", geminiImageRecord.getLoadTime() / 1000000.,
 					imageTime / 1000000., paintTime / 1000000.);
-			tip = "T=transform time, P=paint time";
+			tip = "P=ping time, T=transform time, P=paint time";
 		}
 		paintTextLine(g2d, str, xt, yt, tip);
 		yt += lineHeight;

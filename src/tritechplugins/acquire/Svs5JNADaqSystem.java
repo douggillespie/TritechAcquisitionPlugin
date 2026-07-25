@@ -42,6 +42,8 @@ abstract public class Svs5JNADaqSystem extends TritechDaqSystem {
 
 	private String lastFileName = "";
 	
+	private long lastPingTime;
+	
 	public Svs5JNADaqSystem(TritechAcquisition tritechAcquisition, TritechDaqProcess tritechProcess) {
 		super(tritechAcquisition, tritechProcess);
 		geminiCallback = new GeminiCallback();
@@ -141,6 +143,7 @@ abstract public class Svs5JNADaqSystem extends TritechDaqSystem {
 
 		@Override
 		public void newGLFLiveImage(GLFImageRecord glfImage) {
+			glfImage.setLoadTime(glfImage.getRecordRXNanos()-getLastPingTime());
 			Svs5JNADaqSystem.this.newGLFLiveImage(glfImage);
 //			
 //			SonarStatusData sonarData = findSonarStatusData(glfImage.genericHeader.tm_deviceId);
@@ -515,5 +518,21 @@ abstract public class Svs5JNADaqSystem extends TritechDaqSystem {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+	}
+
+	/**
+	 * Ping or file read time in nanoseconds for a acquisition and for file reading
+	 * @return the lastPingTime 
+	 */
+	public long getLastPingTime() {
+		return lastPingTime;
+	}
+
+	/**
+	 * Ping or file read time in nanoseconds for a acquisition and for file reading
+	 * @param lastPingTime the lastPingTime to set
+	 */
+	public void setLastPingTime(long lastPingTime) {
+		this.lastPingTime = lastPingTime;
 	}
 }

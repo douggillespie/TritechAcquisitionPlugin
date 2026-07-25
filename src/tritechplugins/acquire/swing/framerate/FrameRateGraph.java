@@ -18,11 +18,16 @@ import javax.swing.JPanel;
 import Layout.PamAxis;
 import Layout.PamAxisPanel;
 import Layout.PamFramePlots;
+import PamController.PamController;
 import PamView.PamColors;
 import PamView.PamColors.PamColor;
+import PamView.component.PamScrollBar;
 import PamView.panel.PamBorder;
 import PamView.panel.PamPanel;
 import PamguardMVC.PamDataUnit;
+import pamScrollSystem.AbstractPamScroller;
+import pamScrollSystem.PamScrollObserver;
+import pamScrollSystem.PamScroller;
 import tritechplugins.acquire.TritechAcquisition;
 
 public class FrameRateGraph {
@@ -38,6 +43,8 @@ public class FrameRateGraph {
 	private GraphPlotPanel graphPlot;
 	
 	private PamAxis xAxis, yAxis;
+	
+	private PamScroller scroller;
 
 	public FrameRateGraph(FrameRateDisplayPanel histPanel, TritechAcquisition tritechAcquisition) {
 		super();
@@ -53,12 +60,30 @@ public class FrameRateGraph {
 		JPanel innerPanel = new JPanel(new BorderLayout());
 		innerPanel.setBorder(PamBorder.createInnerBorder());
 		innerPanel.add(BorderLayout.CENTER, graphPlot);
-		graphAxis.setPlotPanel(graphPlot);
 		graphAxis.setInnerPanel(innerPanel);
-		graphAxis.setAutoInsets(true);
 		graphAxis.setPlotPanel(graphPlot);
+		graphAxis.setAutoInsets(true);
 		graphAxis.setSouthAxis(xAxis);
 		graphAxis.setWestAxis(yAxis);
+
+		if (tritechAcquisition.isViewer()) {
+			scroller = new PamScroller("Frame rate histogram", PamScroller.HORIZONTAL, 1000, 0, false);
+			innerPanel.add(BorderLayout.SOUTH, scroller.getComponent());
+			scroller.addObserver(new PamScrollObserver() {
+				
+				@Override
+				public void scrollValueChanged(AbstractPamScroller abstractPamScroller) {
+					graphAxis.repaint();
+					graphPlot.repaint();
+				}
+				
+				@Override
+				public void scrollRangeChanged(AbstractPamScroller pamScroller) {
+					// TODO Auto-generated method stub
+					
+				}
+			});
+		}
 		
 		graphPlot.setToolTipText("Inter frame interval");
 	
@@ -77,8 +102,21 @@ public class FrameRateGraph {
 	}
 	
 	private class GraphAxisPanel extends PamAxisPanel {
-		
+
+		@Override
+		public void paintComponent(Graphics g) {
+			super.paintComponent(g);
+			if (scroller != null) {
+				paintScrollTimes(g);
+			}
+		}
+
+		private void paintScrollTimes(Graphics g) {
+			// TODO Auto-generated method stub
+			
+		}
 	}
+
 	
 	/**
 	 * Set the range of the y axis. 
@@ -112,16 +150,24 @@ public class FrameRateGraph {
 			}
 			HashMap<Integer, Long> sonarIdMap = frameRateDataBlock.getSonarIds();
 			Set<Integer> sonarIdVals = sonarIdMap.keySet();
-			long lastT = frameRateDataBlock.getLastTimeMilliseconds();
+			
+			long[] timeRange = getDisplayRange();
+			
+			long lastT = timeRange[1];
 			
 			
-			long prevT = dataCopy.get(0).getTimeMilliseconds();
+			
+			long prevT = timeRange[0]; //dataCopy.get(0).getTimeMilliseconds();
 			int prevX=-1, prevY=-1;
 			g.setColor(PamColors.getInstance().getWhaleColor(0));
 			double dt = 0;
 			for (int i = 1; i < dataCopy.size(); i++) {
 				long t = dataCopy.get(i).getTimeMilliseconds();
-				int x = (int) xAxis.getPosition((t-lastT)/1000.);
+				if (t < timeRange[0]-1000 || t > timeRange[1]+1000) {
+					continue;
+				}
+				long axT = t-lastT;
+				int x = (int) xAxis.getPosition((axT)/1000.);
 				dt = (t-prevT)/1000.;
 				int y = (int) yAxis.getPosition(dt);
 				if (prevX >= 0) {
@@ -185,5 +231,44 @@ public class FrameRateGraph {
 			}
 		}
 		
+	}
+	
+	public long[] getDisplayRange() {
+		if (scroller != null) {
+			return new long[] {scroller.getValueMillis(), scroller.getValueMillis()+frameRateDataBlock.getNaturalLifetimeMillis()};
+		}
+		else {
+			long[] r = new long[2];
+			FrameRateDataUnit last = frameRateDataBlock.getLastUnit();
+			if (last == null) {
+				return r;
+			}
+			r[1] = last.getTimeMilliseconds();
+			r[0] = r[1] - frameRateDataBlock.getNaturalLifetime();
+			return r;
+		}
+	}
+
+	/**
+	 * Called when viewer data are loaded. 
+	 */
+	public void updateViewerData() {
+		if (frameRateDataBlock == null) {
+			return;
+		}
+		FrameRateDataUnit first = frameRateDataBlock.getFirstUnit();
+		FrameRateDataUnit last = frameRateDataBlock.getLastUnit();
+		if (first == null || last == null || scroller == null) {
+			return;
+		}
+		long t1 = first.getTimeMilliseconds();
+		long t2 = Math.max(first.getTimeMilliseconds()+frameRateDataBlock.getNaturalLifetimeMillis(), last.getTimeMilliseconds());
+		long range = t2-t1;
+		scroller.setRangeMillis(t1, t2, false);
+		scroller.setValueMillis(t1);
+		scroller.rangesChanged(0);
+		scroller.setVisibleMillis(frameRateDataBlock.getNaturalLifetimeMillis());
+		graphAxis.repaint();
+		graphPlot.repaint();
 	}
 }

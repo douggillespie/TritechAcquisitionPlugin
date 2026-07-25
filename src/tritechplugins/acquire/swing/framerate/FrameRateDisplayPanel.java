@@ -5,6 +5,7 @@ import java.awt.Component;
 import java.awt.GridLayout;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.ListIterator;
 
 import javax.swing.BoxLayout;
 import javax.swing.JPanel;
@@ -19,6 +20,7 @@ import PamguardMVC.PamObserver;
 import pamMaths.HistogramDisplay;
 import pamMaths.PamHistogram;
 import tritechplugins.acquire.ConfigurationObserver;
+import tritechplugins.acquire.ImageDataBlock;
 import tritechplugins.acquire.ImageDataUnit;
 import tritechplugins.acquire.SonarImageObserver;
 import tritechplugins.acquire.TritechAcquisition;
@@ -87,6 +89,7 @@ public class FrameRateDisplayPanel implements UserDisplayComponent, Configuratio
 		
 		tritechAcquisition.addConfigurationObserver(this);
 		
+		
 		SwingUtilities.invokeLater(new Runnable() {
 			@Override
 			public void run() {
@@ -118,13 +121,6 @@ public class FrameRateDisplayPanel implements UserDisplayComponent, Configuratio
 		});
 		return rateHisto;
 		
-//		PamHistogram hist = rateHistograms.get(0);
-//		if (hist == null) {
-//			hist = new PamHistogram(0, 12, 100);
-//			rateHistograms.put(sonarId, hist);
-//			histogramDisplay.addHistogram(hist);
-//		}
-//		return hist;
 	}
 	
 	private double getHistoMaxSeconds() {
@@ -200,6 +196,28 @@ public class FrameRateDisplayPanel implements UserDisplayComponent, Configuratio
 		if (changeType == PamController.INITIALIZATION_COMPLETE) {
 			configurationChanged();
 		}		
+		if (changeType == PamController.OFFLINE_DATA_LOADED) {
+			updateViewerData();
+		}
+	}
+
+	/**
+	 * When data are loaded in viewer mode, take all the frame rate data from the loaded 
+	 * data and make the display work somehow. 
+	 */
+	private void updateViewerData() {
+		frameRateDataBlock.clearAll();
+		for (int i = 0; i < frameRateHistrograms.size(); i++) {
+			frameRateHistrograms.get(i).clear();
+		}
+		
+		ImageDataBlock imageDataBlock = tritechAcquisition.getImageDataBlock();
+		ArrayList<ImageDataUnit> copy = imageDataBlock.getDataCopy();
+		ListIterator<ImageDataUnit> it = copy.listIterator();
+		while (it.hasNext()) {
+			newImageFrame(it.next());
+		}
+		rateGraph.updateViewerData();
 	}
 
 	@Override

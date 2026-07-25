@@ -3,6 +3,7 @@ package tritechplugins.display.swing.overlays;
 import java.awt.BorderLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.Window;
 
 import javax.swing.ButtonGroup;
 import javax.swing.JCheckBox;
@@ -25,8 +26,8 @@ public class SonarSymbolPanel extends StandardSymbolOptionsPanel {
 	
 	private JRadioButton[] symbolTypes;
 
-	public SonarSymbolPanel(StandardSymbolManager standardSymbolManager, SonarSymbolChooser sonarSymbolChooser) {
-		super(standardSymbolManager, sonarSymbolChooser);
+	public SonarSymbolPanel(Window parent, StandardSymbolManager standardSymbolManager, SonarSymbolChooser sonarSymbolChooser) {
+		super(parent, standardSymbolManager, sonarSymbolChooser);
 		this.sonarSymbolChooser = sonarSymbolChooser;
 		
 		int[] types = SonarSymbolOptions.getSymbolTypes();
