@@ -31,6 +31,7 @@ public class TritechOfflineDialog extends PamDialog {
 		mainPanel.add(BorderLayout.SOUTH, wap);
 		((JPanel)selectFolder.getFolderPanel()).setBorder(new TitledBorder("Source location for Tritech ecd and glf files"));
 		wap.setBorder(new TitledBorder("Offline Files Time Zone"));
+		setHelpPoint(DaqDialog.helpPoint);
 		setDialogComponent(mainPanel);
 	}
 	

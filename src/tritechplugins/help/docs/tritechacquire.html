@@ -111,9 +111,19 @@
 	<img src="images/daqdialog_file.png">
 	<br>
 	<br>
-	<p>The module can also be used to re-process data archived to GLF
-		files. In this case select 'Reprocess files' near the top of the
+	<p>The module can also be used to re-process data archived to three different
+		types of data files by selecting 'Reprocess files' near the top of the
 		dialog.</p>
+			<ul>
+				<li>Tritech GLF Files (.glf): These are the standard file format for new Tritech data recorded using this PAMGuard module
+				or the Tritech Genesis software.</li>
+				<li>Tritech ECD Files (.ecd): These are an older format for Tritech data, mostly recoded with the SeaTec software</li>
+				<li>ARIS data files (.aris): Data files recorded using <a href="http://www.soundmetrics.com/products/aris-sonars">ARIS sonars</a>. 
+					These are similar enough incontent to the Tritech files
+					that PAMGuard can now also procsss ARIS data using the same displays and detection algorithms. PAMGuard cannot however
+					process ARIS sonar data in real time as it can Tritech sonar data.</li>
+				</ul>
+
 	<p>File location: select the folder holding your GLF files. These
 		will probably be arranged in sub folders by date, so you'll probably
 		want the 'Include sub folders' option selected.</p>
@@ -135,7 +145,7 @@
 		<a href="tritechconnect.html">Previous: Connecting Sonars</a>
 	</p>
 	<p CLASS="nextLink">
-		<a href="tritechdisplays.html">Next: Tritech Displays</a>
+		<a href="tritechposition.html">Next: Sonar Positions</a>
 	</p>
 	<br>
 </body>
