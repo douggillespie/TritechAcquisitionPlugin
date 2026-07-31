@@ -629,7 +629,10 @@ public class TritechDaqProcess extends PamProcess implements TritechRunMode, Con
 		case SummaryCommand.JSON:
 			summary = "{\"sonars\":" + sonarIds.length + ",\"data\":[";
 			for (int i = 0; i < sonarIds.length; i++) {
-				summary += String.format("\"Sonar\":%d,\"Images\":%d", sonarIds[i], imageCount[i]);
+				if (i > 0) {
+					summary += ",";
+				}
+				summary += String.format("{\"Sonar\":%d,\"Images\":%d}", sonarIds[i], imageCount[i]);
 			}
 			summary += "],}";
 			break;
