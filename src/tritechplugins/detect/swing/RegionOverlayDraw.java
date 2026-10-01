@@ -118,29 +118,33 @@ public class RegionOverlayDraw extends SonarOverlayDraw {
 		int[] y = new int[4];
 		double a, r;
 		DetectedRegion region = regionDataUnit.getRegion();
+		double flip = 1;
+		if (sonarPosition.isFlipLR()) {
+			flip = -1;
+		}
 		// work through the four corners. 
-		a = -Math.toDegrees(region.getMinBearing()) + sonarPosition.getHead();
+		a = -Math.toDegrees(region.getMinBearing())*flip + sonarPosition.getHead();
 		r = region.getMinRange();
 		LatLong coord = origin.travelDistanceMeters(a, r);
 		Coordinate3d pos = mapProj.getCoord3d(coord);
 		x[0] = (int) pos.x;
 		y[0] = (int) pos.y;
 
-		a = -Math.toDegrees(region.getMinBearing()) + sonarPosition.getHead();
+		a = -Math.toDegrees(region.getMinBearing())*flip + sonarPosition.getHead();
 		r = region.getMaxRange();
 		 coord = origin.travelDistanceMeters(a, r);
 		 pos = mapProj.getCoord3d(coord);
 		x[1] = (int) pos.x;
 		y[1] = (int) pos.y;
 
-		a = -Math.toDegrees(region.getMaxBearing()) + sonarPosition.getHead();
+		a = -Math.toDegrees(region.getMaxBearing())*flip + sonarPosition.getHead();
 		r = region.getMaxRange();
 		 coord = origin.travelDistanceMeters(a, r);
 		 pos = mapProj.getCoord3d(coord);
 		x[2] = (int) pos.x;
 		y[2] = (int) pos.y;
 
-		a = -Math.toDegrees(region.getMaxBearing()) + sonarPosition.getHead();
+		a = -Math.toDegrees(region.getMaxBearing())*flip + sonarPosition.getHead();
 		r = region.getMinRange();
 		 coord = origin.travelDistanceMeters(a, r);
 		 pos = mapProj.getCoord3d(coord);
@@ -164,7 +168,11 @@ public class RegionOverlayDraw extends SonarOverlayDraw {
 			SonarPosition sonarPosition, LatLong origin, MapRectProjector mapProj,
 			PamSymbol symbol) {		
 		DetectedRegion region = regionDataUnit.getRegion();
-		double a = -Math.toDegrees(region.getPeakBearing()) + sonarPosition.getHead();
+		double flip = 1;
+		if (sonarPosition.isFlipLR()) {
+			flip = -1;
+		}
+		double a = -Math.toDegrees(region.getPeakBearing()*flip) + sonarPosition.getHead();
 		double r = region.getPeakRange();
 		LatLong coord = origin.travelDistanceMeters(a, r);
 		Coordinate3d pos = mapProj.getCoord3d(coord);

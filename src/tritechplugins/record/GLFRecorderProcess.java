@@ -178,11 +178,16 @@ public class GLFRecorderProcess extends PamProcess {
 			 *  finalBuffer. The GLFWriter will automatically open a file as soon as something
 			 *  arrives.  
 			 */
+			long t1 = System.currentTimeMillis();
+			int nBuf = 0;
 			for (ImageDataUnit idu : copy) {
 				if (idu.getTimeMilliseconds() >= startTime) {
 					finalBuffer.addPamData(idu, idu.getUID());
+					nBuf++;
 				}
 			}
+			long t2 = System.currentTimeMillis();
+//			System.out.printf("%d sonar records from %s written to output buffer in %d millis\n", nBuf, PamCalendar.formatTime(startTime, true), t2-t1);
 		}
 		// copy content of 
 		return true;

@@ -13,6 +13,7 @@ import Array.ArrayManager;
 import Array.Streamer;
 import Layout.PamAxis;
 import Map.MapRectProjector;
+import PamController.PamController;
 import PamUtils.Coordinate3d;
 import PamUtils.LatLong;
 import PamView.ColourArray;
@@ -35,6 +36,7 @@ import tritechgemini.imagedata.FanPicksFromData;
 import tritechgemini.imagedata.SonarImageRecordI;
 import tritechgemini.imagedata.ImageFanMaker;
 import tritechplugins.acquire.ImageDataBlock;
+import tritechplugins.acquire.ImageDataUnit;
 import tritechplugins.acquire.SonarDaqParams;
 import tritechplugins.acquire.SonarPosition;
 import tritechplugins.acquire.TritechAcquisition;
@@ -53,6 +55,7 @@ public class SonarImageOverlay extends SonarOverlayDraw {
 	private ColourArray colourArray = ColourArray.createMergedArray(nColours, Color.BLACK, Color.GREEN);
 	
 	private PamAxis mapAxis;
+	private boolean isViewer;
 	
 	private static PamSymbol defaultSymbol = new PamSymbol(PamSymbolType.SYMBOL_TRIANGLEU, 5, 5, false, Color.RED, Color.RED);
 
@@ -61,6 +64,7 @@ public class SonarImageOverlay extends SonarOverlayDraw {
 		this.tritechAcquisition = tritechAcquisition;
 		this.imageDataBlock = imageDataBlock;
 		mapAxis = new PamAxis(0, 1, 0, 1, 0, 1, PamAxis.BELOW_RIGHT, null, PamAxis.LABEL_NEAR_MAX, "%d");
+		isViewer = PamController.getInstance().getRunMode() == PamController.RUN_PAMVIEW;
 	}
 
 	@Override
@@ -97,24 +101,56 @@ public class SonarImageOverlay extends SonarOverlayDraw {
 		if (sonarIds == null) {
 			return true;
 		}
-		MultiFileCatalog fileCatalog = imageDataBlock.findFileCatalog();
+		SonarImageRecordI[] toDraw = getDrawingRecords(sonarIds, mapTime);
 		for (int i = 0; i < sonarIds.length; i++) {
-			SonarImageRecordI sonarRecord = null;
-			if (fileCatalog != null) {
-				sonarRecord = fileCatalog.findRecordForTime(sonarIds[i], mapTime);
-			}
-			if (sonarRecord != null && symbolOptions.showImage) {
-				//				if (sonarRecord.isFullyLoaded() == false) {
-				//					sonarRecord = fileCatalog.getRecord(sonarRecord.getRecordNumber(), true);
-				//				}
-				drawSonarImageOnMap(g, mapProj, sonarRecord, symbolOptions);
+			if (toDraw[i] != null && symbolOptions.showImage) {
+				drawSonarImageOnMap(g, mapProj, toDraw[i], symbolOptions);
 			}
 			if (symbolOptions.showGrid) {
-				drawSonarGridOnMap(g, mapProj, sonarIds[i], sonarRecord, symbolOptions);
+				drawSonarGridOnMap(g, mapProj, sonarIds[i], toDraw[i], symbolOptions);
 			}
 		}
 		
 		return true;
+	}
+	
+	/**
+	 * Get image records for drawing. In viewer mode this will be from the catalogue, in
+	 * normal mode this will be the last record for each sonar 
+	 * @param sonarIds
+	 * @param mapTime
+	 * @return array of drawing records same length as sonarIds. Individual references may be null
+	 */
+	private SonarImageRecordI[] getDrawingRecords(int[] sonarIds, long mapTime) {
+		if (sonarIds == null) {
+			return null;
+		}
+		SonarImageRecordI[] toDraw = new SonarImageRecordI[sonarIds.length];
+		if (isViewer) {
+			MultiFileCatalog fileCatalog = imageDataBlock.findFileCatalog();
+			for (int i = 0; i < sonarIds.length; i++) {
+				SonarImageRecordI sonarRecord = null;
+				if (fileCatalog != null) {
+					toDraw[i] = fileCatalog.findRecordForTime(sonarIds[i], mapTime);
+				}
+			}
+		}
+		else {
+			// normal mode, so get the last record for each sonar. 
+			for (int i = 0; i < sonarIds.length; i++) {
+				ImageDataUnit dataUnit = imageDataBlock.getLastSonarImage(sonarIds[i]);
+				if (dataUnit != null) {
+					/*
+					 *  only use it here if it's less than a few seconds old, so that display clears
+					 *  if a sonar stops sending data.  
+					 */
+					if (mapTime - dataUnit.getTimeMilliseconds() < 5000) {
+						toDraw[i] = dataUnit.getGeminiImage();
+					}
+				}
+			}
+		}
+		return toDraw;
 	}
 
 	private void setTransparancy(ColourArray colourArray, int transparancy) {
@@ -204,6 +240,8 @@ public class SonarImageOverlay extends SonarOverlayDraw {
 		}
 		
 		Graphics2D g2d = (Graphics2D) g.create();
+
+		SonarPosition sonarPos = getSonarPosition(sonarRecord.getDeviceId());
 		
 //		g2d.setColor(Color.RED);
 		//		g2d.drawRect(r.x, r.y, r.width, r.height);
@@ -221,7 +259,12 @@ public class SonarImageOverlay extends SonarOverlayDraw {
 		FanDataImage aFanImage = new FanDataImage(fanImageData, colourArray, true, symbolOptions.displayGain);
 		BufferedImage bi = aFanImage.getBufferedImage();
 
-		g2d.drawImage(bi,r.x, r.y+r.height, r.x+r.width, r.y,0,0,bi.getWidth(),bi.getHeight(),null);
+		if (sonarPos.isFlipLR()) {
+			g2d.drawImage(bi, r.x+r.width, r.y+r.height, r.x, r.y,0,0,bi.getWidth(),bi.getHeight(),null);
+		}
+		else {
+			g2d.drawImage(bi, r.x, r.y+r.height, r.x+r.width, r.y,0,0,bi.getWidth(),bi.getHeight(),null);
+		}
 		
 	}
 	@Override

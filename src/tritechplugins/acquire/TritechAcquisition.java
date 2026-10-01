@@ -257,6 +257,14 @@ public class TritechAcquisition extends RawInputControlledUnit implements PamSet
 		double[] pos = {rX, rY};
 		return pos;
 	}
+	
+//	/**
+//	 * Translate an absolute xy to a sonar frame r and thi
+//	 * @return
+//	 */
+//	public double[] absXYToSonarRThi(int sonarId, double x, double y) {
+//		
+//	}
 
 	@Override
 	public void createOfflineDataMap(Window parentFrame) {
@@ -381,7 +389,6 @@ public class TritechAcquisition extends RawInputControlledUnit implements PamSet
 
 	@Override
 	public InputStoreInfo getStoreInfo(PamWorkMonitor workerMonitor, boolean detail) {
-		// TODO Auto-generated method stub
 		return tritechDaqProcess.getStoreInfo(workerMonitor, detail);
 	}
 
@@ -456,6 +463,11 @@ public class TritechAcquisition extends RawInputControlledUnit implements PamSet
 	@Override
 	public String getModuleSummary(boolean clear, String format) {
 		return tritechDaqProcess.getModuleSummary(clear, format);
+	}
+
+	@Override
+	public boolean isRealTime() {
+		return daqParams.getRunMode() != TritechDaqParams.RUN_REPROCESS;
 	}
 
 	//	/**

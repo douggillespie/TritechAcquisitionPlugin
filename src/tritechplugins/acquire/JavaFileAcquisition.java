@@ -13,6 +13,7 @@ import PamController.PamControlledUnitSettings;
 import PamController.PamController;
 import PamUtils.PamCalendar;
 import PamUtils.worker.PamWorkMonitor;
+import PamUtils.worker.PamWorkProgressMessage;
 import fileOfflineData.OfflineFileList;
 import pamguard.GlobalArguments;
 import tritechgemini.fileio.CatalogException;
@@ -557,55 +558,64 @@ public class JavaFileAcquisition extends TritechDaqSystem  implements CatalogStr
 
 //	@Override
 	public InputStoreInfo getStoreInfo(boolean detail) {
-		if (allFiles == null || allFiles.length == 0) {
-			return null;
-		}
-		int nFiles = allFiles.length;
-		GeminiFileCatalog firstCat;
-		try {
-			firstCat = GeminiFileCatalog.getFileCatalog(allFiles[0], true);
-			GeminiFileCatalog lastCat = GeminiFileCatalog.getFileCatalog(allFiles[nFiles-1], true);
-
-			InputStoreInfo storeInfo = new InputStoreInfo(tritechAcquisition, nFiles, firstCat.getFirstRecordTime(), lastCat.getFirstRecordTime(), lastCat.getLastRecordTime());
-			if (detail) {
-				long[] allStarts = new long[nFiles];
-				long[] allEnds = new long[nFiles];
-				for (int i = 0; i < nFiles; i++) {
-					GeminiFileCatalog fileCat = GeminiFileCatalog.getFileCatalog(allFiles[i], true);
-					if (fileCat == null) {
-						continue;
-					}
-					allStarts[i] = fileCat.getFirstRecordTime();
-					allEnds[i] = fileCat.getLastRecordTime();
-				}
-				storeInfo.setFileStartTimes(allStarts);
-				storeInfo.setFileEndTimes(allEnds);
-				/*
-				 * Run some checks to check that everything is in order. 
-				 * 
-				 */
-//				for (int i = 0; i < nFiles; i++) {
-//					if (allEnds[i] < allStarts[i]) {
-//						System.out.printf("file %s has a negative duration of %d millis\n", allFiles[i], allEnds[i]-allStarts[i]);
-//					}
-//					if (i > 0) {
-//						long gap = allStarts[i] - allEnds[i-1];
-//						if (gap > 10000 || gap < 0) {
-//							System.out.printf("%3.1f second gap between files %s and %s\n", 
-//									(double)gap/1000., allFiles[i-1], allFiles[i]);
-//						}
-//						
-//					}
-//				}
-				
-			}
-			return storeInfo;
-
-		} catch (CatalogException e) {
-			e.printStackTrace();
-			return null;
-		}
+		return getStoreInfo(null, detail);
 	}
+
+	@Override
+		public InputStoreInfo getStoreInfo(PamWorkMonitor workerMonitor, boolean detail) {
+			if (allFiles == null || allFiles.length == 0) {
+				return null;
+			}
+			int nFiles = allFiles.length;
+			GeminiFileCatalog firstCat;
+			try {
+				firstCat = GeminiFileCatalog.getFileCatalog(allFiles[0], true);
+				GeminiFileCatalog lastCat = GeminiFileCatalog.getFileCatalog(allFiles[nFiles-1], true);
+	
+				InputStoreInfo storeInfo = new InputStoreInfo(tritechAcquisition, nFiles, firstCat.getFirstRecordTime(), lastCat.getFirstRecordTime(), lastCat.getLastRecordTime());
+				if (detail) {
+					long[] allStarts = new long[nFiles];
+					long[] allEnds = new long[nFiles];
+					for (int i = 0; i < nFiles; i++) {
+						GeminiFileCatalog fileCat = GeminiFileCatalog.getFileCatalog(allFiles[i], true);
+						if (fileCat == null) {
+							continue;
+						}
+						allStarts[i] = fileCat.getFirstRecordTime();
+						allEnds[i] = fileCat.getLastRecordTime();
+						if (workerMonitor != null) {
+							int perc = (i+1)*100 / nFiles;
+							workerMonitor.update(new PamWorkProgressMessage(perc, allFiles[i]));
+						}
+					}
+					storeInfo.setFileStartTimes(allStarts);
+					storeInfo.setFileEndTimes(allEnds);
+					/*
+					 * Run some checks to check that everything is in order. 
+					 * 
+					 */
+	//				for (int i = 0; i < nFiles; i++) {
+	//					if (allEnds[i] < allStarts[i]) {
+	//						System.out.printf("file %s has a negative duration of %d millis\n", allFiles[i], allEnds[i]-allStarts[i]);
+	//					}
+	//					if (i > 0) {
+	//						long gap = allStarts[i] - allEnds[i-1];
+	//						if (gap > 10000 || gap < 0) {
+	//							System.out.printf("%3.1f second gap between files %s and %s\n", 
+	//									(double)gap/1000., allFiles[i-1], allFiles[i]);
+	//						}
+	//						
+	//					}
+	//				}
+					
+				}
+				return storeInfo;
+	
+			} catch (CatalogException e) {
+				e.printStackTrace();
+				return null;
+			}
+		}
 
 	@Override
 	public boolean setAnalysisStartTime(long startTime) {
@@ -631,12 +641,6 @@ public class JavaFileAcquisition extends TritechDaqSystem  implements CatalogStr
 		String bs = String.format("%d,%d,%d,%s", nFiles,currentFile,generalStatus,currFile);
 //		System.out.println("Tritech batch status: " + bs);
 		return bs;
-	}
-
-	@Override
-	public InputStoreInfo getStoreInfo(PamWorkMonitor workerMonitor, boolean detail) {
-		// TODO Auto-generated method stub
-		return null;
 	}
 	
 }

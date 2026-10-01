@@ -77,10 +77,15 @@ public abstract class SonarOverlayDraw extends PanelOverlayDraw {
 		Coordinate3d apexXY = mapProj.getCoord3d(sonarOrigin);
 		Coordinate3d centre = mapProj.getCoord3d(sonarOrigin.travelDistanceMeters(sonarPos.getHead(), maxRange/2));
 
+		double flip = 1;
+		if (sonarPos.isFlipLR()) {
+			flip = -1;
+		}
 //		g.drawLine((int) apexXY.x, (int) apexXY.y, (int) centre.x, (int) centre.y);
 		double scale = mapProj.getPixelsPerMetre();
 		Rectangle r = new Rectangle((int) (apexXY.x-xm*scale), (int) (apexXY.y-maxRange*scale), 
 				(int) (xm*2*scale), (int) (maxRange*scale));
+//		AffineTransform.
 		AffineTransform rt = AffineTransform.getRotateInstance(sonarR, apexXY.x, apexXY.y);
 		AffineTransform current = g2d.getTransform();
 		if (current != null) {

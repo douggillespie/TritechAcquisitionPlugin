@@ -47,6 +47,11 @@ public class RegionDataBlock extends PamDataBlock<RegionDataUnit> {
 		return sonarIds;
 	}
 
+	@Override
+	public boolean clearOnViewerLoad() {
+		return false; // get's called from the TrackLinkBlock. See comment there
+	}
+
 	/**
 	 * Get a collection of sonar id's. 
 	 * @param sonarIds the sonarIds to set

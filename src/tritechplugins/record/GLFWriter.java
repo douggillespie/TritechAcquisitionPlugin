@@ -224,14 +224,31 @@ public class GLFWriter extends PamObserverAdapter {
 	@Override
 	public void addData(PamObservable observable, PamDataUnit pamDataUnit) {
 		// anything sent here, we want to write to the GLF. Start by doing file and folder checks.
+		/**
+		 * When writing a big buffer of data, a lot of data may be in the block
+		 * before the first new data message arrives here. Thats fine, this will 
+		 * call writeData, which may write 100's of records on it's first call. 
+		 * That may take quite a few seconds, or even 10's of seconds to complete before
+		 * this function can return. That's fine though since this is being called in it's own 
+		 * thread, so can take as long as it needs. 
+		 * Subsequent calls will all come through, but may find that the data they were referring to has already
+		 * been written and deleted from queue. That's also fine. Eventually, things will settle, so 
+		 * there will be one write per message until recording stops. 
+		 * The great thing about all this is that the main threads in the data acquisition are never
+		 * locked out for more than a couple of millis while arrays of data are copied,  
+		 */
 		ImageDataUnit imageData = (ImageDataUnit) pamDataUnit;
-//		GeminiImageRecordI imageRecord = imageData.getGeminiImage();
-//		if (imageRecord instanceof GLFImageRecord == false) {
-//			System.out.println("no GLF data. Can't write to GLF file");
-//			return; // can't do anything with this at the moment. 
+//		long t1 = System.currentTimeMillis();
+		int na = databuffer.getUnitsCount();
+		if (na == 0) {
+			return; // saves a call to writeallData when a big buffer has just been emptied. 
+		}
+		int n =	writeAllData();
+//		long t2 = System.currentTimeMillis();
+//		if (n > 0) {
+//			double ps = (double) (t2-t1) / (double) n;
+//			System.out.printf("GLF Writer wrote %3d/%d records in %3d millisecs: %5.1fms / rec\n", n, na, t2-t1, ps);
 //		}
-//		checkFiles(imageData.getTimeMilliseconds());
-		writeAllData();
 	}
 
 	private synchronized int writeAllData() {
@@ -240,6 +257,9 @@ public class GLFWriter extends PamObserverAdapter {
 		 *  everything in it, but being careful to not lock the synch for 
 		 *  longer than necessary to remove each record.  
 		 *  Easiest way to do this is simply to remove everything. 
+		 *  This means that GLFRecorder process will almost immediately be able to 
+		 *  write back into the buffer at it's end, and those units that have arrived
+		 *  while this batch were being written will get output on the next call. 
 		 */
 		ArrayList<ImageDataUnit> dataCopy;
 		synchronized (databuffer.getSynchLock()) {

@@ -23,6 +23,7 @@ import PamDetection.PamDetection;
 import PamView.dialog.PamDialog;
 import PamView.panel.PamAlignmentPanel;
 import PamguardMVC.PamDataBlock;
+import PamguardMVC.PamDataUnit;
 import tritechplugins.record.GLFRecorderCtrl;
 import tritechplugins.record.GLFRecorderParams;
 import tritechplugins.record.GLFTriggerData;
@@ -240,7 +241,7 @@ public class GLFTriggersPanel {
 	 * @return
 	 */
 	private ArrayList<PamDataBlock> getTriggerBlocks() {
-		return PamController.getInstance().getDataBlocks(PamDetection.class, true);
+		return PamController.getInstance().getDataBlocks(PamDataUnit.class, true);
 	}
 
 	/**

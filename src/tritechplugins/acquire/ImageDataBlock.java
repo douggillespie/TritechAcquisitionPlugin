@@ -1,6 +1,7 @@
 package tritechplugins.acquire;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.ListIterator;
 
 import PamguardMVC.PamDataBlock;
@@ -24,9 +25,14 @@ import tritechplugins.acquire.swing.SonarImageSymbolManager;
 public class ImageDataBlock extends PamDataBlock<ImageDataUnit> {
 
 	private TritechDaqProcess tritechDaqProcess;
-	
-//	private MultiFileCatalog
-	
+
+	/**
+	 * Hashmap of the last unit for any sonar. Used in real time, but does no harm if
+	 * it's also populated in viewer mode
+	 */
+	private HashMap<Integer, ImageDataUnit> lastSonarDatas = new HashMap<Integer, ImageDataUnit>();
+	//	private MultiFileCatalog
+
 	public ImageDataBlock(TritechDaqProcess parentProcess) {
 		super(ImageDataUnit.class, "Tritech Image Data", parentProcess, 0);
 		this.tritechDaqProcess = parentProcess;
@@ -35,22 +41,44 @@ public class ImageDataBlock extends PamDataBlock<ImageDataUnit> {
 	public ImageDataBlock(TritechDaqProcess parentProcess, String blockName) {
 		super(ImageDataUnit.class, blockName, parentProcess, 0);
 		this.tritechDaqProcess = parentProcess;
-	
+
 	}
 
-//	@SuppressWarnings("unchecked")
+
+	@Override
+	public void addPamData(ImageDataUnit imageDataUnit) {
+		super.addPamData(imageDataUnit);
+		/*
+		 * Status data also get added here, so make sure it's an image
+		 */
+		SonarImageRecordI image = imageDataUnit.getGeminiImage();
+		if (image != null) {
+			int sonarId = image.getDeviceId();
+			synchronized (lastSonarDatas) {
+				lastSonarDatas.put(sonarId, imageDataUnit);
+			}
+		}
+	}
+
+	public ImageDataUnit getLastSonarImage(int sonarId) {
+		synchronized (lastSonarDatas) {
+			return lastSonarDatas.get(sonarId);
+		}
+	}
+
+	//	@SuppressWarnings("unchecked")
 	@Override
 	public boolean loadViewerData(OfflineDataLoadInfo offlineDataLoadInfo, ViewLoadObserver loadObserver) {
-		
+
 		super.loadViewerData(offlineDataLoadInfo, loadObserver);
-		
+
 		this.clearAll();
 		MultiFileCatalog fileCatalog = findFileCatalog();
 		if (fileCatalog == null) {
 			return false;
 		}
-		
-//		int totalRecords = fileCatalog.getTotalRecords();
+
+		//		int totalRecords = fileCatalog.getTotalRecords();
 		long tStart = offlineDataLoadInfo.getStartMillis();
 		long tEnd = offlineDataLoadInfo.getEndMillis();
 		/*
@@ -85,12 +113,12 @@ public class ImageDataBlock extends PamDataBlock<ImageDataUnit> {
 				addPamData(dataUnit);
 			}
 		}
-		
-//		this.
-		
+
+		//		this.
+
 		return true;
 	}
-	
+
 	/**
 	 * Get a count of the number of units with images and 
 	 * the number with status data. Do together so only 
@@ -128,16 +156,16 @@ public class ImageDataBlock extends PamDataBlock<ImageDataUnit> {
 		// TODO Auto-generated method stub
 		return 0;
 	}
-	
-//	/**
-//	 * Find a data unit in the loaded data. 
-//	 */
-//	public ImageDataUnit findDataUnit(long timeMillis, int sonarId) {
-//		synchronized(this.getSynchLock()) {
-//			ListIterator<ImageDataUnit> iterator = pamDataUnits.listIterator();
-//			for 
-//		}
-//	}
+
+	//	/**
+	//	 * Find a data unit in the loaded data. 
+	//	 */
+	//	public ImageDataUnit findDataUnit(long timeMillis, int sonarId) {
+	//		synchronized(this.getSynchLock()) {
+	//			ListIterator<ImageDataUnit> iterator = pamDataUnits.listIterator();
+	//			for 
+	//		}
+	//	}
 
 
 }

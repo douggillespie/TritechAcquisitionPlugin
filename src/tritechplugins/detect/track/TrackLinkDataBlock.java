@@ -1,9 +1,11 @@
 package tritechplugins.detect.track;
 
+import PamguardMVC.PamDataBlock;
 import PamguardMVC.dataOffline.OfflineDataLoadInfo;
 import PamguardMVC.superdet.SuperDetDataBlock;
 import pamScrollSystem.ViewLoadObserver;
 import tritechplugins.detect.threshold.RegionDataUnit;
+import tritechplugins.detect.threshold.ThresholdDetector;
 
 public class TrackLinkDataBlock extends SuperDetDataBlock<TrackLinkDataUnit, RegionDataUnit> {
 
@@ -31,6 +33,30 @@ public class TrackLinkDataBlock extends SuperDetDataBlock<TrackLinkDataUnit, Reg
 		// this has already been done as data were loaded, so can return immediately
 		//		return super.reattachSubdetections(viewLoadObserver);
 		return true;
+	}
+
+
+	@Override
+	public void clearAll() {
+		/*
+		 * Brian reversed the oder blocks are loaded in, so the Region datablock was getting cleared
+		 * when it loaded after this, which wasn't good !
+		 * So I've turned off automatic clearing of the RegionDatAblock, but we need to clear it when 
+		 * this block clears, or it's going to grow and grow. 
+		 */
+		super.clearAll();
+		PamDataBlock regionDatablock = findRegionBlock();
+		if (regionDatablock != null) {
+			regionDatablock.clearAll();
+		}
+	}
+
+
+	private PamDataBlock findRegionBlock() {
+		// TODO Auto-generated method stub
+		ThresholdDetector detector = trackLinkProcess.getThresholdDetector();
+		if (detector == null) return null;
+		return detector.getThresholdProcess().getRegionDataBlock();
 	}
 
 }
