@@ -23,6 +23,7 @@ import PamguardMVC.PamProcess;
 import geminisdk.OutputFileInfo;
 import geminisdk.Svs5Exception;
 import geminisdk.structures.LoggerPlaybackUpdate;
+import jsonStorage.JSONSQLWrapper;
 import tritechgemini.fileio.GLFCatalogCheck;
 import tritechgemini.fileio.GLFFileCatalog;
 import tritechgemini.fileio.GeminiFileCatalog;
@@ -74,6 +75,7 @@ public class TritechDaqProcess extends PamProcess implements TritechRunMode, Con
 		sonarStatusDataBlock = new SonarStatusDataBlock(this);
 		addOutputDataBlock(sonarStatusDataBlock);
 		sonarStatusDataBlock.SetLogging(new SonarStatusLogging(this, sonarStatusDataBlock));
+		sonarStatusDataBlock.setJSONDataSource(new JSONSQLWrapper(new SonarStatusLogging(this, sonarStatusDataBlock)));
 		
 		sortDaqSystem();
 		
